@@ -10,7 +10,8 @@ The daemon answers `hello` and `echo`, the VM lifecycle, and the operations a ru
 ## Transport
 
 Socket path: `$OPENVM_HOME/openvmd.sock` (env override; default `~/.openvm/openvmd.sock`).
-The daemon listens, serves **one connection at a time**; access control is the filesystem's
+The daemon listens and serves **every connection on its own thread**, so a long boot does
+not stop another client; access control is the filesystem's
 (per-user directory, so another user cannot reach the socket). Frames: see guest-protocol.md §Frame
 (magic `OVMC`, u16 version, u16 type, u16 flags, u32 payload length). 1 MiB payload cap.
 
@@ -49,6 +50,8 @@ the daemon replies on the same id.
 | printer | `id`, `op` (`list`, `test`), `name` for `test` | lists the guest's queues, or prints a test page |
 | audio | `id`, `op` (`status`, `test`, `enable`, `disable`) | reports or tests guest sound; adds `hostOutputRunning`. `enable` and `disable` are Windows only |
 | display | `id`; `op` `capture`, or `width`, `height` and optional `scale` (1 to 3) | changes the guest's mode and scale, or saves its screen for `file pull` |
+
+`list` and `info` rows also carry `bootMode`, `timezone` (when set), `diskBytes` (the disk's size as the guest sees it) and `activity` (the op in flight, absent when idle). The ops that change a VM's life (`start`, `stop`, `suspend`, `resume`, `delete`, `set`) hold its slot while they run: a second one answers `<name> is busy: <op>`. A `stop` is let through a `start`, because it is how a boot is cancelled.
 
 Name rule: 1–64 chars of `[A-Za-z0-9_-]`, first char alphanumeric (so CLI flags never
 collide). Record ids are `UUID().uuidString` values, generated at create time.

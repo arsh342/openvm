@@ -105,9 +105,8 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
         }
     }
     // Boot first, registry transition second: a failure (or a daemon kill)
-    // mid-boot leaves a clean `stopped` record. Unobservable to clients —
-    // the single accepted connection is the one inside this very request.
-    // (Revisit if the daemon ever serves several connections.)
+    // mid-boot leaves a clean `stopped` record. Other clients do see `stopped`
+    // while the boot runs; the row's `activity` ("start") says what is happening.
     // Windows: one machine identifier for the VM's lifetime.
     var machineIdentifier: Data?
     if record.bootMode == .windows {

@@ -2,9 +2,8 @@
 import Darwin
 import Foundation
 
-/// Raw POSIX unix-domain-socket helpers: blocking, synchronous,
-/// single connection at a time. Exactly what the stub daemon needs;
-/// an event-loop or async rewrite waits for a real multi-client design.
+/// Raw POSIX unix-domain-socket helpers: blocking and synchronous. The host serves
+/// each connection on its own thread, so nothing here needs an event loop.
 public nonisolated enum UnixSocket {
 
     private static func errnoError() -> POSIXError {
@@ -59,6 +58,18 @@ public nonisolated enum UnixSocket {
             close(fd)
             throw error
         }
+    }
+
+    /// A write to a peer that has gone must fail with EPIPE, not kill the process: the
+    /// host serves every VM, and a client pressing Ctrl-C mid-reply is ordinary.
+    ///
+    /// The per-socket option alone is not enough: macOS refuses to set it (EINVAL) once
+    /// the peer has closed, and a client can send a request and leave before the serving
+    /// thread gets here. So the process ignores SIGPIPE too (measured, see the tests).
+    public static func suppressSigpipe(fd: Int32) {
+        signal(SIGPIPE, SIG_IGN)
+        var on: Int32 = 1
+        setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, socklen_t(MemoryLayout<Int32>.size))
     }
 
     /// Accept one connection; returns the fd or -1.

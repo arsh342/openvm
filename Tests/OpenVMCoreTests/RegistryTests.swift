@@ -7,7 +7,7 @@ import Testing
 @Suite struct RegistryTests {
 
     // each test gets its own OPENVM_HOME-shaped directory
-    private func makeRegistry(_ fileName: String = "vms.json") throws -> (VmRegistry, URL) {
+    fileprivate func makeRegistry(_ fileName: String = "vms.json") throws -> (VmRegistry, URL) {
         let home = FileManager.default.temporaryDirectory
             .appendingPathComponent("openvm-tests-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
@@ -303,5 +303,31 @@ import Testing
         #expect(try reg.addShare(lower, hostPath: "/tmp", guestPath: "/mnt/t").shares?.count == 1)
         #expect(try reg.removeShare(lower, hostPath: "/tmp").shares?.isEmpty == true)
         #expect(try reg.delete(lower).uuid == vm.uuid)
+    }
+}
+
+extension RegistryTests {
+    /// Connections are served on their own threads, so creates arrive together.
+    @Test func concurrentCreatesKeepEveryRecord() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        let group = DispatchGroup()
+        for i in 0..<16 {
+            DispatchQueue.global().async(group: group) { _ = try? reg.create(name: "box-\(i)") }
+        }
+        group.wait()
+        #expect(try reg.list().count == 16)
+    }
+
+    @Test func concurrentTransitionsOfDifferentVmsAreAllKept() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        for i in 0..<8 { _ = try reg.create(name: "vm-\(i)") }
+        let group = DispatchGroup()
+        for i in 0..<8 {
+            DispatchQueue.global().async(group: group) { _ = try? reg.start("vm-\(i)") }
+        }
+        group.wait()
+        #expect(try reg.list().allSatisfy { $0.state == .running })
     }
 }

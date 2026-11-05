@@ -13,7 +13,14 @@ nonisolated func vmRow(_ rec: VmRecord) -> [(key: String, value: CBOR)] {
     ]
     if let disk = rec.diskPath {
         row.append(("diskPath", .text(disk)))
+        // The disk is sparse, so this is its size as the guest sees it, not what it uses.
+        if let size = (try? FileManager.default.attributesOfItem(atPath: disk))?[.size] as? NSNumber {
+            row.append(("diskBytes", .uint(size.uint64Value)))
+        }
     }
+    row.append(("bootMode", .text((rec.bootMode ?? .linux).rawValue)))
+    if let tz = rec.timezone { row.append(("timezone", .text(tz))) }
+    if let busy = activity.current(rec.uuid) { row.append(("activity", .text(busy))) }
     return row
 }
 
@@ -32,7 +39,13 @@ nonisolated func validTimezone(_ tz: String) -> Bool {
     return true
 }
 
+/// Two creates of one name would both pass the name check, and the loser's cleanup would
+/// delete the winner's disk directory. One at a time closes that.
+private nonisolated let createLock = NSLock()
+
 nonisolated func createVm(_ r: VmRequest) throws -> Envelope {
+    createLock.lock()
+    defer { createLock.unlock() }
     guard case .text(let name)? = r.arg("name") else { return r.fail("missing name") }
     var cpus = 4
     if case .uint(let n)? = r.arg("cpus"), n >= 1, n <= 32 {

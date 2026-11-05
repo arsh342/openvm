@@ -43,6 +43,22 @@ nonisolated struct VmRequest {
 
 nonisolated func vmOp(_ op: String, _ args: [(key: String, value: CBOR)], _ env: Envelope) -> Envelope {
     let r = VmRequest(op: op, args: args, env: env)
+    // The ops that change a VM's life hold its slot, so two clients cannot boot it twice.
+    // A stop is let through a boot: it is how a boot is cancelled.
+    if slotOps.contains(op), case .text(let id)? = r.arg("id"), let record = try? registry.resolve(id) {
+        let cancelsBoot = op == "stop" && activity.current(record.uuid) == "start"
+        if !cancelsBoot {
+            guard activity.begin(record.uuid, op) else {
+                return r.fail("\(record.name) is busy: \(activity.current(record.uuid) ?? "another operation")")
+            }
+        }
+        defer { if !cancelsBoot { activity.end(record.uuid) } }
+        return run(op, r)
+    }
+    return run(op, r)
+}
+
+private nonisolated func run(_ op: String, _ r: VmRequest) -> Envelope {
     do {
         switch op {
         case "create": return try createVm(r)

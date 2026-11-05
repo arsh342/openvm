@@ -130,40 +130,38 @@ public nonisolated struct VmRegistry: Sendable {
     /// delete: removes the record outright; only a `stopped` VM may be removed
     /// (disk sidecar sweep is the daemon's job — the registry stays disk-agnostic).
     public func delete(_ id: String) throws -> VmRecord {
-        var vms = try list()
-        guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
-        guard vms[idx].state == .stopped else { throw VmRegistryError.badTransition }
-        let vm = vms.remove(at: idx)
-        try save(vms)
-        return vm
+        try mutate { vms in
+            guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
+            guard vms[idx].state == .stopped else { throw VmRegistryError.badTransition }
+            return vms.remove(at: idx)
+        }
     }
 
-    /// set: updates a stopped record's resource fields; nil leaves a field
-    /// unchanged. The daemon op owns the "at least one field" presence check.
     /// Record a VM's machine identifier (generated once, on its first boot).
     public func setMachineIdentifier(_ id: String, _ value: String) throws {
-        var vms = try list()
-        guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
-        vms[idx].machineIdentifier = value
-        try save(vms)
+        try mutate { vms in
+            guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
+            vms[idx].machineIdentifier = value
+        }
     }
 
-    /// Updates the given fields of a stopped VM.
+    /// Updates the given fields of a stopped VM; nil leaves a field unchanged.
+    /// The daemon op owns the "at least one field" presence check.
     public func set(
         _ id: String, cpus: Int? = nil, memoryMB: Int? = nil,
         timezone: String? = nil, bootMode: BootMode? = nil,
         variableStorePath: String? = nil
     ) throws -> VmRecord {
-        var vms = try list()
-        guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
-        guard vms[idx].state == .stopped else { throw VmRegistryError.badTransition }
-        if let cpus { vms[idx].cpus = cpus }
-        if let memoryMB { vms[idx].memoryMB = memoryMB }
-        if let timezone { vms[idx].timezone = timezone }
-        if let bootMode { vms[idx].bootMode = bootMode }
-        if let variableStorePath { vms[idx].variableStorePath = variableStorePath }
-        try save(vms)
-        return vms[idx]
+        try mutate { vms in
+            guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
+            guard vms[idx].state == .stopped else { throw VmRegistryError.badTransition }
+            if let cpus { vms[idx].cpus = cpus }
+            if let memoryMB { vms[idx].memoryMB = memoryMB }
+            if let timezone { vms[idx].timezone = timezone }
+            if let bootMode { vms[idx].bootMode = bootMode }
+            if let variableStorePath { vms[idx].variableStorePath = variableStorePath }
+            return vms[idx]
+        }
     }
 
     /// Adds a stopped VM. The name must be valid and unused.
@@ -173,19 +171,19 @@ public nonisolated struct VmRegistry: Sendable {
         variableStorePath: String? = nil, installMediaPath: String? = nil
     ) throws -> VmRecord {
         guard Self.validName(name) else { throw VmRegistryError.nameInvalid }
-        var vms = try list()
-        guard !vms.contains(where: { $0.name == name }) else { throw VmRegistryError.nameExists }
-        let vm = VmRecord(
-            uuid: UUID().uuidString,
-            name: name,
-            state: .stopped,
-            cpus: cpus, memoryMB: memoryMB, diskPath: diskPath, timezone: nil, shares: nil,
-            bootMode: bootMode, variableStorePath: variableStorePath,
-            installMediaPath: installMediaPath, machineIdentifier: nil,
-            createdAt: Self.iso8601.string(from: Date()))
-        vms.append(vm)
-        try save(vms)
-        return vm
+        return try mutate { vms in
+            guard !vms.contains(where: { $0.name == name }) else { throw VmRegistryError.nameExists }
+            let vm = VmRecord(
+                uuid: UUID().uuidString,
+                name: name,
+                state: .stopped,
+                cpus: cpus, memoryMB: memoryMB, diskPath: diskPath, timezone: nil, shares: nil,
+                bootMode: bootMode, variableStorePath: variableStorePath,
+                installMediaPath: installMediaPath, machineIdentifier: nil,
+                createdAt: Self.iso8601.string(from: Date()))
+            vms.append(vm)
+            return vm
+        }
     }
 
     // MARK: shares
@@ -193,37 +191,53 @@ public nonisolated struct VmRegistry: Sendable {
     /// addShare: export a host directory into the guest. One entry per host
     /// path — re-adding the same host path moves its guest path.
     public func addShare(_ id: String, hostPath: String, guestPath: String) throws -> VmRecord {
-        var vms = try list()
-        guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
-        var shares = vms[idx].shares ?? []
-        if let existing = shares.firstIndex(where: { $0.hostPath == hostPath }) {
-            shares[existing].guestPath = guestPath
-        } else {
-            shares.append(VmShare(hostPath: hostPath, guestPath: guestPath))
+        try mutate { vms in
+            guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
+            var shares = vms[idx].shares ?? []
+            if let existing = shares.firstIndex(where: { $0.hostPath == hostPath }) {
+                shares[existing].guestPath = guestPath
+            } else {
+                shares.append(VmShare(hostPath: hostPath, guestPath: guestPath))
+            }
+            vms[idx].shares = shares
+            return vms[idx]
         }
-        vms[idx].shares = shares
-        try save(vms)
-        return vms[idx]
     }
 
     /// removeShare: drop the export for one host path (unknown paths are a no-op).
     public func removeShare(_ id: String, hostPath: String) throws -> VmRecord {
-        var vms = try list()
-        guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
-        vms[idx].shares = (vms[idx].shares ?? []).filter { $0.hostPath != hostPath }
-        try save(vms)
-        return vms[idx]
+        try mutate { vms in
+            guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
+            vms[idx].shares = (vms[idx].shares ?? []).filter { $0.hostPath != hostPath }
+            return vms[idx]
+        }
     }
 
     // MARK: internals
 
-    private func transition(_ id: String, from allowed: Set<VmState>, to: VmState) throws -> VmRecord {
+    /// Every write goes through here: connections are served on their own threads, so
+    /// two read-modify-write cycles must never interleave and lose a record. One lock
+    /// for the process is enough: the host lock keeps a second host off the same home.
+    private static let writeLock = NSLock()
+
+    /// Reads the records, lets `change` edit them, and saves the result — as one step.
+    /// Nothing is saved when `change` throws.
+    private func mutate<T>(_ change: (inout [VmRecord]) throws -> T) throws -> T {
+        Self.writeLock.lock()
+        defer { Self.writeLock.unlock() }
         var vms = try list()
-        guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
-        guard allowed.contains(vms[idx].state) else { throw VmRegistryError.badTransition }
-        vms[idx].state = to
+        let result = try change(&vms)
         try save(vms)
-        return vms[idx]
+        return result
+    }
+
+    private func transition(_ id: String, from allowed: Set<VmState>, to: VmState) throws -> VmRecord {
+        try mutate { vms in
+            guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
+            guard allowed.contains(vms[idx].state) else { throw VmRegistryError.badTransition }
+            vms[idx].state = to
+            return vms[idx]
+        }
     }
 
     private func save(_ vms: [VmRecord]) throws {

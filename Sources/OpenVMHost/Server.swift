@@ -1,4 +1,4 @@
-// Server — the daemon's socket: one client at a time, one frame at a time.
+// Server — the host socket: every client on its own thread, one frame at a time per client.
 import Foundation
 import OpenVMCore
 
@@ -6,8 +6,12 @@ nonisolated func listenerLoop(fd: Int32) {
     while true {
         let client = UnixSocket.acceptOne(fd: fd)
         guard client >= 0 else { continue }
-        serve(client)
-        close(client)
+        // One thread per connection: a boot can take an hour, and the app and the CLI
+        // are both clients. The VMs and the registry are what they share, and both lock.
+        Thread.detachNewThread {
+            serve(client)
+            close(client)
+        }
     }
 }
 
@@ -16,7 +20,12 @@ nonisolated func send(_ fd: Int32, _ env: Envelope) {
     try? UnixSocket.writeAll(fd: fd, EnvelopeCodec.encode(env))
 }
 
-nonisolated func serve(_ fd: Int32) {
+typealias VmDispatch = @Sendable (String, [(key: String, value: CBOR)], Envelope) -> Envelope
+
+/// Serves one connection until it closes. `dispatch` is a parameter so a test can
+/// stand in a slow handler.
+nonisolated func serve(_ fd: Int32, dispatch: VmDispatch = vmOp) {
+    UnixSocket.suppressSigpipe(fd: fd)
     var decoder = FrameDecoder()
     var buffer = Data()
     while true {
@@ -70,7 +79,7 @@ nonisolated func serve(_ fd: Int32) {
                     }
                     op = o
                     args = a
-                    send(fd, vmOp(op, args, env))
+                    send(fd, dispatch(op, args, env))
                 case .helloReply, .echoReply, .vmReply, .clipboardRequest, .clipboardReply,
                     .fileRequest, .fileReply, .timesyncRequest, .timesyncReply,
                     .sharedRequest, .sharedReply, .suspendRequest, .suspendReply,
