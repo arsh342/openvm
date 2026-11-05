@@ -52,8 +52,7 @@ and write the result next to each line.
 * The fit is requested when the window resizes (live, zoom and full screen all arrive as
   resizes), when its backing scale changes (moved to another display), and once when the
   guest becomes ready. It is sent 250 ms after the last change, one at a time, latest size
-  only. Between resizes the view scales the last frame, so a window dragged larger shows no
-  failure.
+  only.
 * A scale Windows refuses ("Windows allows at most N% at this size", and the agent's other
   scale refusals) steps down to the highest one it allows. Any other failure, such as an
   unreachable guest, is tried once.
@@ -63,3 +62,31 @@ To check by hand: drag the window to a new size, wait a second, and run
 window's size in points times 2. Also try full screen, and moving the window to a
 non-Retina display if one is attached. Record how long the guest takes to settle after you
 stop dragging.
+
+### What went wrong the first time, and how it was found (2026-11-06)
+
+The first build did not follow the window. The owner's screenshot of a maximized window showed
+the guest drawn at its old size in the bottom-left corner, with dark bars above and to the
+right, and the guest's own capture was still 2560 x 1440. Three separate faults, each found by
+measuring, not by guessing:
+
+* **The machine view did not follow its window.** A trace of the running app showed the
+  window's content view growing (1280, 1282, 1466, 1470 points wide) while the machine view
+  stayed at 1280 x 721. The fit reads the view's size, so it computed the old mode and skipped
+  it. A stock `VZVirtualMachineView` has `translatesAutoresizingMaskIntoConstraints` off, and
+  the fix pins it (and the cover) to the window with Auto Layout constraints. After that the
+  trace shows view and container equal. *Not explained:* four isolated probes (a plain view, a
+  `VZVirtualMachineView`, one with a machine attached, one animated through zoom and full
+  screen) all followed their container under autoresizing, so the exact mechanism in the
+  running app is unknown. The pin is verified in the running app, not derived.
+* **The first fit of a new guest was refused.** The guest agent answers before the desktop
+  session exists (`cat: can't open '/run/user/1000/openvm-bus'`), so the guest cannot take a
+  mode yet. Nothing asked again. A refused mode is now retried after 1, 2, 4, 8, 15 and 30
+  seconds, and a newer size restarts the count.
+* **The guest's display server rounds a width down to a multiple of 8.** Asked for 2940, the
+  Linux guest held 2936, and the host rejects a mode that differs from the one asked for
+  (`X holds 2936x1630, not 2940x1630`), so retrying could never succeed. Widths are now rounded
+  down to a multiple of 8 before they are asked for. Heights have held exactly so far.
+
+Verified afterwards in the running app: every fit succeeded, the view equalled its container,
+and a full-screen window (1470 x 923 points) gave a guest of 2936 x 1846 pixels.

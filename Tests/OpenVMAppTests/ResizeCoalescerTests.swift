@@ -9,7 +9,12 @@ import Testing
 actor TimerGate {
     private var waiters: [CheckedContinuation<Void, Never>] = []
     var pending: Int { waiters.count }
-    func wait() async { await withCheckedContinuation { waiters.append($0) } }
+    /// How long each timer was asked to wait, in the order they were set.
+    private(set) var durations: [Duration] = []
+    func wait(_ duration: Duration = .zero) async {
+        durations.append(duration)
+        await withCheckedContinuation { waiters.append($0) }
+    }
     func releaseAll() {
         let all = waiters
         waiters = []
@@ -22,14 +27,22 @@ actor Recorder {
     private(set) var running = 0
     private(set) var maxRunning = 0
     private let hold: TimerGate?
-    init(hold: TimerGate? = nil) { self.hold = hold }
+    /// What each apply answers, in order; true once they run out.
+    private var results: [Bool]
+    private(set) var attempts = 0
+    init(hold: TimerGate? = nil, results: [Bool] = []) {
+        self.hold = hold
+        self.results = results
+    }
     func apply(_ mode: DisplayFit.Mode) async -> Bool {
         running += 1
         maxRunning = max(maxRunning, running)
         await hold?.wait()
-        applied.append(mode)
+        attempts += 1
+        let ok = results.isEmpty ? true : results.removeFirst()
+        if ok { applied.append(mode) }
         running -= 1
-        return true
+        return ok
     }
 }
 
@@ -49,7 +62,7 @@ struct ResizeCoalescerTests {
     @Test func onlyTheLatestSizeIsApplied() async {
         let timers = TimerGate()
         let recorder = Recorder()
-        let coalescer = ResizeCoalescer(sleep: { await timers.wait() }, apply: { await recorder.apply($0) })
+        let coalescer = ResizeCoalescer(sleep: { await timers.wait($0) }, apply: { await recorder.apply($0) })
         await coalescer.request(mode(800))
         await coalescer.request(mode(900))
         await coalescer.request(mode(1000))
@@ -63,7 +76,7 @@ struct ResizeCoalescerTests {
         let timers = TimerGate()
         let hold = TimerGate()
         let recorder = Recorder(hold: hold)
-        let coalescer = ResizeCoalescer(sleep: { await timers.wait() }, apply: { await recorder.apply($0) })
+        let coalescer = ResizeCoalescer(sleep: { await timers.wait($0) }, apply: { await recorder.apply($0) })
         await coalescer.request(mode(800))
         #expect(await eventually { await timers.pending == 1 })
         await timers.releaseAll()
@@ -86,7 +99,7 @@ struct ResizeCoalescerTests {
     @Test func aSizeAlreadyAppliedIsNotSentAgain() async {
         let timers = TimerGate()
         let recorder = Recorder()
-        let coalescer = ResizeCoalescer(sleep: { await timers.wait() }, apply: { await recorder.apply($0) })
+        let coalescer = ResizeCoalescer(sleep: { await timers.wait($0) }, apply: { await recorder.apply($0) })
         await coalescer.request(mode(800))
         #expect(await eventually { await timers.pending == 1 })
         await timers.releaseAll()
@@ -102,7 +115,7 @@ struct ResizeCoalescerTests {
         // After a resume or a restart the guest may have lost the mode.
         let timers = TimerGate()
         let recorder = Recorder()
-        let coalescer = ResizeCoalescer(sleep: { await timers.wait() }, apply: { await recorder.apply($0) })
+        let coalescer = ResizeCoalescer(sleep: { await timers.wait($0) }, apply: { await recorder.apply($0) })
         await coalescer.request(mode(800))
         #expect(await eventually { await timers.pending == 1 })
         await timers.releaseAll()
@@ -112,5 +125,60 @@ struct ResizeCoalescerTests {
         #expect(await eventually { await timers.pending == 1 })
         await timers.releaseAll()
         #expect(await eventually { await recorder.applied.count == 2 })
+    }
+}
+
+extension ResizeCoalescerTests {
+    /// The agent answers before the desktop session exists, so the first fit of a freshly
+    /// booted guest can be refused. Nothing else will ask again, so the coalescer must.
+    @Test func aRefusedModeIsRetriedWithBackoff() async {
+        let timers = TimerGate()
+        let recorder = Recorder(results: [false, false, true])
+        let coalescer = ResizeCoalescer(
+            delay: .milliseconds(250), sleep: { await timers.wait($0) }, apply: { await recorder.apply($0) })
+        await coalescer.request(mode(800))
+        for round in 1...3 {
+            #expect(await eventually { await timers.pending == 1 })
+            await timers.releaseAll()
+            #expect(await eventually { await recorder.attempts == round })
+        }
+        #expect(await recorder.applied == [mode(800)])
+        // 250 ms to settle, then 1 s, then 2 s: backing off
+        #expect(await timers.durations == [.milliseconds(250), .seconds(1), .seconds(2)])
+        // success ends the retries: nothing more is scheduled
+        try? await Task.sleep(for: .milliseconds(30))
+        #expect(await timers.pending == 0)
+    }
+
+    @Test func retriesStopAfterTheLastDelay() async {
+        let timers = TimerGate()
+        let recorder = Recorder(results: Array(repeating: false, count: 20))
+        let coalescer = ResizeCoalescer(
+            delay: .milliseconds(250), sleep: { await timers.wait($0) },
+            retryDelays: [.seconds(1), .seconds(2)], apply: { await recorder.apply($0) })
+        await coalescer.request(mode(800))
+        for round in 1...3 {  // the first try, and two retries
+            #expect(await eventually { await timers.pending == 1 })
+            await timers.releaseAll()
+            #expect(await eventually { await recorder.attempts == round })
+        }
+        try? await Task.sleep(for: .milliseconds(30))
+        #expect(await timers.pending == 0)  // it gave up
+        #expect(await recorder.attempts == 3)
+    }
+
+    @Test func aNewSizeRestartsTheRetries() async {
+        let timers = TimerGate()
+        let recorder = Recorder(results: [false, true])
+        let coalescer = ResizeCoalescer(
+            delay: .milliseconds(250), sleep: { await timers.wait($0) }, apply: { await recorder.apply($0) })
+        await coalescer.request(mode(800))
+        #expect(await eventually { await timers.pending == 1 })
+        await timers.releaseAll()
+        #expect(await eventually { await recorder.attempts == 1 })  // refused; a retry is waiting
+        await coalescer.request(mode(900))  // the user resized meanwhile
+        #expect(await eventually { await timers.pending >= 1 })
+        await timers.releaseAll()
+        #expect(await eventually { await recorder.applied == [mode(900)] })  // the newest size, not the old one
     }
 }

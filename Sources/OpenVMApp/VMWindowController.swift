@@ -48,11 +48,20 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         machineView.automaticallyReconfiguresDisplay = false
         machineView.capturesSystemKeys = false
 
+        // Both fill the window, pinned with constraints. The machine view is built for Auto
+        // Layout (its autoresizing-mask translation is off), so it is not left to follow the
+        // window by autoresizing alone: in the running app its size stayed at the first
+        // window's while the window around it grew (measured).
         let container = NSView(frame: window.contentLayoutRect)
         for view in [machineView, cover] as [NSView] {
-            view.frame = container.bounds
-            view.autoresizingMask = [.width, .height]
+            view.translatesAutoresizingMaskIntoConstraints = false
             container.addSubview(view)
+            NSLayoutConstraint.activate([
+                view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+                view.topAnchor.constraint(equalTo: container.topAnchor),
+                view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            ])
         }
         window.contentView = container
         update(vm)
@@ -140,7 +149,9 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         return false
     }
 
-    func windowDidResize(_ notification: Notification) { fitGuestToWindow() }
+    func windowDidResize(_ notification: Notification) {
+        fitGuestToWindow()
+    }
 
     func windowDidChangeBackingProperties(_ notification: Notification) {
         updateMinimumSize()

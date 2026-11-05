@@ -27,9 +27,11 @@ public nonisolated enum DisplayFit {
             let value = (points * backing).rounded()
             return UInt64(min(max(value, CGFloat(low)), CGFloat(high)))
         }
-        return Mode(
-            width: pixels(pointSize.width, 640, 7680), height: pixels(pointSize.height, 480, 4320),
-            scale: scale)
+        // Down to a multiple of 8: a guest's display server cannot hold other widths (measured:
+        // asked for 2940, the Linux guest held 2936), and a mode the guest does not hold is
+        // a refused mode. 640 and 7680 are already multiples of 8.
+        let width = pixels(pointSize.width, 640, 7680) / 8 * 8
+        return Mode(width: width, height: pixels(pointSize.height, 480, 4320), scale: scale)
     }
 
     /// The scales to try, highest first. Windows caps the scale by desktop size, so a

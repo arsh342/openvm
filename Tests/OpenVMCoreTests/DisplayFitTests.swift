@@ -59,3 +59,24 @@ import Testing
         #expect(!DisplayFit.shouldStepDown(after: "display needs a width of 640-7680 and a height of 480-4320"))
     }
 }
+
+extension DisplayFitTests {
+    /// Measured: asked for 2940 wide, the guest's X server held 2936, and the host rejects
+    /// a mode that differs from the one it asked for. So only multiples of 8 are asked for.
+    @Test func widthIsAMultipleOfEightSoTheGuestCanHoldIt() {
+        let mode = DisplayFit.mode(pointSize: CGSize(width: 1470, height: 815), backingScale: 2)
+        #expect(mode.width == 2936)  // 2940 rounded down
+        #expect(mode.height == 1630)  // height is left exact
+        for width in stride(from: 640, through: 1700, by: 7) {
+            let m = DisplayFit.mode(pointSize: CGSize(width: CGFloat(width), height: 600), backingScale: 2)
+            #expect(m.width % 8 == 0, "\(width)")
+            #expect(GuestDisplay.validMode(width: m.width, height: m.height), "\(width)")
+        }
+    }
+
+    @Test func roundingNeverGoesBelowTheMinimum() {
+        let mode = DisplayFit.mode(pointSize: CGSize(width: 321, height: 241), backingScale: 2)  // 642 x 482
+        #expect(mode.width == 640)
+        #expect(mode.width >= 640)
+    }
+}
