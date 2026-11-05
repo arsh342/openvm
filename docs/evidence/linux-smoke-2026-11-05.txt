@@ -1,0 +1,14 @@
+smoke: first-boot install and guest agent ping passed
+smoke: binary file push/pull round-trip passed
+smoke: shared folder mounted in the guest
+smoke: shared folder removed and re-added live
+smoke: desktop clipboard round-trip passed
+smoke: guest print reached the host lp as a PDF
+smoke: guest display followed the host to 1280x720 and 1600x900
+smoke: guest desktop scaled to 1x, 2x and 3x
+smoke: the XFCE desktop is drawn
+smoke: files dropped onto the guest desktop (7 pings answered during a 2 GiB drop)
+smoke: guest audio played (the Mac was already playing, so host output proves nothing here)
+smoke: suspend/resume and agent re-ping passed
+smoke: persistent disk boot and guest agent ping passed
+smoke: okay

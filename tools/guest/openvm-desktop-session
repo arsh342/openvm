@@ -1,0 +1,30 @@
+#!/bin/sh
+# Started by the openvm-clipdesk service once X answers: the XFCE session of the
+# unprivileged guest user. The host owns sleep and blanking (the same reason
+# Windows guests have their display timeout off), so X never does either.
+export DISPLAY=:99
+echo "openvm-desktop: waiting for X"
+# timeout: a wedged server accepts the connection and never answers.
+i=0
+until timeout 3 xset q >/dev/null 2>&1; do
+    i=$((i + 1))
+    if [ "$i" -ge 10 ]; then
+        echo "openvm-desktop: X never answered; its log ends:"
+        tail -25 /var/log/Xorg.99.log 2>&1 | sed 's/^/openvm-desktop: /'
+        exit 1
+    fi
+    sleep 1
+done
+xset s off -dpms
+echo "openvm-desktop: input devices:"
+xinput list --name-only 2>&1 | sed 's/^/openvm-desktop:   /'
+
+uid=$(id -u openvm)
+mkdir -p "/run/user/$uid"
+chown openvm:openvm "/run/user/$uid"
+chmod 700 "/run/user/$uid"
+exec su -s /bin/sh openvm -c "
+    export DISPLAY=:99 XDG_RUNTIME_DIR=/run/user/$uid HOME=/home/openvm
+    /usr/local/bin/openvm-clipboard-session
+    exec dbus-launch --exit-with-session sh -c 'echo \"\$DBUS_SESSION_BUS_ADDRESS\" >/run/user/$uid/openvm-bus; exec xfce4-session'
+"

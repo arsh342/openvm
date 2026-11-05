@@ -1,0 +1,17 @@
+.build/
+.DS_Store
+
+# Bring-your-own Windows installation media. Microsoft's licence
+# does not allow redistributing the ISO, and it is 8 GB.
+windowsImage/
+
+# Guest boot artifacts fetched or generated locally.
+*.raw
+*.raw.golden
+*.nvram.bin
+*.nvram.bin.golden
+*.console.log
+*.efi
+
+__pycache__/
+*.pyc

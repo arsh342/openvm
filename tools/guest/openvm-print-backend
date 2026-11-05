@@ -1,0 +1,27 @@
+#!/bin/sh
+# openvm-print-backend — the CUPS backend behind every openVM guest queue.
+# Installed as /usr/lib/cups/backend/openvm. The filter chain has already made
+# the job a PDF (openvm-pdf.ppd); this leaves it in the spool for the agent.
+# The rename is what marks a job complete: the agent only reads *.pdf.
+spool=/var/spool/openvm-print
+
+if [ $# -eq 0 ]; then
+    echo 'direct openvm "Unknown" "openVM host printer"'
+    exit 0
+fi
+[ $# -ge 5 ] || { echo "ERROR: usage: openvm job user title copies options [file]" >&2; exit 1; }
+
+case "$PRINTER" in
+    ''|*[!A-Za-z0-9._-]*) echo "ERROR: bad queue name" >&2; exit 1 ;;
+esac
+case "$1" in
+    ''|*[!0-9]*) echo "ERROR: bad job id" >&2; exit 1 ;;
+esac
+
+tmp="$spool/.job-$1-$$"
+if [ $# -ge 6 ]; then
+    cat -- "$6" > "$tmp" || { rm -f "$tmp"; exit 1; }
+else
+    cat > "$tmp" || { rm -f "$tmp"; exit 1; }
+fi
+mv "$tmp" "$spool/${PRINTER}--$1.pdf"
