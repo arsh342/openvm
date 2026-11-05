@@ -1,8 +1,14 @@
-// AppMenu — the menu bar every Mac app has. Later tasks add to it.
+// AppMenu — the menu bar every Mac app has, plus the Machine menu that opens a VM's window.
 import AppKit
+import OpenVMCore
 
-enum AppMenu {
-    static func build() -> NSMenu {
+@MainActor
+final class AppMenu: NSObject, NSMenuDelegate {
+    private let model: VMListModel
+
+    init(model: VMListModel) { self.model = model }
+
+    func build() -> NSMenu {
         let main = NSMenu()
 
         let appItem = NSMenuItem()
@@ -23,6 +29,13 @@ enum AppMenu {
         app.addItem(.separator())
         app.addItem(withTitle: "Quit openVM", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
 
+        // Rebuilt each time it opens, from the host's current list.
+        let machineItem = NSMenuItem()
+        main.addItem(machineItem)
+        let machine = NSMenu(title: "Machine")
+        machine.delegate = self
+        machineItem.submenu = machine
+
         let windowItem = NSMenuItem()
         main.addItem(windowItem)
         let window = NSMenu(title: "Window")
@@ -32,5 +45,25 @@ enum AppMenu {
         NSApp.windowsMenu = window
 
         return main
+    }
+
+    func menuNeedsUpdate(_ menu: NSMenu) {
+        menu.removeAllItems()
+        guard !model.vms.isEmpty else {
+            let none = menu.addItem(withTitle: "No virtual machines", action: nil, keyEquivalent: "")
+            none.isEnabled = false
+            return
+        }
+        for vm in model.vms {
+            let item = menu.addItem(
+                withTitle: "Open \(vm.name)", action: #selector(openWindow(_:)), keyEquivalent: "")
+            item.target = self
+            item.representedObject = vm.uuid
+        }
+    }
+
+    @objc private func openWindow(_ item: NSMenuItem) {
+        guard let uuid = item.representedObject as? String, let vm = model.vm(uuid: uuid) else { return }
+        WindowRegistry.shared.show(vm) { [model] vm in Task { await model.start(vm) } }
     }
 }

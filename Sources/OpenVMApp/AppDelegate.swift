@@ -1,5 +1,7 @@
 // AppDelegate — launch: start the host, and say so plainly if it cannot start.
 import AppKit
+import Combine
+import OpenVMCore
 import OpenVMHost
 
 /// What to tell a person when the host could not start. Another host on the same
@@ -12,8 +14,30 @@ func hostStartFailureMessage(_ error: Error) -> String {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    /// The windows and menus talk to the host through its socket, like openvmctl does.
+    private let model = VMListModel(transport: DaemonClient())
+    private var menu: AppMenu?
+    private var subscription: AnyCancellable?
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        for url in urls {
+            guard let reference = vmReference(from: url) else { continue }
+            Task { await openWindow(for: reference) }
+        }
+    }
+
+    /// A link may arrive before the first poll has filled the list.
+    private func openWindow(for reference: String) async {
+        if model.vms.isEmpty { await model.refresh() }
+        guard let vm = model.vms.first(where: { $0.name == reference || $0.uuid.lowercased() == reference.lowercased() })
+        else { return }
+        WindowRegistry.shared.show(vm) { [model] vm in Task { await model.start(vm) } }
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.mainMenu = AppMenu.build()
+        let menu = AppMenu(model: model)
+        self.menu = menu
+        NSApp.mainMenu = menu.build()
         do {
             try OpenVMHost.start()
         } catch {
@@ -24,6 +48,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             alert.addButton(withTitle: "Quit")
             alert.runModal()
             NSApp.terminate(nil)
+            return
         }
+        subscription = model.$vms.sink { WindowRegistry.shared.update($0) }
+        model.begin()
     }
 }

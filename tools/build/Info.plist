@@ -20,6 +20,17 @@
     <string>14.0</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.developer-tools</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+      <dict>
+        <key>CFBundleURLName</key>
+        <string>dev.openvm.app.link</string>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>openvm</string>
+        </array>
+      </dict>
+    </array>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
     <key>NSHighResolutionCapable</key>
