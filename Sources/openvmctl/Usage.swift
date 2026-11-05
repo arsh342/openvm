@@ -8,7 +8,7 @@ let usage = """
       openvmctl info <name|uuid>
       openvmctl start <name|uuid>
       openvmctl ping <name|uuid>
-      openvmctl stop <name|uuid>
+      openvmctl stop <name|uuid> [--no-wait]
       openvmctl delete <name|uuid>
       openvmctl suspend <name|uuid>
       openvmctl resume <name|uuid>

@@ -295,6 +295,13 @@ if "$CTL" audio test "$VM" >/dev/null 2>&1; then fail "a tone played after disab
 echo "smoke: sound off by default, on after enable, off after disable"
 
 # --- the guest's disk --------------------------------------------------------
+# The guest stops itself and the record follows with no further command: only the
+# framework's end-of-guest report can do that.
+"$CTL" stop "$VM" --no-wait | grep -q "stopping $VM" || fail "no-wait stop output wrong"
+retry 90 sh -c "'$CTL' list | grep -q 'state=stopped'" || fail "the record did not follow the guest's own shutdown"
+"$CTL" start "$VM" >/dev/null || fail "start after a guest-initiated stop failed"
+retry 180 agent_up || fail "the agent did not answer after a guest-initiated stop"
+echo "smoke: the record followed the guest's own shutdown, and the VM started again"
 "$CTL" stop "$VM" | grep -q "stopped $VM" || fail "final stop failed"
 attached=$(hdiutil attach -readonly -nobrowse -noverify -imagekey diskimage-class=CRawDiskImage \
   "$OPENVM_HOME/disks/$VM/disk.raw" 2>/dev/null) || fail "could not read the guest's disk"

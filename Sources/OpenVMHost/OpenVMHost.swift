@@ -25,6 +25,12 @@ public nonisolated enum OpenVMHost {
     /// The lock comes first: bindListen unlinks whatever socket file is there.
     public static func start() throws {
         lock = try HostLock.acquire(home: home)
+        // We are the only host, so no guest from an earlier host survives: it died with
+        // the process that ran it. Records that still claim one are stale.
+        for uuid in reconcileRecords((try? registry.list()) ?? [], live: []) {
+            markStopped(registry, uuid)
+            note("openvmd: \(uuid) was left running by an earlier host; recorded as stopped")
+        }
         let listenFd = try UnixSocket.bindListen(path: sockPath)
         note("openvmd: listening on \(sockPath)")
         Thread.detachNewThread { listenerLoop(fd: listenFd) }

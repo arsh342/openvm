@@ -37,6 +37,9 @@ nonisolated struct VmRequest {
         guard let guest = liveVMs.peek(record.uuid) else {
             throw GuestBootError.failure("no live channel for \(record.name) (was the daemon restarted?)")
         }
+        if let refusal = channelRefusal(phase: guest.phase, name: record.name) {
+            throw GuestBootError.failure(refusal)
+        }
         return guest
     }
 }
@@ -46,14 +49,19 @@ nonisolated func vmOp(_ op: String, _ args: [(key: String, value: CBOR)], _ env:
     // The ops that change a VM's life hold its slot, so two clients cannot boot it twice.
     // A stop is let through a boot: it is how a boot is cancelled.
     if slotOps.contains(op), case .text(let id)? = r.arg("id"), let record = try? registry.resolve(id) {
-        let cancelsBoot = op == "stop" && activity.current(record.uuid) == "start"
-        if !cancelsBoot {
+        switch slotDecision(op: op, holder: activity.current(record.uuid)) {
+        case .passThrough:
+            return run(op, r)
+        case .busy(let holder):
+            return r.fail("\(record.name) is busy: \(holder)")
+        case .take:
+            // begin() can still lose a race with another connection
             guard activity.begin(record.uuid, op) else {
                 return r.fail("\(record.name) is busy: \(activity.current(record.uuid) ?? "another operation")")
             }
+            defer { activity.end(record.uuid) }
+            return run(op, r)
         }
-        defer { if !cancelsBoot { activity.end(record.uuid) } }
-        return run(op, r)
     }
     return run(op, r)
 }

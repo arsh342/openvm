@@ -1,0 +1,17 @@
+sh tools/test/windows-smoke.sh "Windows11_Client_arm64_en-gb_26300_9457.iso"
+smoke: Windows installed and the agent answers; waiting 480s for first-boot setup
+smoke: clipboard round trip passed
+smoke: file round trip passed
+smoke: shares added and removed
+smoke: guest print reached the host lp as a PDF, once per job, on the right queue
+smoke: guest display followed the host to 1280x720 and 1600x900
+smoke: guest desktop scaled to 1x, 2x and 3x, and refused a scale with no room
+smoke: files dropped onto the guest desktop (20 pings answered during a 2 GiB drop)
+smoke: suspend/resume and agent re-ping passed
+smoke: guest audio played through the host (output idle, running, idle)
+smoke: sound off by default, on after enable, off after disable
+smoke: the record followed the guest's own shutdown, and the VM started again
+smoke: dropped files match on the guest's disk
+smoke: the scale was applied again after resume
+smoke: the guest took the host's time zone
+smoke: okay

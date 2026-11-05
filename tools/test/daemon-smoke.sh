@@ -305,6 +305,18 @@ FAKE
   "$CTL" stop srv1 | grep -q "stopped srv1" || fail "stop output wrong after persistent boot"
   "$CTL" list | grep -q "state=stopped" || fail "state not stopped after persistent guest stop"
   echo "smoke: persistent disk boot and guest agent ping passed"
+  # The guest stops itself (the agent powers it off) and the record follows with no
+  # further command: only the framework's end-of-guest report can do that.
+  "$CTL" start srv1 | grep -q "guest booted" || fail "restart before the no-wait stop failed"
+  "$CTL" stop srv1 --no-wait | grep -q "stopping srv1" || fail "no-wait stop output wrong"
+  i=0
+  until "$CTL" list | grep -q "state=stopped"; do
+    i=$((i + 1)); [ "$i" -lt 90 ] || fail "the record did not follow the guest's own shutdown"
+    sleep 1
+  done
+  "$CTL" start srv1 | grep -q "guest booted" || fail "start after a guest-initiated stop failed"
+  "$CTL" stop srv1 | grep -q "stopped srv1" || fail "stop after a guest-initiated stop failed"
+  echo "smoke: the record followed the guest's own shutdown, and the VM started again"
 fi
 
 echo "smoke: okay"

@@ -121,7 +121,7 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
     let bootWait = BootWaiter()
     Task { @MainActor in
         do {
-            let g = try await GuestBoot.boot(
+            _ = try await GuestBoot.boot(
                 cpus: record.cpus, memoryMB: record.memoryMB,
                 consoleURL: home.appendingPathComponent("\(record.name).console.log"),
                 diskURL: record.diskPath.map { URL(fileURLWithPath: $0) },
@@ -130,11 +130,15 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
                 variableStorePath: record.variableStorePath,
                 artifactToken: artifactToken, shares: record.shares ?? [],
                 installMediaPath: record.installMediaPath,
-                machineIdentifier: machineIdentifier)
-            liveVMs.add(record.uuid, g)
+                machineIdentifier: machineIdentifier,
+                publish: { guest in
+                    if let guest { liveVMs.add(record.uuid, guest) } else { _ = liveVMs.take(record.uuid) }
+                })
+            liveVMs.markReady(record.uuid)
             bootWait.complete("")
         } catch {
-            bootWait.complete("guest boot failed: \(error)")
+            _ = liveVMs.take(record.uuid)
+            bootWait.complete(liveVMs.takeCancelled(record.uuid) ? "cancelled" : "guest boot failed: \(error)")
         }
     }
     bootWait.wait()
@@ -142,13 +146,22 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
         return r.fail(msg)
     }
     _ = try registry.start(record.uuid)
+    if liveVMs.peek(record.uuid) == nil {
+        // The guest stopped between becoming ready and being recorded as running.
+        markStopped(registry, record.uuid)
+        return r.fail("\(record.name) stopped right after it started")
+    }
     remountShares(record)
     return r.ok([("message", .text("started \(record.name) (guest booted)"))])
 }
 
 nonisolated func stopVm(_ r: VmRequest) throws -> Envelope {
     let record = try r.record()
+    var wait = true
+    if case .bool(let asked)? = r.arg("wait") { wait = asked }
     if let g = liveVMs.peek(record.uuid) {
+        // A guest that is still booting has no agent to ask: stopping it cancels the start.
+        if g.phase == .booting { return cancelBoot(r, record, g) }
         // The framework's power button does not stop either guest, so the
         // agent starts the shutdown; requestStop below is what is left for
         // a guest with no agent. This blocks on the channel, so it runs
@@ -173,23 +186,48 @@ nonisolated func stopVm(_ r: VmRequest) throws -> Envelope {
                         try await g.vm.stop()
                     },
                     gracePolls: grace)
+                // The framework's delegate usually gets here first; this is the same
+                // reap, and it does nothing the second time.
+                reapGuest(uuid: record.uuid, boot: g.boot, reason: .hostRequested)
                 stopWait.complete("")
             } catch {
+                note("openvmd: \(record.name): guest stop failed: \(error)")
                 stopWait.complete("guest stop failed: \(error)")
             }
         }
+        // `wait: false` hands back at once. The guest is still stopped by the same
+        // task, and the record follows it.
+        if !wait { return r.ok([("message", .text("stopping \(record.name)"))]) }
         stopWait.wait()
         if let msg = stopWait.value, !msg.isEmpty {
             return r.fail(msg)
         }
-        if let drop = activeDrops.take(g.boot) { try? FileManager.default.removeItem(at: drop.staging) }
-        _ = liveVMs.take(record.uuid)
-        displayModes.clear(record.uuid)
+        return r.ok([("message", .text("stopped \(record.name)"))])
     }
     // No live machine held (e.g. daemon restarted since boot): registry-only
     // stop. A guest orphaned by a daemon crash dies with the process.
     _ = try registry.stop(record.uuid)
     return r.ok([("message", .text("stopped \(record.name)"))])
+}
+
+/// Stops a VM that is still booting. The boot then fails with "cancelled".
+private nonisolated func cancelBoot(_ r: VmRequest, _ record: VmRecord, _ g: LiveGuest) -> Envelope {
+    liveVMs.markCancelled(record.uuid)
+    let done = BootWaiter()
+    Task { @MainActor in
+        do {
+            try await g.vm.stop()
+            done.complete("")
+        } catch {
+            done.complete("\(error)")
+        }
+    }
+    done.wait()
+    if let message = done.value, !message.isEmpty {
+        _ = liveVMs.takeCancelled(record.uuid)
+        return r.fail("could not cancel the start of \(record.name) yet: \(message)")
+    }
+    return r.ok([("message", .text("cancelled the start of \(record.name)"))])
 }
 
 nonisolated func suspendVm(_ r: VmRequest) throws -> Envelope {

@@ -32,7 +32,7 @@ the daemon replies on the same id.
 | list  | (none)                                      | read-only scan of the registry      |
 | info  | `id` (name or uuid)                         | read-only scan of one registry record (same row shape as `list`) |
 | start | `id` (name or uuid)                         | attaches the VM raw disk as virtio-blk and boots Alpine netboot if artifacts exist, else registry-only; `stopped → running` |
-| stop  | `id`                                        | stops the live guest if one is running; `running → stopped` |
+| stop  | `id`; `wait` (bool, default true) | stops the live guest if one is running; `running → stopped`. A guest still booting is cancelled instead (the `start` then fails with `cancelled`). `wait: false` returns once the guest has been asked to stop and the record follows it (`openvmctl stop <vm> --no-wait`) |
 | delete| `id`                                        | sweeps the raw disk (+ sidecars) and removes the record; requires `stopped` |
 | suspend| `id`                                       | pauses the live guest (VZ pause) and records `suspended`; needs this daemon to hold the live guest |
 | resume | `id`                                       | unpauses the suspended live guest and records `running`; needs this daemon to hold the live guest |
@@ -72,8 +72,8 @@ required. Guest console output remains available in `<OPENVM_HOME>/<name>.consol
 
 `suspend` pauses the live guest (Virtualization.framework pause) and moves the record to the
 `suspended` state; `resume` unpauses it (`suspended` → `running`). Both require this daemon to
-hold the live guest: a daemon restart orphans the paused guest (it dies with the process), after
-which `stop` is the only way out of the `suspended` state. A paused guest answers no guest-channel
+hold the live guest. A host restart orphans the guest (it dies with the process), and the next
+host start records every `running` or `suspended` VM it finds as `stopped`. A paused guest answers no guest-channel
 traffic (ping, clipboard, file). The guest flushes before it is paused, and a resume pushes the clock again, re-mounts the shares and re-applies the display mode and scale.
 
 ## Replies: `vmReply` (type 7)
@@ -111,6 +111,14 @@ guest read it back through the mount, and deletes it again, so a reported mount
 is a proven round trip. Shares of a stopped VM are mounted at the next boot, and
 re-bound after a resume. Share changes are refused while a drop is running, because
 replacing the share set breaks reads in flight.
+
+## Guests that stop on their own
+
+The host listens for the framework's end-of-guest report, so a guest that shuts itself down (the
+Start menu, `poweroff`, a crash) is recorded as `stopped` without any command, and its drops and
+display mode are cleared. A report counts only for the boot it came from. A VM is visible to the
+host from the moment it starts to boot, including the Windows install: until its agent answers,
+channel operations refuse it with "still booting", and a window can already show its screen.
 
 ## Host sleep
 

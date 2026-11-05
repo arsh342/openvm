@@ -19,6 +19,7 @@ import Virtualization
 nonisolated final class LiveVMs: @unchecked Sendable {
     private let lock = NSLock()
     private var vms: [String: LiveGuest] = [:]
+    private var cancelled = Set<String>()
 
     func add(_ id: String, _ g: LiveGuest) {
         lock.lock()
@@ -40,12 +41,59 @@ nonisolated final class LiveVMs: @unchecked Sendable {
         vms[id] = nil
         return g
     }
+
+    /// Removes the machine only if it is this boot's. Atomic, so a late report from an
+    /// old boot cannot remove a newer one.
+    func takeIfBoot(_ id: String, _ boot: UUID) -> LiveGuest? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard shouldReap(held: vms[id]?.boot, reported: boot) else { return nil }
+        let g = vms[id]
+        vms[id] = nil
+        return g
+    }
+
+    /// The guest finished booting: channel operations may use it now.
+    func markReady(_ id: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        vms[id]?.phase = .ready
+    }
+
+    /// A `stop` arrived while the VM was still booting. The boot reads this to say
+    /// "cancelled" instead of reporting a mysterious stop.
+    func markCancelled(_ id: String) {
+        lock.lock()
+        defer { lock.unlock() }
+        cancelled.insert(id)
+    }
+
+    func takeCancelled(_ id: String) -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return cancelled.remove(id) != nil
+    }
 }
 
 struct LiveGuest {
     let vm: VZVirtualMachine
     /// Tells one boot of a VM from the next, off the main actor.
-    nonisolated let boot = UUID()
+    nonisolated let boot: UUID
+    nonisolated var phase: GuestPhase = .booting
+    /// The framework holds its delegate weakly, so this is what keeps it alive.
+    nonisolated let delegate: GuestDelegate
+
+    /// Wraps a machine and starts listening for its end. Main actor: the delegate is
+    /// set on the machine's own queue.
+    @MainActor
+    init(vm: VZVirtualMachine, uuid: String) {
+        let boot = UUID()
+        let delegate = GuestDelegate(uuid: uuid, boot: boot)
+        vm.delegate = delegate
+        self.vm = vm
+        self.boot = boot
+        self.delegate = delegate
+    }
 }
 
 // Semaphore-preserving result box for hopping from the nonisolated listener
@@ -141,14 +189,16 @@ enum GuestBoot {
         cpus: Int, memoryMB: Int, consoleURL: URL, diskURL: URL?, vmUUID: String, artifactPort: UInt16,
         timezone: String? = nil, bootMode: BootMode = .linux, variableStorePath: String? = nil,
         artifactToken: String? = nil, shares: [VmShare] = [], installMediaPath: String? = nil,
-        machineIdentifier: Data? = nil
+        machineIdentifier: Data? = nil,
+        publish: @MainActor (LiveGuest?) -> Void = { _ in }
     ) async throws -> LiveGuest {
         if bootMode == .windows {
             if #available(macOS 13.0, *) {
                 return try await bootWindows(
                     cpus: cpus, memoryMB: memoryMB, consoleURL: consoleURL, diskURL: diskURL, vmUUID: vmUUID,
                     artifactPort: artifactPort, timezone: timezone, variableStorePath: variableStorePath,
-                    shares: shares, installMediaPath: installMediaPath, machineIdentifier: machineIdentifier)
+                    shares: shares, installMediaPath: installMediaPath, machineIdentifier: machineIdentifier,
+                    publish: publish)
             } else {
                 throw GuestBootError.failure("Windows boot requires macOS 13.0 or newer")
             }
@@ -239,13 +289,18 @@ enum GuestBoot {
         try config.validate()
 
         let vm = VZVirtualMachine(configuration: config)
+        // Published before it starts, so a window can show the boot from its first frame.
+        let guest = LiveGuest(vm: vm, uuid: vmUUID)
+        publish(guest)
         try await vm.start()
 
         let timeoutSeconds = installedRoot == nil && diskURL != nil ? 1800 : 120
         let deadline = Date().addingTimeInterval(Double(timeoutSeconds))
-        let guest = LiveGuest(vm: vm)
         while Date() < deadline {
             try await Task.sleep(nanoseconds: 500_000_000)
+            guard vm.state == .running || vm.state == .starting else {
+                throw GuestBootError.failure("the guest stopped during boot (state \(vm.state.rawValue))")
+            }
             if let data = try? Data(contentsOf: consoleURL) {
                 let text = String(decoding: data, as: UTF8.self)
                 if installedRoot == nil, diskURL != nil,
@@ -275,7 +330,7 @@ enum GuestBoot {
                     markers.contains(where: { text.contains($0) })
                 {
                     await syncClock(guest, timezone: timezone)
-                    return LiveGuest(vm: vm)
+                    return guest
                 }
             }
         }
@@ -302,7 +357,8 @@ enum GuestBoot {
     static func bootWindows(
         cpus: Int, memoryMB: Int, consoleURL: URL, diskURL: URL?, vmUUID: String, artifactPort: UInt16,
         timezone: String? = nil, variableStorePath: String? = nil, shares: [VmShare] = [],
-        installMediaPath: String? = nil, machineIdentifier: Data? = nil
+        installMediaPath: String? = nil, machineIdentifier: Data? = nil,
+        publish: @MainActor (LiveGuest?) -> Void = { _ in }
     ) async throws -> LiveGuest {
         guard let diskURL else {
             throw GuestBootError.failure("Windows boot requires a disk image")
@@ -321,7 +377,7 @@ enum GuestBoot {
             try await installWindows(
                 cpus: cpus, memoryMB: memoryMB, consoleURL: consoleURL,
                 diskURL: diskURL, mediaURL: URL(fileURLWithPath: installMediaPath),
-                vmDir: vmDir)
+                vmDir: vmDir, vmUUID: vmUUID, publish: publish)
             try Data("windows\n".utf8).write(to: installRecord, options: .atomic)
             // The installed system boots through the firmware's removable-media
             // path (our chainloader on the new ESP); start from a clean store.
@@ -338,8 +394,9 @@ enum GuestBoot {
         ]
         try config.validate()
         let vm = VZVirtualMachine(configuration: config)
+        let guest = LiveGuest(vm: vm, uuid: vmUUID)
+        publish(guest)
         try await vm.start()
-        let guest = LiveGuest(vm: vm)
 
         // The guest agent answers once it is installed and running. Until the
         // Windows agent can be built, a running VM without one is still a
@@ -367,7 +424,7 @@ enum GuestBoot {
     @MainActor
     static func installWindows(
         cpus: Int, memoryMB: Int, consoleURL: URL, diskURL: URL, mediaURL: URL,
-        vmDir: URL
+        vmDir: URL, vmUUID: String, publish: @MainActor (LiveGuest?) -> Void
     ) async throws {
         guard FileManager.default.fileExists(atPath: mediaURL.path) else {
             throw GuestBootError.failure("install media not found: \(mediaURL.path)")
@@ -380,6 +437,9 @@ enum GuestBoot {
             cpuCount: cpus, memoryMB: max(memoryMB, 4096), additionalDisks: [mediaURL])
         try config.validate()
         let vm = VZVirtualMachine(configuration: config)
+        // The install is visible too: a window shows WinPE working, and a stop cancels it.
+        publish(LiveGuest(vm: vm, uuid: vmUUID))
+        defer { publish(nil) }
         FileHandle.standardError.write(
             Data("openvmd: Windows install boot started (WinPE applies the image)\n".utf8))
         try await vm.start()

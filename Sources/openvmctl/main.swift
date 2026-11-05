@@ -94,6 +94,10 @@ case "list":
         print(usage)
         exit(2)
     }
+case "stop" where argv.count == 3 && argv[2] == "--no-wait":
+    // Ask the guest to stop and return at once; the VM's record follows it.
+    args.append(("id", .text(argv[1])))
+    args.append(("wait", .bool(false)))
 case "start", "stop", "ping", "info", "delete", "suspend", "resume":
     guard argv.count == 2 else {
         print(usage)
