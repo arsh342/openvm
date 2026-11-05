@@ -6,6 +6,9 @@ let settings: [SwiftSetting] = [.defaultIsolation(MainActor.self)]
 let package = Package(
     name: "openvm-core",
     platforms: [.macOS(.v14)],
+    products: [
+        .executable(name: "openvm", targets: ["OpenVMApp"])
+    ],
     targets: [
         .target(name: "OpenVMCore", swiftSettings: settings),
         .target(name: "OpenVMWindows", swiftSettings: settings),
@@ -13,6 +16,12 @@ let package = Package(
             name: "OpenVMHost",
             dependencies: ["OpenVMCore", "OpenVMWindows"],
             path: "Sources/OpenVMHost",
+            swiftSettings: settings
+        ),
+        .executableTarget(
+            name: "OpenVMApp",
+            dependencies: ["OpenVMCore", "OpenVMHost"],
+            path: "Sources/OpenVMApp",
             swiftSettings: settings
         ),
         .executableTarget(
@@ -37,6 +46,12 @@ let package = Package(
             name: "OpenVMDaemonTests",
             dependencies: ["OpenVMHost", "OpenVMWindows"],
             path: "Tests/OpenVMDaemonTests",
+            swiftSettings: settings
+        ),
+        .testTarget(
+            name: "OpenVMAppTests",
+            dependencies: ["OpenVMApp", "OpenVMHost"],
+            path: "Tests/OpenVMAppTests",
             swiftSettings: settings
         ),
         .testTarget(

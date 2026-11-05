@@ -7,11 +7,11 @@
 import Darwin
 import Foundation
 
-nonisolated enum HostLockError: Error, Equatable, CustomStringConvertible {
+public nonisolated enum HostLockError: Error, Equatable, CustomStringConvertible {
     case held(pid: Int32)
     case io(String)
 
-    var description: String {
+    public var description: String {
         switch self {
         case .held(let pid): return "another openVM host (pid \(pid)) is already running"
         case .io(let message): return message

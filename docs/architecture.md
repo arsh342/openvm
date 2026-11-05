@@ -12,8 +12,9 @@ openvmctl ──Unix socket──▶ openvmd ──vsock port 52──▶ guest 
 | --- | --- | --- |
 | `OpenVMHost` | `Sources/OpenVMHost` | The host library. Owns the VMs: boots and stops them, serves the socket, and drives every host-side feature |
 | `openvmd` | `Sources/openvmd` | The headless host: a thin `main` over `OpenVMHost`, with no windows. One host runs per `OPENVM_HOME`; a second is refused, naming the holder's pid |
+| `openvm.app` | `Sources/OpenVMApp` | The app. Hosts the VMs itself through `OpenVMHost` (a VM window needs the live machine in its own process) and still serves the socket, so `openvmctl` works against it. Build it with `make app` |
 | `openvmctl` | `Sources/openvmctl` | Turns commands into daemon requests and prints the replies |
-| `OpenVMCore` | `Sources/OpenVMCore` | Code both share: the wire protocol, the VM registry, and the rules for each feature |
+| `OpenVMCore` | `Sources/OpenVMCore` | Code the host, the CLI and the app share: the wire protocol, the VM registry, the client (`DaemonClient`), and the rules for each feature |
 | `OpenVMWindows` | `Sources/OpenVMWindows` | The Virtualization.framework configuration for Windows guests |
 | Linux agent | `tools/guest/openvm-tools.c` | Answers the host inside a Linux guest |
 | Windows agent | `tools/guest/openvm-tools-win.c` | The same, as a Windows service |

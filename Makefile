@@ -31,7 +31,7 @@ else
 TEST_FLAGS := -Xswiftc -load-plugin-library -Xswiftc $(PLUGIN)
 endif
 
-.PHONY: all build test guest-tests format check windows-smoke clean
+.PHONY: all build test guest-tests format check app run-app windows-smoke clean
 
 all: check
 
@@ -61,6 +61,14 @@ format:
 
 ## Everything that can be checked on this machine without booting a guest.
 check: build test guest-tests
+
+## The app bundle, .build/openvm.app (ad-hoc signed; set OPENVM_SIGN_IDENTITY to sign for real).
+app:
+	sh tools/build/mk-app.sh
+
+## Build the app and open it.
+run-app: app
+	open .build/openvm.app
 
 ## A real Windows guest, about 30 minutes: make windows-smoke ISO=<windows-iso>
 windows-smoke: build

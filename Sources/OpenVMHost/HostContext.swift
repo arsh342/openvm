@@ -3,11 +3,8 @@
 import Foundation
 import OpenVMCore
 
-nonisolated let home =
-    ProcessInfo.processInfo.environment["OPENVM_HOME"].map {
-        URL(fileURLWithPath: $0)
-    } ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".openvm")
-nonisolated let sockPath = home.appendingPathComponent("openvmd.sock").path
+nonisolated let home = OVMPaths.home
+nonisolated let sockPath = OVMPaths.socket
 nonisolated let registry = VmRegistry()
 nonisolated let liveVMs = LiveVMs()
 nonisolated let artifactPort = UInt16(ProcessInfo.processInfo.environment["OPENVM_ARTIFACT_PORT"] ?? "8124") ?? 8124
