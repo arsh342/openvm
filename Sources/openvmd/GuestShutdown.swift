@@ -1,5 +1,5 @@
 // How long a stop waits for a guest, and when it forces the VM off.
-enum GuestShutdownError: Error, Equatable {
+nonisolated enum GuestShutdownError: Error, Equatable {
     case notStopped
 }
 

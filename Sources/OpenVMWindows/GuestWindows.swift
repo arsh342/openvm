@@ -9,7 +9,7 @@ import Foundation
 import Virtualization
 
 /// Simple error type for GuestWindows operations.
-struct GuestWindowsError: Error, CustomStringConvertible {
+nonisolated struct GuestWindowsError: Error, CustomStringConvertible {
     let message: String
     var description: String { message }
     init(message: String) {

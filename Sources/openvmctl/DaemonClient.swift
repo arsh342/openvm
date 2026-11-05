@@ -2,7 +2,7 @@
 import Foundation
 import OpenVMCore
 
-enum CLIError: Error, CustomStringConvertible {
+nonisolated enum CLIError: Error, CustomStringConvertible {
     case remote(String)
     case protocolFailure(String)
     var description: String {

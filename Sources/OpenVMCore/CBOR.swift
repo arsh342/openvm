@@ -204,8 +204,8 @@ public nonisolated enum CBOR: Sendable {
 
 // Synthesised Equatable cannot handle the indirect recursive cases; a manual
 // == keeps this a value type.
-extension CBOR: Equatable {
-    public nonisolated static func == (lhs: CBOR, rhs: CBOR) -> Bool {
+nonisolated extension CBOR: Equatable {
+    public static func == (lhs: CBOR, rhs: CBOR) -> Bool {
         switch (lhs, rhs) {
         case (.uint(let a), .uint(let b)): return a == b
         case (.negInt(let a), .negInt(let b)): return a == b

@@ -65,7 +65,7 @@ nonisolated final class BootWaiter: @unchecked Sendable {
     }
 }
 
-enum GuestBootError: Error {
+nonisolated enum GuestBootError: Error {
     case failure(String)
 }
 
