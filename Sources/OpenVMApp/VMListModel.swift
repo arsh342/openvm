@@ -13,7 +13,7 @@ final class VMListModel: ObservableObject {
     /// Set while the host does not answer; clears when it does.
     @Published private(set) var hostProblem: String?
 
-    private let transport: any HostTransport
+    let transport: any HostTransport
     private let interval: Duration
     private var polling: Task<Void, Never>?
 

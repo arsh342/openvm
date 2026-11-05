@@ -8,8 +8,9 @@ final class WindowRegistry {
     private var controllers: [String: VMWindowController] = [:]
 
     /// Opens (or brings forward) the window for a VM.
-    func show(_ vm: VmSummary, onStart: @escaping (VmSummary) -> Void) {
-        let controller = controllers[vm.uuid] ?? VMWindowController(vm: vm, onStart: onStart)
+    func show(_ vm: VmSummary, transport: any HostTransport, onStart: @escaping (VmSummary) -> Void) {
+        let controller =
+            controllers[vm.uuid] ?? VMWindowController(vm: vm, transport: transport, onStart: onStart)
         controllers[vm.uuid] = controller
         controller.update(vm)
         controller.showWindow(nil)

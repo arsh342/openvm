@@ -31,7 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if model.vms.isEmpty { await model.refresh() }
         guard let vm = model.vms.first(where: { $0.name == reference || $0.uuid.lowercased() == reference.lowercased() })
         else { return }
-        WindowRegistry.shared.show(vm) { [model] vm in Task { await model.start(vm) } }
+        WindowRegistry.shared.show(vm, transport: model.transport) { [model] vm in Task { await model.start(vm) } }
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
