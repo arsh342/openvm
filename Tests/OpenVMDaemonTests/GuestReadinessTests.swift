@@ -4,7 +4,7 @@ import Foundation
 import OpenVMCore
 import Testing
 
-@testable import openvmd
+@testable import OpenVMHost
 
 @Suite struct GuestReadinessTests {
     private func probe(replyType: MessageType, correlationId: UInt64) throws {

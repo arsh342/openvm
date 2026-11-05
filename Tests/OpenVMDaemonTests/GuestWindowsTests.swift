@@ -3,7 +3,7 @@ import OpenVMWindows
 import Testing
 import Virtualization
 
-@testable import openvmd
+@testable import OpenVMHost
 
 /// The private PMU-emulation switch that Virtualization.framework
 /// holds off its documented surface. A Windows guest never leaves early boot

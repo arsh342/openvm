@@ -4,7 +4,7 @@ import OpenVMCore
 import Testing
 import Virtualization
 
-@testable import openvmd
+@testable import OpenVMHost
 
 /// Shared folders over virtio-fs: the names the guest agent validates and the
 /// device every VM is configured with.

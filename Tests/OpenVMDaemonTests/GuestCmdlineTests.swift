@@ -1,7 +1,7 @@
 // Tests for the kernel command line.
 import Testing
 
-@testable import openvmd
+@testable import OpenVMHost
 
 @Suite struct GuestCmdlineTests {
     @Test func netbootUsesThePinnedModloop() {

@@ -9,6 +9,12 @@ let package = Package(
     targets: [
         .target(name: "OpenVMCore", swiftSettings: settings),
         .target(name: "OpenVMWindows", swiftSettings: settings),
+        .target(
+            name: "OpenVMHost",
+            dependencies: ["OpenVMCore", "OpenVMWindows"],
+            path: "Sources/OpenVMHost",
+            swiftSettings: settings
+        ),
         .executableTarget(
             name: "openvm-mockguest",
             dependencies: ["OpenVMCore"],
@@ -17,7 +23,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "openvmd",
-            dependencies: ["OpenVMCore", "OpenVMWindows"],
+            dependencies: ["OpenVMHost"],
             path: "Sources/openvmd",
             swiftSettings: settings
         ),
@@ -29,7 +35,7 @@ let package = Package(
         ),
         .testTarget(
             name: "OpenVMDaemonTests",
-            dependencies: ["openvmd", "OpenVMWindows"],
+            dependencies: ["OpenVMHost", "OpenVMWindows"],
             path: "Tests/OpenVMDaemonTests",
             swiftSettings: settings
         ),

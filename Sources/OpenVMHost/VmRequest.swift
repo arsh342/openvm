@@ -2,7 +2,7 @@
 import Foundation
 import OpenVMCore
 
-nonisolated func arg(_ entries: [(key: String, value: CBOR)], _ name: String) -> CBOR? {
+nonisolated func argValue(_ entries: [(key: String, value: CBOR)], _ name: String) -> CBOR? {
     entries.first(where: { $0.key == name })?.value
 }
 
@@ -12,7 +12,7 @@ nonisolated struct VmRequest {
     let args: [(key: String, value: CBOR)]
     let env: Envelope
 
-    func arg(_ name: String) -> CBOR? { openvmd.arg(args, name) }
+    func arg(_ name: String) -> CBOR? { argValue(args, name) }
 
     /// The arguments, as the guest agent takes them.
     var bodyForGuest: CBOR { .map(args.filter { $0.key != "id" }) }

@@ -10,7 +10,8 @@ openvmctl ──Unix socket──▶ openvmd ──vsock port 52──▶ guest 
 
 | Part | Where | Job |
 | --- | --- | --- |
-| `openvmd` | `Sources/openvmd` | Owns the VMs: boots and stops them, and drives every host-side feature |
+| `OpenVMHost` | `Sources/OpenVMHost` | The host library. Owns the VMs: boots and stops them, serves the socket, and drives every host-side feature |
+| `openvmd` | `Sources/openvmd` | The headless host: a thin `main` over `OpenVMHost`, with no windows. One host runs per `OPENVM_HOME`; a second is refused, naming the holder's pid |
 | `openvmctl` | `Sources/openvmctl` | Turns commands into daemon requests and prints the replies |
 | `OpenVMCore` | `Sources/OpenVMCore` | Code both share: the wire protocol, the VM registry, and the rules for each feature |
 | `OpenVMWindows` | `Sources/OpenVMWindows` | The Virtualization.framework configuration for Windows guests |
@@ -22,7 +23,7 @@ openvmctl ──Unix socket──▶ openvmd ──vsock port 52──▶ guest 
 Taking `openvmctl display set win --width 2560 --height 1664 --scale 2`:
 
 1. `openvmctl` parses the command and sends a `vmRequest` over the Unix socket (`DaemonClient.swift`).
-2. `Server.swift` reads the frame and hands it to `vmOp`, which calls the handler for that op (`VmRequest.swift`).
+2. `Server.swift` (in `OpenVMHost`) reads the frame and hands it to `vmOp`, which calls the handler for that op (`VmRequest.swift`).
 3. The handler finds the VM and its live guest, and checks the arguments (`GuestOps.swift`).
 4. `DisplayControl.swift` resizes the framework's display, then sends a `displayRequest` through `GuestChannel.swift`.
 5. The agent applies the mode and scale, and replies with what the guest really holds.

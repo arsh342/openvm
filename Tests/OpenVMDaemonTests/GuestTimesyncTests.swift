@@ -4,7 +4,7 @@ import Foundation
 import OpenVMCore
 import Testing
 
-@testable import openvmd
+@testable import OpenVMHost
 
 /// The timesync channel loop follows the GuestReadinessTests probe pattern:
 /// a socket pair plus a thread that plays the guest agent side.

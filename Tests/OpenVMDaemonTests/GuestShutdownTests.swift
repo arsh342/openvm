@@ -1,7 +1,7 @@
 // Tests for the stop policy.
 import Testing
 
-@testable import openvmd
+@testable import OpenVMHost
 
 @MainActor
 @Suite struct GuestShutdownTests {
