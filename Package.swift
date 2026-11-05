@@ -5,6 +5,7 @@ let settings: [SwiftSetting] = [.defaultIsolation(MainActor.self)]
 
 let package = Package(
     name: "openvm-core",
+    platforms: [.macOS(.v14)],
     targets: [
         .target(name: "OpenVMCore", swiftSettings: settings),
         .target(name: "OpenVMWindows", swiftSettings: settings),
