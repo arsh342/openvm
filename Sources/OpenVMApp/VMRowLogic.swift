@@ -50,6 +50,20 @@ enum VMRowLogic {
         return parts.joined(separator: " · ")
     }
 
+    /// The facts shown for a VM in the library, in order.
+    static func details(for vm: VmSummary) -> [(label: String, value: String)] {
+        var rows: [(label: String, value: String)] = [
+            ("System", vm.bootMode == .windows ? "Windows" : "Linux"),
+            ("CPUs", "\(vm.cpus)"),
+            ("Memory", memory(vm.memoryMB)),
+        ]
+        if let disk = vm.diskBytes { rows.append(("Disk", size(disk))) }
+        if let zone = vm.timezone { rows.append(("Time zone", zone)) }
+        rows.append(("Clipboard sharing", vm.clipboardSync ? "On" : "Off"))
+        rows.append(("Receiving files from the VM", vm.outbox ? "On" : "Off"))
+        return rows
+    }
+
     /// What the confirmation says. It names the disk, because the disk is what is lost.
     static func deleteConfirmation(for vm: VmSummary) -> (title: String, message: String) {
         let disk = vm.diskBytes.map { " (\(size($0)))" } ?? ""

@@ -10,7 +10,7 @@ final class LibraryWindowController: NSWindowController {
         newVM: @escaping () -> Void
     ) {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 860, height: 420),
+            contentRect: NSRect(x: 0, y: 0, width: 900, height: 540),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
             backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false

@@ -12,6 +12,8 @@ final class VMListModel: ObservableObject {
     @Published var lastError: String?
     /// Set while the host does not answer; clears when it does.
     @Published private(set) var hostProblem: String?
+    /// The VM chosen in the library sidebar, by UUID. May name a VM that is gone; use `selectedVM`.
+    @Published var selection: String?
     /// A VM the person has asked to delete and not yet confirmed.
     @Published private(set) var pendingDelete: VmSummary?
 
@@ -53,6 +55,9 @@ final class VMListModel: ObservableObject {
     }
 
     func vm(uuid: String) -> VmSummary? { vms.first { $0.uuid == uuid } }
+
+    /// The chosen VM, or the first when nothing is chosen or the choice no longer exists.
+    var selectedVM: VmSummary? { selection.flatMap(vm(uuid:)) ?? vms.first }
 
     // MARK: actions
 

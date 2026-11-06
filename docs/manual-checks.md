@@ -27,7 +27,7 @@ A failure goes back as a bug with the step that showed it.
 - [ ] Copy in the guest, click out to the Mac, paste.
 - [ ] Copy from a password manager, click into the VM: nothing arrives, and the window subtitle
       says the clipboard was marked private.
-- [ ] Turn the toolbar Clipboard button off: nothing moves either way.
+- [ ] Untick Machine ▸ Share Clipboard: nothing moves either way.
 - [ ] Copy more than 512 KiB of text: it is skipped, and the subtitle says so.
 
 ## Files
@@ -65,7 +65,7 @@ A failure goes back as a bug with the step that showed it.
 - [ ] **Wizard.** Create a Linux VM and a Windows VM from the wizard alone. Cancel one install at
       each stage and check nothing is left in `~/.openvm` or the list. The ISO chooser accepts only
       `.iso`; closing the window mid-run asks first.
-- [ ] **Toolbar and Settings.** Every button does what it says; CPU and memory are locked while a VM
+- [ ] **Machine menu, library and Settings.** Every menu item does what it says, and is off with no VM window in front; CPU and memory are locked while a VM
       runs; sound warning appears before Windows sound turns on.
 - [ ] **Menu bar popover** lists VMs and opens their windows.
 - [ ] **Clean account.** On a new macOS user with no developer tools, do the whole of the above that

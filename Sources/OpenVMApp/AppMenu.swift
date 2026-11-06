@@ -43,12 +43,29 @@ final class AppMenu: NSObject, NSMenuDelegate {
             withTitle: "New Virtual Machine…", action: #selector(newVirtualMachine(_:)), keyEquivalent: "n")
         new.target = self
 
-        // Rebuilt each time it opens, from the host's current list.
+        // Commands for the VM whose window is in front. They have no target: AppKit sends them down
+        // the responder chain to that window, and switches them off when no VM window is in front.
         let machineItem = NSMenuItem()
         main.addItem(machineItem)
         let machine = NSMenu(title: "Machine")
-        machine.delegate = self
         machineItem.submenu = machine
+        machine.addItem(command("Shut Down", #selector(VMWindowController.machinePower(_:))))
+        machine.addItem(command("Pause", #selector(VMWindowController.machinePause(_:))))
+        machine.addItem(.separator())
+        let full = command("Enter Full Screen", #selector(VMWindowController.machineFullScreen(_:)), key: "f")
+        full.keyEquivalentModifierMask = [.command, .control]
+        machine.addItem(full)
+        machine.addItem(command("Share Folder…", #selector(VMWindowController.machineShareFolder(_:))))
+        machine.addItem(command("Share Clipboard", #selector(VMWindowController.machineClipboard(_:))))
+        machine.addItem(.separator())
+        machine.addItem(command("Settings…", #selector(VMWindowController.machineSettings(_:)), key: ","))
+        machine.addItem(.separator())
+        // The list of VMs is rebuilt each time it opens, from the host's current list.
+        let openItem = NSMenuItem(title: "Open Virtual Machine", action: nil, keyEquivalent: "")
+        let openMenu = NSMenu(title: "Open Virtual Machine")
+        openMenu.delegate = self
+        openItem.submenu = openMenu
+        machine.addItem(openItem)
 
         let windowItem = NSMenuItem()
         main.addItem(windowItem)
@@ -65,6 +82,13 @@ final class AppMenu: NSObject, NSMenuDelegate {
         return main
     }
 
+    /// A menu item with no target, so the responder chain decides who answers it.
+    private func command(_ title: String, _ action: Selector, key: String = "") -> NSMenuItem {
+        let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
+        item.target = nil
+        return item
+    }
+
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         guard !model.vms.isEmpty else {
@@ -74,7 +98,7 @@ final class AppMenu: NSObject, NSMenuDelegate {
         }
         for vm in model.vms {
             let item = menu.addItem(
-                withTitle: "Open \(vm.name)", action: #selector(openWindow(_:)), keyEquivalent: "")
+                withTitle: vm.name, action: #selector(openWindow(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = vm.uuid
         }

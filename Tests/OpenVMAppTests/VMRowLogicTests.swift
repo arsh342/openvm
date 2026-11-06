@@ -86,3 +86,16 @@ extension VMRowLogicTests {
         }
     }
 }
+
+struct VMDetailsTests {
+    @Test func detailsListWhatTheVmIs() {
+        let vm = VmSummary(row: FakeTransport.row("w", state: "running", bootMode: "windows", cpus: 4, memoryMB: 8192, clipboardSync: false, outbox: true))!
+        let rows = VMRowLogic.details(for: vm)
+        let byLabel = Dictionary(uniqueKeysWithValues: rows.map { ($0.label, $0.value) })
+        #expect(byLabel["System"] == "Windows")
+        #expect(byLabel["CPUs"] == "4")
+        #expect(byLabel["Memory"] == "8 GB")
+        #expect(byLabel["Clipboard sharing"] == "Off")
+        #expect(byLabel["Receiving files from the VM"] == "On")
+    }
+}

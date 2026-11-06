@@ -10,10 +10,9 @@ import OpenVMHost
 import Virtualization
 
 @MainActor
-final class VMWindowController: NSWindowController, NSWindowDelegate {
+final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItemValidation {
     private let machineView = DropMachineView()
     private let cover = VMStatusView()
-    private let toolbar = VMToolbar()
     /// The same model the list and the menus use, so every button acts the way theirs do.
     private let model: VMListModel
     private let showSettings: (VmSummary) -> Void
@@ -76,9 +75,6 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         }
         window.contentView = container
 
-        wireToolbar()
-        window.toolbar = toolbar.toolbar
-        window.toolbarStyle = .unified
         update(vm)
     }
 
@@ -123,37 +119,33 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         drops.dismiss()
     }
 
-    // MARK: toolbar
+    // MARK: the Machine menu
+    //
+    // What used to be buttons across the top of the window are commands in the menu bar, acting on
+    // whichever VM window is in front. The menu items have no target, so AppKit finds this controller
+    // through the key window; when no VM window is in front they are off.
 
-    private func wireToolbar() {
-        toolbar.onPower = { [weak self] button in
-            guard let self else { return }
-            switch button {
-            case .start: Task { await self.model.start(self.vm) }
-            // Shutting down asks the guest to stop, as the list's Stop does. Cancel stops a boot.
-            case .shutDown, .cancel: Task { await self.model.stop(self.vm) }
-            case .disabled: break
-            }
-        }
-        toolbar.onPause = { [weak self] button in
-            guard let self else { return }
-            switch button {
-            case .pause: Task { await self.model.suspend(self.vm) }
-            case .resume: Task { await self.model.resume(self.vm) }
-            case .disabled: break
-            }
-        }
-        toolbar.onFullScreen = { [weak self] in self?.window?.toggleFullScreen(nil) }
-        toolbar.onShareFolder = { [weak self] in self?.shareFolder() }
-        toolbar.onClipboard = { [weak self] on in
-            guard let self else { return }
-            Task { await self.model.setClipboardSync(self.vm, on) }
-        }
-        toolbar.onSettings = { [weak self] in
-            guard let self else { return }
-            self.showSettings(self.vm)
+    @objc func machinePower(_ sender: Any?) {
+        switch VMToolbarLogic.state(for: vm).power {
+        case .start: Task { await model.start(vm) }
+        // Shutting down asks the guest to stop, as the list's Stop does. Cancel stops a boot.
+        case .shutDown, .cancel: Task { await model.stop(vm) }
+        case .disabled: break
         }
     }
+
+    @objc func machinePause(_ sender: Any?) {
+        switch VMToolbarLogic.state(for: vm).pause {
+        case .pause: Task { await model.suspend(vm) }
+        case .resume: Task { await model.resume(vm) }
+        case .disabled: break
+        }
+    }
+
+    @objc func machineFullScreen(_ sender: Any?) { window?.toggleFullScreen(nil) }
+    @objc func machineShareFolder(_ sender: Any?) { shareFolder() }
+    @objc func machineClipboard(_ sender: Any?) { Task { await model.setClipboardSync(vm, !vm.clipboardSync) } }
+    @objc func machineSettings(_ sender: Any?) { showSettings(vm) }
 
     /// Shares one folder with the guest. The guest can change what is in it, so the panel
     /// says so before anything is shared.
@@ -199,7 +191,6 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
             guard let self else { return }
             Task { await self.model.start(self.vm) }
         }
-        toolbar.update(VMToolbarLogic.state(for: vm))
         window?.title = title(for: state)
         if state == .running, window?.firstResponder !== machineView { window?.makeFirstResponder(machineView) }
         // A guest that has just become ready (first boot, or back from a pause) is sized to
@@ -273,6 +264,23 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     func windowDidChangeBackingProperties(_ notification: Notification) {
         updateMinimumSize()
         fitGuestToWindow()
+    }
+
+    func validateMenuItem(_ item: NSMenuItem) -> Bool {
+        let command: MachineCommand
+        switch item.action {
+        case #selector(machinePower(_:)): command = .power
+        case #selector(machinePause(_:)): command = .pause
+        case #selector(machineFullScreen(_:)): command = .fullScreen
+        case #selector(machineShareFolder(_:)): command = .shareFolder
+        case #selector(machineClipboard(_:)): command = .clipboard
+        case #selector(machineSettings(_:)): command = .settings
+        default: return true
+        }
+        let state = MachineMenuLogic.item(command, for: vm)
+        item.title = state.title
+        item.state = state.checked ? .on : .off
+        return state.enabled
     }
 
     // MARK: clipboard follows focus
