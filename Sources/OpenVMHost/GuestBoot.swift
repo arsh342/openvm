@@ -293,7 +293,8 @@ enum GuestBoot {
         // Shared folders ride virtio-fs (tag "openvm"); the share set can be
         // replaced while the VM runs (SharedFolders.apply).
         config.directorySharingDevices = [
-            SharedFolders.device(for: shares, drops: try dropRoot(vmUUID, create: true))
+            SharedFolders.device(
+                for: shares, drops: try dropRoot(vmUUID, create: true), outbox: try outboxRoot(vmUUID, create: true))
         ]
         // The display dynamic resolution acts on (DisplayControl.swift).
         if #available(macOS 13.0, *) {
@@ -414,7 +415,8 @@ enum GuestBoot {
         // Shared folders: virtio-fs, served in the guest by virtio-win's viofs
         // driver and the WinFsp-based VirtIO-FS service.
         config.directorySharingDevices = [
-            SharedFolders.device(for: shares, drops: try dropRoot(vmUUID, create: true))
+            SharedFolders.device(
+                for: shares, drops: try dropRoot(vmUUID, create: true), outbox: try outboxRoot(vmUUID, create: true))
         ]
         try config.validate()
         let vm = VZVirtualMachine(configuration: config)

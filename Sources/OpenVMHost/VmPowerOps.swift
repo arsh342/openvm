@@ -135,6 +135,7 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
                     if let guest { liveVMs.add(record.uuid, guest) } else { _ = liveVMs.take(record.uuid) }
                 })
             liveVMs.markReady(record.uuid)
+            outboxWatchers.start(uuid: record.uuid, name: record.name)
             bootWait.complete("")
         } catch {
             _ = liveVMs.take(record.uuid)

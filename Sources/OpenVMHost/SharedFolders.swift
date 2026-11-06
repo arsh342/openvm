@@ -31,10 +31,15 @@ nonisolated enum SharedFolders {
     /// a drop adds a folder here on the host and never touches the device.
     static let dropsName = "drops"
 
+    /// The entry a guest sends files to the Mac through. Writable, and present from boot for the same
+    /// reason as `drops`; the host vets everything that appears in it.
+    static let outboxName = "outbox"
+
     /// The directory set for a list of configured shares.
-    static func share(for shares: [VmShare], drops: URL? = nil) -> VZMultipleDirectoryShare {
+    static func share(for shares: [VmShare], drops: URL? = nil, outbox: URL? = nil) -> VZMultipleDirectoryShare {
         var directories: [String: VZSharedDirectory] = [:]
         if let drops { directories[dropsName] = VZSharedDirectory(url: drops, readOnly: true) }
+        if let outbox { directories[outboxName] = VZSharedDirectory(url: outbox, readOnly: false) }
         for share in shares {
             directories[name(for: share.hostPath)] =
                 VZSharedDirectory(
@@ -45,22 +50,22 @@ nonisolated enum SharedFolders {
     }
 
     /// The device every VM is configured with, carrying the shares known at boot.
-    static func device(for shares: [VmShare], drops: URL? = nil) -> VZVirtioFileSystemDeviceConfiguration {
+    static func device(for shares: [VmShare], drops: URL? = nil, outbox: URL? = nil) -> VZVirtioFileSystemDeviceConfiguration {
         let device = VZVirtioFileSystemDeviceConfiguration(tag: tag)
-        device.share = share(for: shares, drops: drops)
+        device.share = share(for: shares, drops: drops, outbox: outbox)
         return device
     }
 
     /// Replace the running device's share set. Must run on the main queue, like
     /// every other call into a live VZVirtualMachine.
     @MainActor
-    static func apply(_ shares: [VmShare], drops: URL?, to vm: VZVirtualMachine) -> Bool {
+    static func apply(_ shares: [VmShare], drops: URL?, outbox: URL? = nil, to vm: VZVirtualMachine) -> Bool {
         guard
             let device = vm.directorySharingDevices.first(where: {
                 ($0 as? VZVirtioFileSystemDevice)?.tag == tag
             }) as? VZVirtioFileSystemDevice
         else { return false }
-        device.share = share(for: shares, drops: drops)
+        device.share = share(for: shares, drops: drops, outbox: outbox)
         return true
     }
 }

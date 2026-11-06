@@ -21,9 +21,10 @@ nonisolated func validGuestPath(_ path: String) -> Bool {
 /// so the update hops to the main actor and waits.
 nonisolated func applyShares(_ shares: [VmShare], of record: VmRecord, to g: LiveGuest) -> Bool {
     let drops = try? dropRoot(record.uuid, create: false)
+    let outbox = try? outboxRoot(record.uuid, create: false)
     let wait = BootWaiter()
     Task { @MainActor in
-        wait.complete(SharedFolders.apply(shares, drops: drops, to: g.vm) ? "" : "no virtio-fs device")
+        wait.complete(SharedFolders.apply(shares, drops: drops, outbox: outbox, to: g.vm) ? "" : "no virtio-fs device")
     }
     wait.wait()
     return wait.value == ""

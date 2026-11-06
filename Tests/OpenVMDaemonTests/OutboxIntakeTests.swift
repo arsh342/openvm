@@ -94,3 +94,51 @@ struct OutboxIntakeTests {
         #expect(try FileManager.default.contentsOfDirectory(atPath: dest.path).isEmpty)
     }
 }
+
+struct OutboxWatcherTests {
+    private nonisolated final class Box: @unchecked Sendable {
+        private let lock = NSLock()
+        private var items: [OutboxReceipt] = []
+        func add(_ r: OutboxReceipt) { lock.withLock { items.append(r) } }
+        var all: [OutboxReceipt] { lock.withLock { items } }
+    }
+
+    private func temp() throws -> URL {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("watch-\(UUID().uuidString.lowercased())")
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        return url
+    }
+
+    /// The guest tool's way of finishing a send: build hidden, mark ready, rename into place.
+    @Test func aSetRenamedIntoPlaceIsTakenWithoutPolling() async throws {
+        let outbox = try temp(), dest = try temp()
+        defer { try? FileManager.default.removeItem(at: outbox); try? FileManager.default.removeItem(at: dest) }
+        let box = Box()
+        let watcher = OutboxWatcher(uuid: "u", name: "vm", outbox: outbox, destination: dest) { box.add($0) }
+        #expect(watcher != nil)
+        let hidden = outbox.appendingPathComponent(".incoming-1")
+        try FileManager.default.createDirectory(at: hidden, withIntermediateDirectories: true)
+        try Data("hi".utf8).write(to: hidden.appendingPathComponent("a.txt"))
+        try Data("a.txt\n".utf8).write(to: hidden.appendingPathComponent(".ready"))
+        try FileManager.default.moveItem(at: hidden, to: outbox.appendingPathComponent("1"))
+        for _ in 0..<100 where box.all.isEmpty { try await Task.sleep(for: .milliseconds(20)) }
+        #expect(box.all.first?.items == ["a.txt"])
+        #expect(FileManager.default.fileExists(atPath: dest.appendingPathComponent("a.txt").path))
+        watcher?.stop()
+    }
+
+    @Test func aStoppedWatcherSeesNothing() async throws {
+        let outbox = try temp(), dest = try temp()
+        defer { try? FileManager.default.removeItem(at: outbox); try? FileManager.default.removeItem(at: dest) }
+        let box = Box()
+        let watcher = OutboxWatcher(uuid: "u", name: "vm", outbox: outbox, destination: dest) { box.add($0) }
+        watcher?.stop()
+        try await Task.sleep(for: .milliseconds(50))
+        let set = outbox.appendingPathComponent("1")
+        try FileManager.default.createDirectory(at: set, withIntermediateDirectories: true)
+        try Data("hi".utf8).write(to: set.appendingPathComponent("a.txt"))
+        try Data("a.txt\n".utf8).write(to: set.appendingPathComponent(".ready"))
+        try await Task.sleep(for: .milliseconds(200))
+        #expect(box.all.isEmpty)
+    }
+}

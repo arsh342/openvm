@@ -69,6 +69,7 @@ nonisolated func reapGuest(uuid: String, boot: UUID, reason: StopReason) {
     guard liveVMs.takeIfBoot(uuid, boot) != nil else { return }
     if let drop = activeDrops.take(boot) { try? FileManager.default.removeItem(at: drop.staging) }
     displayModes.clear(uuid)
+    outboxWatchers.stop(uuid: uuid)
     markStopped(registry, uuid)
     switch reason {
     case .hostRequested: break
