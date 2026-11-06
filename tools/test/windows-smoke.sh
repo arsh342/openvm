@@ -330,6 +330,10 @@ cmp -s "$desktop/My Tree/sub/deep.bin" "$HOME_DIR/dropped/My Tree/sub/deep.bin" 
   || fail "the dropped tree is not on the Desktop"
 cmp -s "$desktop/big.bin" "$HOME_DIR/dropped/big.bin" || fail "the large drop differs on the Desktop"
 echo "smoke: dropped files match on the guest's disk"
+# Elevation needs an admin to offer: nothing else in this smoke would notice if openvm were not one.
+tr -d '\r' <"$root/openvm/setupcomplete.log" | sed -n '/openvm-admins:/,$p' | grep -qi '\\openvm$' \
+  || fail "the openvm account is not an administrator"
+echo "smoke: the openvm account is an administrator"
 # Set once before the suspend and once by the resume, at least.
 [ "$(tr -d '\r' <"$root/openvm/agent.log" | grep -c 'display holds 2560x1600 at scale 2')" -ge 3 ] \
   || fail "the scale was not re-applied after resume"
