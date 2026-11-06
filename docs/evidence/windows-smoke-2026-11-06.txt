@@ -6,7 +6,7 @@ smoke: shares added and removed
 smoke: guest print reached the host lp as a PDF, once per job, on the right queue
 smoke: guest display followed the host to 1280x720 and 1600x900
 smoke: guest desktop scaled to 1x, 2x and 3x, and refused a scale with no room
-smoke: files dropped onto the guest desktop (20 pings answered during a 2 GiB drop)
+smoke: files dropped onto the guest desktop (21 pings answered during a 2 GiB drop)
 smoke: suspend/resume and agent re-ping passed
 smoke: guest audio played through the host (output idle, running, idle)
 smoke: sound off by default, on after enable, off after disable
