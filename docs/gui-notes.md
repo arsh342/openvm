@@ -333,10 +333,15 @@ scrambled. The guest accepts every size tried. Turning off the 5120x2880 registr
 **Not known:** why the row stays at 1024, which is the driver's default mode. The driver creates a new
 resource for each mode, so a stale resource on the Mac side, or one the driver keeps, are candidates.
 One capture at 1024x768 was scrambled, right after a run at another size; the guest may already have
-been at that size, so nothing repainted. Not tested: whether the row follows the mode the guest boots
-with.
+been at that size, so nothing repainted.
+
+**Boot size.** With 2048x1280 set, the guest was restarted. The app's fit then took it to 1024x643 and
+the picture was clean, so the row did not follow the size set before the restart. This does not settle
+it: what size the driver really started at was not seen, and a second try at 2048 after the boot was
+overridden by a refit (the guest held 1024x590 a minute later).
 
 **Stopgap.** The app holds a Windows guest at 1024 pixels wide, with the height following the window
-(`DisplayFit.windowsMode`), so the picture should be correct but softer than a Retina display can show,
+(`DisplayFit.windowsMode`), so the picture stays correct (measured: three clean captures at 1024x643, 1024x590 and 1024x640, across a restart and
+in use),  but softer than a Retina display can show,
 and the Retina Resolution menu is off for Windows. `openvmctl display set` is not held, so it can still
 scramble. Retina sizes for Windows need the cause found.
