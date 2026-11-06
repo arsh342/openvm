@@ -51,6 +51,7 @@ guest-tests:
 	sh tools/test/test-timesync-agent.sh
 	sh tools/test/test-printer-agent.sh
 	sh tools/test/test-drag-agent.sh
+	sh tools/test/test-send-agent.sh
 	sh tools/test/test-audio-agent.sh
 	sh tools/test/conformance.sh
 

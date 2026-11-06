@@ -20,7 +20,12 @@ public struct OutboxReceipt: Sendable, Equatable {
 /// The guest's outbox on the host. Present from boot, like `drops`.
 nonisolated func outboxRoot(_ uuid: String, create: Bool) throws -> URL {
     let root = home.appendingPathComponent("outbox").appendingPathComponent(uuid)
-    if create { try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true) }
+    if create {
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        // The guest tool runs as the desktop user, whose id differs from this Mac user's; the share
+        // carries the host mode through, so the folder must let any guest user add to it.
+        chmod(root.path, 0o777)
+    }
     return root
 }
 
