@@ -1,14 +1,15 @@
 .build/debug/openvmd: replacing existing signature
-openvmd: listening on /tmp/openvm-smoke.uEI3d5/openvmd.sock
+openvmd: listening on /tmp/openvm-smoke.WFd1ga/openvmd.sock
 openvmd: host power watcher registered
-mk-guest-overlay: wrote /tmp/openvm-smoke.uEI3d5/overlay/openvm.apkovl.tar.gz
-openvmd: listening on /tmp/openvm-smoke.uEI3d5/openvmd.sock
+mk-guest-overlay: wrote /tmp/openvm-smoke.WFd1ga/overlay/openvm.apkovl.tar.gz
+openvmd: listening on /tmp/openvm-smoke.WFd1ga/openvmd.sock
 openvmd: host power watcher registered
 openvmd: served the pinned modloop (16412672 bytes)
 smoke: first-boot install and guest agent ping passed
+openvmd: srv1: printing unavailable: failure("guest printer failed: CUPS is not installed in this guest")
+openvmd: 5C0552C7-05F2-4B1D-A3D4-A4BE7822B79A: the guest stopped
 openvmd: srv1: printing unavailable: failure("channel connect failed: Error Domain=NSPOSIXErrorDomain Code=54 \"Connection reset by peer\"")
-openvmd: srv1: printing unavailable: failure("channel connect failed: Error Domain=NSPOSIXErrorDomain Code=54 \"Connection reset by peer\"")
-openvmd: B493A24E-412C-427B-AD1E-266483AB96A3: the guest stopped
+openvmd: 5C0552C7-05F2-4B1D-A3D4-A4BE7822B79A: the guest stopped
 smoke: binary file push/pull round-trip passed
 smoke: shared folder mounted in the guest
 smoke: shared folder removed and re-added live
@@ -19,16 +20,16 @@ smoke: guest print reached the host lp as a PDF
 smoke: guest display followed the host to 1280x720 and 1600x900
 smoke: guest desktop scaled to 1x, 2x and 3x
 smoke: the XFCE desktop is drawn
-smoke: files dropped onto the guest desktop (8 pings answered during a 2 GiB drop)
+smoke: files dropped onto the guest desktop (7 pings answered during a 2 GiB drop)
 smoke: guest audio played through the host (output idle, running, idle)
 smoke: suspend/resume and agent re-ping passed
 openvmd: srv1: printing unavailable: failure("channel connect failed: Error Domain=NSPOSIXErrorDomain Code=54 \"Connection reset by peer\"")
-openvmd: B493A24E-412C-427B-AD1E-266483AB96A3: the guest stopped
 smoke: persistent disk boot and guest agent ping passed
-openvmd: srv1: published 1 printer(s)
-openvmd: B493A24E-412C-427B-AD1E-266483AB96A3: the guest stopped
-openvmd: srv1: published 1 printer(s)
-openvmd: B493A24E-412C-427B-AD1E-266483AB96A3: the guest stopped
+openvmd: srv1: printing unavailable: failure("channel connect failed: Error Domain=NSPOSIXErrorDomain Code=54 \"Connection reset by peer\"")
+openvmd: 5C0552C7-05F2-4B1D-A3D4-A4BE7822B79A: the guest stopped
+openvmd: srv1: printing unavailable: failure("channel connect failed: Error Domain=NSPOSIXErrorDomain Code=54 \"Connection reset by peer\"")
+openvmd: 5C0552C7-05F2-4B1D-A3D4-A4BE7822B79A: the guest stopped
 smoke: the record followed the guest's own shutdown, and the VM started again
 smoke: okay
-tools/test/daemon-smoke.sh: line 20: 32170 Terminated: 15          "$HOME_DIR/smoke-tool" serve "$HOME_DIR/overlay" "$HTTP_PORT" > "$HOME_DIR/http.log" 2>&1
+tools/test/daemon-smoke.sh: line 20: 78812 Terminated: 15          "$HOME_DIR/smoke-tool" serve "$HOME_DIR/overlay" "$HTTP_PORT" > "$HOME_DIR/http.log" 2>&1
+tools/test/daemon-smoke.sh: line 20: 78817 Terminated: 15          "$DAEMON"
