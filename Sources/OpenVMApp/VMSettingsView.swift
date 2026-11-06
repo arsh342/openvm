@@ -79,6 +79,9 @@ struct VMSettingsView: View {
             Toggle("Share the clipboard with this VM", isOn: $model.clipboardSync)
             Text("Text only. Passwords copied from a password manager are never shared.")
                 .font(.callout).foregroundStyle(.secondary)
+            Toggle("Accept files this VM sends to the Mac", isOn: $model.outbox)
+            Text("Files arrive in Downloads/openVM/\(model.vm.name), marked as downloaded from the internet.")
+                .font(.callout).foregroundStyle(.secondary)
         }
     }
 

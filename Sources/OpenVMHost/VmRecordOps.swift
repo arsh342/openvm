@@ -26,6 +26,7 @@ nonisolated func vmRow(_ rec: VmRecord) -> [(key: String, value: CBOR)] {
         row.append(("dropping", .bool(true)))
     }
     row.append(("clipboardSync", .bool(rec.syncsClipboard)))
+    row.append(("outbox", .bool(rec.acceptsOutbox)))
     return row
 }
 
@@ -199,11 +200,13 @@ nonisolated func setVm(_ r: VmRequest) throws -> Envelope {
     }
     var clipboardSync: Bool?
     if case .bool(let on)? = r.arg("clipboard-sync") { clipboardSync = on }
+    var outbox: Bool?
+    if case .bool(let on)? = r.arg("outbox") { outbox = on }
     guard cpus != nil || memoryMB != nil || timezone != nil || bootMode != nil || variableStorePath != nil
-        || clipboardSync != nil
+        || clipboardSync != nil || outbox != nil
     else {
         return r.fail(
-            "set requires at least one of cpus, memoryMB, tz, boot-mode, variable-store-path, clipboard-sync")
+            "set requires at least one of cpus, memoryMB, tz, boot-mode, variable-store-path, clipboard-sync, outbox")
     }
     if let problem = validateResources(cpus: cpus, memoryMB: memoryMB, limits: .current) { return r.fail(problem) }
     let record = try registry.resolve(id)
@@ -220,7 +223,7 @@ nonisolated func setVm(_ r: VmRequest) throws -> Envelope {
     }
     _ = try registry.set(
         record.uuid, cpus: cpus, memoryMB: memoryMB, timezone: timezone, bootMode: bootMode,
-        variableStorePath: variableStorePath, clipboardSync: clipboardSync)
+        variableStorePath: variableStorePath, clipboardSync: clipboardSync, outbox: outbox)
     var applied: [String] = []
     if let cpus { applied.append("cpus=\(cpus)") }
     if let memoryMB { applied.append("memoryMB=\(memoryMB)") }
@@ -228,5 +231,12 @@ nonisolated func setVm(_ r: VmRequest) throws -> Envelope {
     if let bootMode { applied.append("boot-mode=\(bootMode.rawValue)") }
     if let variableStorePath { applied.append("variable-store-path=\(variableStorePath)") }
     if let clipboardSync { applied.append("clipboard-sync=\(clipboardSync)") }
+    if let outbox {
+        applied.append("outbox=\(outbox)")
+        // A running guest's watcher follows the switch at once.
+        if liveVMs.peek(record.uuid) != nil {
+            if outbox { outboxWatchers.start(uuid: record.uuid, name: record.name) } else { outboxWatchers.stop(uuid: record.uuid) }
+        }
+    }
     return r.ok([("message", .text("set \(record.name) (\(applied.joined(separator: ", ")))"))])
 }

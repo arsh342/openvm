@@ -31,6 +31,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.mainMenu = menu.build()
         do {
             try OpenVMHost.start()
+            OpenVMHost.setOutboxHandler { receipt in
+                Task { @MainActor in WindowRegistry.shared.received(receipt) }
+            }
         } catch {
             let alert = NSAlert()
             alert.alertStyle = .critical

@@ -1,6 +1,7 @@
 // WindowRegistry — one window per VM, reused when it is opened again.
 import AppKit
 import OpenVMCore
+import OpenVMHost
 
 @MainActor
 final class WindowRegistry {
@@ -18,6 +19,13 @@ final class WindowRegistry {
         controller.update(vm)
         controller.showWindow(nil)
         NSApp.activate()
+    }
+
+    /// A guest has sent files: say so in its window, and in the Dock if the app is in the background.
+    func received(_ receipt: OutboxReceipt) {
+        guard let controller = controllers[receipt.uuid] else { return }
+        controller.showNotice(ReceiptMessage.subtitle(receipt))
+        if !NSApp.isActive { NSApp.requestUserAttention(.informationalRequest) }
     }
 
     /// Pushes the host's latest list to the windows that are open, and drops the

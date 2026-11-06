@@ -84,6 +84,9 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
 
     required init?(coder: NSCoder) { fatalError("not used") }
 
+    /// A line under the title, for things that happen to the VM that the person did not ask for now.
+    func showNotice(_ text: String) { window?.subtitle = text }
+
     // MARK: files dropped onto the screen
 
     private func wireDrops() {

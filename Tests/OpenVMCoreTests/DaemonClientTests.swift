@@ -152,3 +152,13 @@ extension VmSummaryTests {
         #expect(HostInfo(fields: [("linuxReady", .bool(true))]) == nil)
     }
 }
+
+extension VmSummaryTests {
+    @Test func outboxDefaultsToOnAndDecodesWhenSent() {
+        let base: [(key: String, value: CBOR)] = [
+            ("name", .text("w")), ("state", .text("stopped")), ("uuid", .text("u")),
+        ]
+        #expect(VmSummary(row: .map(base))?.outbox == true)
+        #expect(VmSummary(row: .map(base + [("outbox", .bool(false))]))?.outbox == false)
+    }
+}

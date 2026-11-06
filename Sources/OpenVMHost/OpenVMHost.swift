@@ -88,6 +88,11 @@ public nonisolated enum OpenVMHost {
         }
     }
 
+    /// Told after each set of files a guest sends has been taken, or refused. Called on a background queue.
+    public static func setOutboxHandler(_ handler: (@Sendable (OutboxReceipt) -> Void)?) {
+        outboxWatchers.setHandler(handler)
+    }
+
     /// The live machine for a VM, for a view to show. Main actor only.
     @MainActor
     public static func liveMachine(_ uuid: String) -> VZVirtualMachine? {

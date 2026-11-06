@@ -30,11 +30,15 @@ public nonisolated struct VmRecord: Codable, Sendable, Equatable {
     public var installMediaPath: String?  // Windows: media from tools/build/mk-windows-media.sh, used until installed
     public var machineIdentifier: String?  // Windows: base64 VZGenericMachineIdentifier, stable across boots
     public var clipboardSync: Bool? = nil  // share the clipboard when the VM's window is active; nil = on
+    public var outbox: Bool? = nil  // take files the guest sends to the Mac; nil = on
     public var createdAt: String  // ISO8601; the registry stays human-readable
 
     /// Whether the clipboard is shared with this VM. A record from before the setting existed
     /// has none, and that means on.
     public var syncsClipboard: Bool { clipboardSync ?? true }
+
+    /// Whether files the guest sends are taken to the Mac. Missing means on.
+    public var acceptsOutbox: Bool { outbox ?? true }
 }
 
 /// A host directory shared into the guest over virtio-fs.
@@ -164,7 +168,7 @@ public nonisolated struct VmRegistry: Sendable {
     public func set(
         _ id: String, cpus: Int? = nil, memoryMB: Int? = nil,
         timezone: String? = nil, bootMode: BootMode? = nil,
-        variableStorePath: String? = nil, clipboardSync: Bool? = nil
+        variableStorePath: String? = nil, clipboardSync: Bool? = nil, outbox: Bool? = nil
     ) throws -> VmRecord {
         try mutate { vms in
             guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
@@ -178,6 +182,7 @@ public nonisolated struct VmRegistry: Sendable {
             if let bootMode { vms[idx].bootMode = bootMode }
             if let variableStorePath { vms[idx].variableStorePath = variableStorePath }
             if let clipboardSync { vms[idx].clipboardSync = clipboardSync }
+            if let outbox { vms[idx].outbox = outbox }
             return vms[idx]
         }
     }

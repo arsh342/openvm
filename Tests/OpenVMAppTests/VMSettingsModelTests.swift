@@ -127,3 +127,17 @@ struct VMSettingsModelTests {
         #expect(host.values("audio", "testMode").isEmpty)
     }
 }
+
+@MainActor
+struct VMSettingsOutboxTests {
+    @Test func theOutboxSwitchIsSentWhenChanged() async {
+        let host = FakeTransport()
+        host.respond("host-info", with: FakeTransport.hostInfoFields)
+        let model = VMSettingsModel(vm: FakeTransport.summary(state: "running"), transport: host)
+        #expect(model.outbox)
+        model.outbox = false
+        #expect(model.changes().contains { $0.key == "outbox" && $0.value == .bool(false) })
+        #expect(await model.apply())
+        #expect(host.arg("set", "outbox") == .bool(false))
+    }
+}

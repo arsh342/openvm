@@ -37,7 +37,24 @@ nonisolated func fileOp(_ r: VmRequest) throws -> Envelope {
     return r.ok(result)
 }
 
+/// A guest installed before an op existed answers it with its "must be" list of known ops. Say what that
+/// means, instead of showing a message about a list the person never saw.
+nonisolated func oldToolsHint(forSend message: String) -> String {
+    message.contains("drag op must be")
+        ? "this guest's tools are too old for that; reinstall the guest tools (create a new VM, or update the agent)"
+        : message
+}
+
 nonisolated func dragOp(_ r: VmRequest) throws -> Envelope {
+    do {
+        return try dragOpUnchecked(r)
+    } catch let error as GuestBootError {
+        guard case .text("send")? = r.arg("op"), case .failure(let message) = error else { throw error }
+        throw GuestBootError.failure(oldToolsHint(forSend: message))
+    }
+}
+
+private nonisolated func dragOpUnchecked(_ r: VmRequest) throws -> Envelope {
     let record = try r.record()
     let g = try r.liveGuest(record)
     let result: [(key: String, value: CBOR)]

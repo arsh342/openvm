@@ -387,3 +387,18 @@ extension RegistryTests {
         #expect(throws: VmRegistryError.notFound) { try reg.clearInstallMedia("nope") }
     }
 }
+
+extension RegistryTests {
+    @Test func outboxSwitchChangesWhileRunningAndMissingMeansOn() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        let fresh = try reg.create(name: "live")
+        #expect(fresh.outbox == nil)
+        #expect(fresh.acceptsOutbox)
+        _ = try reg.start("live")
+        let off = try reg.set("live", outbox: false)
+        #expect(off.outbox == false)
+        #expect(!off.acceptsOutbox)
+        #expect(try reg.resolve("live").state == .running)
+    }
+}

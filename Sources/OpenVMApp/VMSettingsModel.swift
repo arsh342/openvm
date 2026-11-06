@@ -21,6 +21,8 @@ final class VMSettingsModel: ObservableObject {
     @Published var timezone: String
     /// Whether text moves between the Mac's clipboard and this guest's.
     @Published var clipboardSync: Bool
+    /// Whether files the guest sends are taken to the Mac.
+    @Published var outbox: Bool
     @Published private(set) var vm: VmSummary
     @Published private(set) var host: HostInfo?
     @Published private(set) var shares: [Share] = []
@@ -39,6 +41,7 @@ final class VMSettingsModel: ObservableObject {
         self.memoryMB = vm.memoryMB
         self.timezone = vm.timezone ?? ""
         self.clipboardSync = vm.clipboardSync
+        self.outbox = vm.outbox
     }
 
     /// What turning on Windows sound costs. Shown, and agreed to, before it is sent.
@@ -98,6 +101,7 @@ final class VMSettingsModel: ObservableObject {
         }
         if !timezone.isEmpty, timezone != (vm.timezone ?? "") { out.append(("tz", .text(timezone))) }
         if clipboardSync != vm.clipboardSync { out.append(("clipboard-sync", .bool(clipboardSync))) }
+        if outbox != vm.outbox { out.append(("outbox", .bool(outbox))) }
         return out
     }
 

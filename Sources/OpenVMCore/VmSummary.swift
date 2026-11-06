@@ -20,6 +20,8 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
     public let dropping: Bool
     /// Whether the clipboard is shared with this VM. On unless the host says otherwise.
     public let clipboardSync: Bool
+    /// Whether files the guest sends are taken to the Mac (on unless the host says otherwise).
+    public let outbox: Bool
 
     /// Rows from an older host lack the newer fields, and still decode.
     public init?(row: CBOR) {
@@ -56,6 +58,11 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
             self.clipboardSync = sync
         } else {
             self.clipboardSync = true
+        }
+        if case .bool(let box)? = fields.first(where: { $0.key == "outbox" })?.value {
+            self.outbox = box
+        } else {
+            self.outbox = true
         }
     }
 }
