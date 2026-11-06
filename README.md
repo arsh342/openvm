@@ -25,13 +25,13 @@ Built in Swift and C, on Apple's own `Virtualization.framework`.
 | Clipboard | Yes | Yes |
 | File transfer | Yes | Yes |
 | Shared folders | Yes | Yes |
-| A window for each VM, with keyboard and mouse | Yes | Yes, see the display fault below |
+| A window for each VM, with keyboard and mouse | Yes | Yes, at 1024 pixels wide for now |
 | Clipboard follows focus (text; passwords are never shared) | Yes | Yes |
 | Drag files into a guest | Yes | Yes |
 | Send files from a guest to your Mac | Yes | Yes |
 | A guest that restarts itself is started again | Yes | Not yet |
 | Print to your Mac's printers | Yes | Yes |
-| Resize the display, 1x to 3x scale | Yes | Yes |
+| Resize the display, 1x to 3x scale | Yes | Not in its window yet |
 | Sound through your Mac | Yes | Opt-in, see below |
 | Clock and time zone follow your Mac | Yes | Yes |
 | Safe pause when your Mac sleeps | Yes | Yes |
@@ -115,7 +115,7 @@ Run `openvmctl` with no arguments to see every command.
 
 ## Before you rely on it
 
-* **A Windows guest's picture can scramble in its window.** Windows runs normally inside, but the window can show smeared rows once the display driver starts. It is not fixed yet; `openvmctl display set <vm> --width 1024 --height 768 --scale 1` has given a clean picture. See [docs/gui-notes.md](docs/gui-notes.md).
+* **A Windows guest runs at 1024 pixels wide in its window for now.** Any other width scrambles the picture, so the app holds that width and scales it up, which looks softer than your display can show. See [docs/gui-notes.md](docs/gui-notes.md).
 * **Building Windows media may need a newer macOS than the app does.** The media script uses `diskutil image`, which older releases of macOS do not have. It has only been run on macOS 27.
 * **Windows sound needs Test Mode.** Windows guests are silent by default, because no Microsoft-signed driver exists for Apple's virtual sound device. `openvmctl audio enable <vm> --test-mode` installs a third-party test-signed driver, then you restart the VM. Test Mode weakens driver signature checks, trusts a third party's certificate in the guest, and shows a desktop watermark. `openvmctl audio disable <vm>` and a restart undo it.
 * **Windows guests use a private Apple API.** They need `_setPerformanceMonitoringUnitEmulationEnabled:`, which Apple could remove in any macOS release. It also keeps openVM off the Mac App Store. Linux guests do not use it.

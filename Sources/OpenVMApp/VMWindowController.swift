@@ -273,7 +273,10 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private func fitGuestToWindow() {
         guard state == .running, let window else { return }
         let backing = DisplayPreference().backingScale(for: vm.uuid, actual: window.backingScaleFactor)
-        let mode = DisplayFit.mode(pointSize: machineView.bounds.size, backingScale: backing)
+        let size = machineView.bounds.size
+        let mode =
+            vm.bootMode == .windows
+            ? DisplayFit.windowsMode(pointSize: size) : DisplayFit.mode(pointSize: size, backingScale: backing)
         Task { await resizer.request(mode) }
     }
 

@@ -60,6 +60,13 @@ struct MachineMenuLogicTests {
         #expect(!MachineMenuLogic.item(.retinaBest, for: vm("running"), scaled: true).checked)
     }
 
+    @Test func aWindowsGuestHasNoResolutionToChoose() {
+        let windows = VmSummary(row: FakeTransport.row("w", state: "running", bootMode: "windows"))!
+        #expect(!MachineMenuLogic.item(.retinaBest, for: windows).enabled)
+        #expect(!MachineMenuLogic.item(.retinaScaled, for: windows).enabled)
+        #expect(MachineMenuLogic.item(.retinaBest, for: vm("running")).enabled)
+    }
+
     @Test func settingsAndSharingAreAlwaysThereForAVm() {
         for state in ["stopped", "running", "suspended"] {
             #expect(MachineMenuLogic.item(.settings, for: vm(state)).enabled)

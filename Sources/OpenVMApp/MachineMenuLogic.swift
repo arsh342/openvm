@@ -35,8 +35,11 @@ enum MachineMenuLogic {
         case .fullScreen:
             return MachineMenuItem(
                 title: fullScreen ? "Exit Full Screen" : "Enter Full Screen", enabled: state.fullScreenEnabled)
-        case .retinaBest: return MachineMenuItem(title: defaultTitle(command), enabled: true, checked: !scaled)
-        case .retinaScaled: return MachineMenuItem(title: defaultTitle(command), enabled: true, checked: scaled)
+        // A Windows guest is held at one width for now (DisplayFit.windowsMode), so it has no choice to make.
+        case .retinaBest:
+            return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode != .windows, checked: !scaled)
+        case .retinaScaled:
+            return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode != .windows, checked: scaled)
         case .shareFolder: return MachineMenuItem(title: defaultTitle(command), enabled: true)
         case .clipboard: return MachineMenuItem(title: defaultTitle(command), enabled: true, checked: vm.clipboardSync)
         case .outbox: return MachineMenuItem(title: defaultTitle(command), enabled: true, checked: vm.outbox)

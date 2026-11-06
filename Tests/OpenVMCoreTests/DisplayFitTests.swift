@@ -80,3 +80,25 @@ extension DisplayFitTests {
         #expect(mode.width >= 640)
     }
 }
+
+/// A Windows guest's picture is only right at 1024 pixels wide (measured), so its width is held there
+/// and the height keeps the window's shape.
+@Suite struct WindowsDisplayFitTests {
+    @Test func theWidthIsHeldAndTheHeightKeepsTheWindowsShape() {
+        let mode = DisplayFit.windowsMode(pointSize: CGSize(width: 1248, height: 748))
+        #expect(mode == DisplayFit.Mode(width: 1024, height: 614, scale: 1))
+    }
+
+    @Test func fullScreenShapesWork() {
+        #expect(DisplayFit.windowsMode(pointSize: CGSize(width: 1512, height: 982)).height == 665)
+        #expect(DisplayFit.windowsMode(pointSize: CGSize(width: 1600, height: 900)).height == 576)
+    }
+
+    @Test func everyResultIsAModeTheAgentsAccept() {
+        for size in [CGSize(width: 320, height: 240), CGSize(width: 4000, height: 300), CGSize(width: 300, height: 4000), CGSize(width: 0, height: 0)] {
+            let mode = DisplayFit.windowsMode(pointSize: size)
+            #expect(mode.width == 1024)
+            #expect(GuestDisplay.validMode(width: mode.width, height: mode.height), "\(size)")
+        }
+    }
+}

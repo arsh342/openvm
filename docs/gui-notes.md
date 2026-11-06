@@ -312,16 +312,31 @@ a running VM.
 
 ## Known fault: a Windows guest's picture scrambles in its window
 
-Open, and not yet explained. The window shows the right colours with the rows smeared sideways, and
-only the parts of the screen that change are redrawn, so it spreads as the pointer moves. It starts
-when the guest's display driver takes over from the firmware (the logo and "Please wait" are fine).
+The window shows the right colours with the rows misplaced, and only the parts of the screen that change
+are redrawn. It starts when the guest's display driver (`viogpudo`) takes over from the firmware; the
+logo and "Please wait" are fine.
 
-* Windows itself is fine: a capture taken inside the guest at the same moment was a clean desktop at
-  2496x1496, while the window showed a 4:3 picture.
-* After `openvmctl display set <vm> --width 1024 --height 768 --scale 1` the window was clean (seen
-  once, by hand). So the view works at the driver's default size.
-* The guest accepts every size tried from 1280x720 to 2496x1496, so a refused mode is not the cause.
-  Which of them the window draws correctly has not been established.
-* Turning off the 5120x2880 registration in `SetupComplete.cmd` did not stop it, on a VM created after
-  that build. Whether the line was really off inside that guest was not confirmed from its log.
-* The app asks for a new size by itself when a guest comes up, so this needs no resizing by anyone.
+**Where it is, measured.** Captures of the Mac-side view, returning to 1024x640 between each test size:
+
+| Guest width | What the window showed |
+| --- | --- |
+| 1024 (x640, six captures; x768 once, by eye) | Clean |
+| 1280 | Repeating vertical bands |
+| 1536 | Overlapping copies |
+| 2048 | Zoomed 2x, left and right halves on alternate rows |
+| 3072 | Mostly dark, with fragments |
+
+Those patterns are what reading each row at 1024 pixels gives when the rows are really wider. Windows
+itself is right: a capture inside the guest at 2496x1496 was a clean desktop while its window was
+scrambled. The guest accepts every size tried. Turning off the 5120x2880 registration did not stop it.
+
+**Not known:** why the row stays at 1024, which is the driver's default mode. The driver creates a new
+resource for each mode, so a stale resource on the Mac side, or one the driver keeps, are candidates.
+One capture at 1024x768 was scrambled, right after a run at another size; the guest may already have
+been at that size, so nothing repainted. Not tested: whether the row follows the mode the guest boots
+with.
+
+**Stopgap.** The app holds a Windows guest at 1024 pixels wide, with the height following the window
+(`DisplayFit.windowsMode`), so the picture should be correct but softer than a Retina display can show,
+and the Retina Resolution menu is off for Windows. `openvmctl display set` is not held, so it can still
+scramble. Retina sizes for Windows need the cause found.
