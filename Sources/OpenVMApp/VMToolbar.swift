@@ -9,6 +9,7 @@ final class VMToolbar: NSObject, NSToolbarDelegate {
         static let pause = NSToolbarItem.Identifier("openvm.pause")
         static let fullScreen = NSToolbarItem.Identifier("openvm.fullScreen")
         static let shareFolder = NSToolbarItem.Identifier("openvm.shareFolder")
+        static let clipboard = NSToolbarItem.Identifier("openvm.clipboard")
         static let settings = NSToolbarItem.Identifier("openvm.settings")
     }
 
@@ -20,6 +21,7 @@ final class VMToolbar: NSObject, NSToolbarDelegate {
     var onPause: (PauseButton) -> Void = { _ in }
     var onFullScreen: () -> Void = {}
     var onShareFolder: () -> Void = {}
+    var onClipboard: (Bool) -> Void = { _ in }
     var onSettings: () -> Void = {}
 
     override init() {
@@ -44,12 +46,13 @@ final class VMToolbar: NSObject, NSToolbarDelegate {
             pause.isEnabled = state.pause != .disabled
         }
         items[ID.fullScreen]?.isEnabled = state.fullScreenEnabled
+        if let clipboard = items[ID.clipboard] { styleClipboard(clipboard, on: state.clipboardSync) }
     }
 
     // MARK: NSToolbarDelegate
 
     nonisolated func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
-        [ID.power, ID.pause, ID.fullScreen, ID.shareFolder, .flexibleSpace, ID.settings]
+        [ID.power, ID.pause, ID.fullScreen, ID.shareFolder, ID.clipboard, .flexibleSpace, ID.settings]
     }
 
     nonisolated func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
@@ -70,6 +73,9 @@ final class VMToolbar: NSObject, NSToolbarDelegate {
                 configure(item, "Full Screen", "arrow.up.left.and.arrow.down.right", #selector(fullScreenPressed))
             case ID.shareFolder:
                 configure(item, "Share Folder", "folder.badge.plus", #selector(shareFolderPressed))
+            case ID.clipboard:
+                configure(item, "Clipboard", "doc.on.clipboard", #selector(clipboardPressed))
+                styleClipboard(item, on: state.clipboardSync)
             case ID.settings: configure(item, "Settings", "gearshape", #selector(settingsPressed))
             default: return nil
             }
@@ -85,6 +91,14 @@ final class VMToolbar: NSObject, NSToolbarDelegate {
         item.action = action
     }
 
+    /// On shows the filled symbol; off shows it crossed through, so the state reads at a glance.
+    private func styleClipboard(_ item: NSToolbarItem, on: Bool) {
+        let title = on ? "Clipboard sharing is on. Click to turn it off." : "Clipboard sharing is off. Click to turn it on."
+        item.label = "Clipboard"
+        item.toolTip = title
+        item.image = symbol(on ? "doc.on.clipboard.fill" : "doc.on.clipboard", title)
+    }
+
     private func symbol(_ name: String, _ description: String) -> NSImage? {
         NSImage(systemSymbolName: name, accessibilityDescription: description)
     }
@@ -93,5 +107,6 @@ final class VMToolbar: NSObject, NSToolbarDelegate {
     @objc private func pausePressed() { onPause(state.pause) }
     @objc private func fullScreenPressed() { onFullScreen() }
     @objc private func shareFolderPressed() { onShareFolder() }
+    @objc private func clipboardPressed() { onClipboard(!state.clipboardSync) }
     @objc private func settingsPressed() { onSettings() }
 }

@@ -204,3 +204,29 @@ do with `openvmctl`; what it adds is the order, the checks before each step, and
 
 To check by hand: the pages and buttons behave as above (the terminal cannot drive them); the ISO
 chooser opens and accepts only `.iso` files; closing the window mid-run asks.
+
+## Clipboard
+
+The clipboard moves **when focus moves**, not on a timer: the Mac's text goes to the guest when the
+VM's window becomes the one in front, and the guest's text comes back when it stops being. An idle
+guest costs nothing, and neither guest agent needed a change. The decisions are in `ClipboardPolicy`
+(pure, tested without a window); `ClipboardSync` does the I/O and runs one transfer at a time.
+
+* **Text only.** Rich text, images and files stay out of this milestone.
+* **Only what is new.** The Mac's text is sent only if the pasteboard changed since the last sync, and
+  text the Mac gave the guest is never written back (that would replace an image or rich text on the
+  Mac with plain text for nothing). Text pulled from the guest does not count as a new Mac copy.
+* **Private items stay on the Mac.** Anything marked `org.nspasteboard.ConcealedType` or
+  `TransientType`, the convention password managers follow, is never sent. The window's subtitle says
+  "Clipboard not shared: it was marked private".
+* **512 KiB limit**, half the 1 MiB frame, because the Windows agent's clipboard buffers are half a
+  frame (a larger text would work on Linux and fail on Windows). The subtitle says when it is skipped.
+* **A guest with no desktop yet** (just booted) refuses the write; that is not an error to show. The
+  next focus tries again.
+* **Per VM.** The toolbar's Clipboard button and Settings ▸ Clipboard turn it off or on, also while the
+  VM runs. The setting is the record's `clipboardSync`; a record without it means on.
+* **Logged:** each transfer's size and direction on the app's stderr. The text itself never is.
+
+To check by hand (the terminal cannot focus windows): copy in a Mac app, click into the VM window, and
+paste in the guest; copy in the guest, click out to the Mac, and paste; copy from a password manager,
+click into the VM, and see that nothing arrives and the subtitle says why.

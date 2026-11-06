@@ -63,6 +63,16 @@ final class VMListModel: ObservableObject {
     /// Asks the guest to shut down, and waits for it.
     func stop(_ vm: VmSummary) async { await act("stop", vm) }
 
+    /// Turns clipboard sharing for one VM on or off. It may change while the VM runs.
+    func setClipboardSync(_ vm: VmSummary, _ on: Bool) async {
+        do {
+            _ = try await transport.send("set", [("id", .text(vm.uuid)), ("clipboard-sync", .bool(on))])
+            await refresh()
+        } catch {
+            lastError = "\(error)"
+        }
+    }
+
     /// Asks to delete a VM. The view confirms with the person before `confirmDelete`.
     func requestDelete(_ vm: VmSummary) {
         guard vm.state == .stopped else {

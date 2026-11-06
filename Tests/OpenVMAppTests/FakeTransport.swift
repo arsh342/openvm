@@ -74,7 +74,7 @@ nonisolated final class FakeTransport: HostTransport, @unchecked Sendable {
 
     static func row(
         _ name: String, state: String = "stopped", activity: String? = nil, bootMode: String = "linux",
-        cpus: UInt64 = 4, memoryMB: UInt64 = 4096, timezone: String? = nil
+        cpus: UInt64 = 4, memoryMB: UInt64 = 4096, timezone: String? = nil, clipboardSync: Bool? = nil
     ) -> CBOR {
         var fields: [(key: String, value: CBOR)] = [
             ("name", .text(name)), ("state", .text(state)), ("uuid", .text("uuid-\(name)")),
@@ -82,11 +82,12 @@ nonisolated final class FakeTransport: HostTransport, @unchecked Sendable {
         ]
         if let activity { fields.append(("activity", .text(activity))) }
         if let timezone { fields.append(("timezone", .text(timezone))) }
+        if let clipboardSync { fields.append(("clipboardSync", .bool(clipboardSync))) }
         return .map(fields)
     }
 
-    static func summary(_ name: String = "w", state: String = "stopped", bootMode: String = "linux", cpus: UInt64 = 4, memoryMB: UInt64 = 4096, timezone: String? = nil) -> VmSummary {
-        VmSummary(row: row(name, state: state, bootMode: bootMode, cpus: cpus, memoryMB: memoryMB, timezone: timezone))!
+    static func summary(_ name: String = "w", state: String = "stopped", bootMode: String = "linux", cpus: UInt64 = 4, memoryMB: UInt64 = 4096, timezone: String? = nil, clipboardSync: Bool? = nil) -> VmSummary {
+        VmSummary(row: row(name, state: state, bootMode: bootMode, cpus: cpus, memoryMB: memoryMB, timezone: timezone, clipboardSync: clipboardSync))!
     }
 
     /// What `host-info` answers on a Mac with 8 CPUs and 16 GiB.

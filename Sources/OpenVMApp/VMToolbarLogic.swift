@@ -34,10 +34,18 @@ struct ToolbarState: Equatable {
     let power: PowerButton
     let pause: PauseButton
     let fullScreenEnabled: Bool
+    /// Whether this VM shares its clipboard with the Mac (the toolbar button shows it pressed).
+    var clipboardSync = true
 }
 
 enum VMToolbarLogic {
     static func state(for vm: VmSummary) -> ToolbarState {
+        var state = base(for: vm)
+        state.clipboardSync = vm.clipboardSync
+        return state
+    }
+
+    private static func base(for vm: VmSummary) -> ToolbarState {
         if let activity = vm.activity {
             // A boot in progress can be cancelled; nothing else can be done to a VM the host is busy with.
             return ToolbarState(

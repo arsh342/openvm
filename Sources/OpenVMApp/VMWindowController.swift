@@ -18,6 +18,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private let model: VMListModel
     private let showSettings: (VmSummary) -> Void
     private let resizer: ResizeCoalescer
+    private let clipboard: ClipboardSync
     private(set) var vm: VmSummary
     private(set) var state: VMWindowState = .stopped
 
@@ -30,6 +31,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         self.resizer = ResizeCoalescer { mode in
             await Self.applyDisplay(mode, to: uuid, over: transport)
         }
+        let sync = ClipboardSync(vm: vm, transport: transport, pasteboard: MacPasteboard())
+        self.clipboard = sync
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 1280, height: 720),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -44,6 +47,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         window.setFrameAutosaveName(frameName)
         super.init(window: window)
         window.delegate = self
+        sync.onNotice = { [weak window] notice in window?.subtitle = notice ?? "" }
         updateMinimumSize()
 
         // The display size is set by the host's display op, not by the view: the guest's
@@ -98,6 +102,10 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         }
         toolbar.onFullScreen = { [weak self] in self?.window?.toggleFullScreen(nil) }
         toolbar.onShareFolder = { [weak self] in self?.shareFolder() }
+        toolbar.onClipboard = { [weak self] on in
+            guard let self else { return }
+            Task { await self.model.setClipboardSync(self.vm, on) }
+        }
         toolbar.onSettings = { [weak self] in
             guard let self else { return }
             self.showSettings(self.vm)
@@ -135,6 +143,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     func update(_ vm: VmSummary) {
         self.vm = vm
         let before = state
+        clipboard.setEnabled(vm.clipboardSync)
         let machine = OpenVMHost.liveMachine(vm.uuid)
         state = VMWindowState.from(vm, hasMachine: machine != nil)
         if state.showsScreen {
@@ -156,6 +165,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         if state == .running, before != .running {
             Task { await resizer.forget() }
             fitGuestToWindow()
+            // A window already in front when the guest comes up has no focus change to trigger a push.
+            if window?.isKeyWindow == true { Task { await clipboard.focusGained() } }
         }
     }
 
@@ -219,6 +230,19 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     func windowDidChangeBackingProperties(_ notification: Notification) {
         updateMinimumSize()
         fitGuestToWindow()
+    }
+
+    // MARK: clipboard follows focus
+
+    /// Only a running guest has an agent to talk to; a booting or paused one is skipped.
+    func windowDidBecomeKey(_ notification: Notification) {
+        guard state == .running else { return }
+        Task { await clipboard.focusGained() }
+    }
+
+    func windowDidResignKey(_ notification: Notification) {
+        guard state == .running else { return }
+        Task { await clipboard.focusLost() }
     }
 
     // MARK: full screen takes the system's hot keys for the guest

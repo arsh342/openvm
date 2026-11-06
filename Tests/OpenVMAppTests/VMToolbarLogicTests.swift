@@ -51,3 +51,12 @@ struct VMToolbarLogicTests {
         #expect(PauseButton.resume.title == "Resume")
     }
 }
+
+struct VMToolbarClipboardTests {
+    @Test func theClipboardButtonFollowsTheVmsSetting() {
+        let on = VmSummary(row: FakeTransport.row("w", state: "running"))!
+        let off = VmSummary(row: FakeTransport.row("w", state: "running", clipboardSync: false))!
+        #expect(VMToolbarLogic.state(for: on).clipboardSync)  // a record without the field means on
+        #expect(!VMToolbarLogic.state(for: off).clipboardSync)
+    }
+}

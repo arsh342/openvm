@@ -25,6 +25,7 @@ struct VMSettingsView: View {
             Form {
                 resources
                 timeZone
+                clipboardSection
                 sharedFolders
                 if model.vm.bootMode == .windows { sound }
             }
@@ -70,6 +71,14 @@ struct VMSettingsView: View {
                 ForEach(TimeZone.knownTimeZoneIdentifiers.sorted(), id: \.self) { Text($0).tag($0) }
             }
             Text("Applied the next time the guest starts or resumes.").font(.callout).foregroundStyle(.secondary)
+        }
+    }
+
+    private var clipboardSection: some View {
+        Section("Clipboard") {
+            Toggle("Share the clipboard with this VM", isOn: $model.clipboardSync)
+            Text("Text only. Passwords copied from a password manager are never shared.")
+                .font(.callout).foregroundStyle(.secondary)
         }
     }
 
