@@ -12,8 +12,6 @@ final class VMListModel: ObservableObject {
     @Published var lastError: String?
     /// Set while the host does not answer; clears when it does.
     @Published private(set) var hostProblem: String?
-    /// The VM chosen in the library sidebar, by UUID. May name a VM that is gone; use `selectedVM`.
-    @Published var selection: String?
     /// A VM the person has asked to delete and not yet confirmed.
     @Published private(set) var pendingDelete: VmSummary?
 
@@ -56,9 +54,6 @@ final class VMListModel: ObservableObject {
 
     func vm(uuid: String) -> VmSummary? { vms.first { $0.uuid == uuid } }
 
-    /// The chosen VM, or the first when nothing is chosen or the choice no longer exists.
-    var selectedVM: VmSummary? { selection.flatMap(vm(uuid:)) ?? vms.first }
-
     // MARK: actions
 
     func start(_ vm: VmSummary) async { await act("start", vm) }
@@ -67,6 +62,16 @@ final class VMListModel: ObservableObject {
 
     /// Asks the guest to shut down, and waits for it.
     func stop(_ vm: VmSummary) async { await act("stop", vm) }
+
+    /// Turns acceptance of files a VM sends on or off. It may change while the VM runs.
+    func setOutbox(_ vm: VmSummary, _ on: Bool) async {
+        do {
+            _ = try await transport.send("set", [("id", .text(vm.uuid)), ("outbox", .bool(on))])
+            await refresh()
+        } catch {
+            lastError = "\(error)"
+        }
+    }
 
     /// Turns clipboard sharing for one VM on or off. It may change while the VM runs.
     func setClipboardSync(_ vm: VmSummary, _ on: Bool) async {
@@ -102,6 +107,7 @@ final class VMListModel: ObservableObject {
             return
         }
         await act("delete", vm)
+        if lastError == nil { ThumbnailStore.shared.remove(vm.uuid) }
     }
 
     private func act(_ op: String, _ vm: VmSummary) async {

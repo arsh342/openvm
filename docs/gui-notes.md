@@ -142,9 +142,19 @@ menu-bar icon brings a window back; host sleep with a window open pauses and res
   There are no key equivalents except Settings (Cmd-,) and Full Screen (Ctrl-Cmd-F), so a shortcut
   meant for the guest is never taken for a power command. Share Folder asks for a folder and says the
   guest can read and change what is in it. "Open Virtual Machine" at the bottom lists every VM.
-* **Library**: a sidebar lists every VM with its state; the chosen one shows its details and actions
-  on the right (Open or Start as the main button, then Pause or Resume, Shut Down, Settings, Delete).
-  Double-clicking a VM in the sidebar opens its window.
+* **Library**: a grid of cards, one per VM, with a picture of its screen, its state and the action most
+  wanted (Start, Resume or Open) on the card. Click a card to open its window; right-click for Pause,
+  Shut Down, Settings and Delete. A dashed "New VM…" card starts the wizard. The picture is the last
+  one taken of the guest's screen, kept under `$OPENVM_HOME/thumbs`, so a stopped VM still shows how it
+  was left; until there is one the card shows a plain tile with the system's symbol. It is taken when
+  the window loses focus or closes, and every 30 seconds while the window is up and the guest runs. A
+  blank capture is never kept. *Not yet checked in a real window:* whether the Virtualization view can
+  be read this way at all; if it returns black, the cards stay on the plain tile.
+* **VM window title bar**: dark and slim, with four round buttons at the right (power, pause, full
+  screen, settings) that fade back while the pointer is away. They do what the Machine menu items do.
+* **Menu-bar icon**: the app's own icon. Its popover lists every VM with its state, CPUs and memory;
+  the chevron opens a VM's settings (system, CPUs, memory, time zone, and switches for the clipboard
+  and for files the VM sends) and a Settings… button.
 * **Settings** (Machine menu, or the library, which is the only way to reach a stopped VM's): CPUs and memory, time zone, shared folders, and for Windows, sound.
   * CPUs and memory are read when the VM starts, so a running VM shows them greyed out with the
     reason. The choices come from `host-info`, so only what this Mac can give a VM is offered

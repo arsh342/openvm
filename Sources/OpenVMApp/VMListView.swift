@@ -1,10 +1,12 @@
-// VMListView — the library: every VM in a sidebar, and the chosen one's state, details and actions on
-// the right. The state of each VM comes from the host, so a change made with openvmctl shows up here.
+// VMListView — the library: a card for every VM, with a picture of its screen, its state, and the
+// action you most likely want. The state of each VM comes from the host, so a change made with
+// openvmctl shows up here.
 import OpenVMCore
 import SwiftUI
 
 struct VMListView: View {
     @ObservedObject var model: VMListModel
+    @ObservedObject var thumbnails: ThumbnailStore
     /// Opens a VM's window.
     let open: (VmSummary) -> Void
     /// Opens a VM's settings.
@@ -12,16 +14,38 @@ struct VMListView: View {
     /// Starts the creation wizard.
     let newVM: () -> Void
 
+    init(
+        model: VMListModel, thumbnails: ThumbnailStore = .shared, open: @escaping (VmSummary) -> Void,
+        settings: @escaping (VmSummary) -> Void, newVM: @escaping () -> Void
+    ) {
+        self.model = model
+        self.thumbnails = thumbnails
+        self.open = open
+        self.settings = settings
+        self.newVM = newVM
+    }
+
+    private let columns = [GridItem(.adaptive(minimum: 230, maximum: 320), spacing: 20, alignment: .top)]
+
     var body: some View {
         VStack(spacing: 0) {
             banners
-            HStack(spacing: 0) {
-                sidebar.frame(width: 240)
-                Divider()
-                detail.frame(maxWidth: .infinity, maxHeight: .infinity)
+            if model.vms.isEmpty {
+                emptyState
+            } else {
+                ScrollView {
+                    LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
+                        ForEach(model.vms) { vm in
+                            VMCard(vm: vm, image: thumbnails.image(for: vm.uuid)) { perform($0, on: vm) }
+                        }
+                        NewVMCard(action: newVM)
+                    }
+                    .padding(24)
+                }
             }
         }
-        .frame(minWidth: 760, minHeight: 440)
+        .frame(minWidth: 640, minHeight: 420)
+        .background(Color(nsColor: .underPageBackgroundColor))
         .confirmationDialog(
             model.pendingDelete.map { VMRowLogic.deleteConfirmation(for: $0).title } ?? "", isPresented: isDeleting,
             titleVisibility: .visible, presenting: model.pendingDelete
@@ -35,50 +59,6 @@ struct VMListView: View {
 
     private var isDeleting: Binding<Bool> {
         Binding(get: { model.pendingDelete != nil }, set: { if !$0 { model.cancelDelete() } })
-    }
-
-    // MARK: sidebar
-
-    private var sidebar: some View {
-        VStack(spacing: 0) {
-            Text("Virtual Machines")
-                .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 14).padding(.top, 12).padding(.bottom, 6)
-            if model.vms.isEmpty {
-                Text("None yet").font(.callout).foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ScrollView {
-                    VStack(spacing: 2) {
-                        ForEach(model.vms) { vm in
-                            SidebarRow(vm: vm, selected: model.selectedVM?.uuid == vm.uuid)
-                                .contentShape(Rectangle())
-                                .onTapGesture { model.selection = vm.uuid }
-                                .onTapGesture(count: 2) { open(vm) }
-                        }
-                    }
-                    .padding(.horizontal, 8)
-                }
-            }
-            Divider()
-            Button(action: newVM) {
-                Label("New VM…", systemImage: "plus").frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .buttonStyle(.plain)
-            .padding(12)
-        }
-        .background(Color(nsColor: .windowBackgroundColor).opacity(0.6))
-    }
-
-    // MARK: detail
-
-    @ViewBuilder private var detail: some View {
-        if let vm = model.selectedVM {
-            VMDetail(vm: vm) { perform($0, on: vm) }
-        } else {
-            emptyState
-        }
     }
 
     @ViewBuilder private var banners: some View {
@@ -97,6 +77,7 @@ struct VMListView: View {
             Text("Create one to get started.").foregroundStyle(.secondary)
             Button("New VM…", action: newVM).padding(.top, 4)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(32)
     }
 
@@ -115,110 +96,101 @@ struct VMListView: View {
 
 // MARK: pieces
 
-private struct SidebarRow: View {
+private struct VMCard: View {
     let vm: VmSummary
-    let selected: Bool
-
-    var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: vm.bootMode == .windows ? "macwindow" : "terminal")
-                .frame(width: 22).foregroundStyle(selected ? Color.white : Color.secondary)
-            VStack(alignment: .leading, spacing: 1) {
-                Text(vm.name).lineLimit(1).foregroundStyle(selected ? Color.white : Color.primary)
-                HStack(spacing: 5) {
-                    if vm.activity != nil {
-                        ProgressView().controlSize(.mini)
-                    } else {
-                        Circle().fill(selected ? Color.white : StatusColor.color(for: vm)).frame(width: 6, height: 6)
-                    }
-                    Text(VMRowLogic.statusText(for: vm)).font(.caption)
-                        .foregroundStyle(selected ? Color.white.opacity(0.85) : Color.secondary)
-                }
-            }
-            Spacer(minLength: 0)
-        }
-        .padding(.horizontal, 10).padding(.vertical, 7)
-        .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Color.accentColor : Color.clear))
-    }
-}
-
-private struct VMDetail: View {
-    let vm: VmSummary
+    let image: NSImage?
     let perform: (VMAction) -> Void
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                header
-                actions
-                details
-            }
-            .padding(28)
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-    }
-
-    private var header: some View {
-        HStack(spacing: 16) {
-            Image(systemName: vm.bootMode == .windows ? "macwindow" : "terminal")
-                .font(.system(size: 30)).foregroundStyle(.secondary)
-                .frame(width: 64, height: 64)
-                .background(RoundedRectangle(cornerRadius: 14).fill(Color.secondary.opacity(0.12)))
-            VStack(alignment: .leading, spacing: 4) {
-                Text(vm.name).font(.title.weight(.semibold)).lineLimit(1)
-                HStack(spacing: 6) {
-                    if vm.activity != nil {
-                        ProgressView().controlSize(.small)
-                    } else {
-                        Circle().fill(StatusColor.color(for: vm)).frame(width: 9, height: 9)
-                    }
-                    Text(VMRowLogic.statusText(for: vm)).foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
-
-    private var actions: some View {
-        let all = VMRowLogic.actions(for: vm)
-        let primary = all.first { $0 == .start || $0 == .open || $0 == .resume }
-        return HStack(spacing: 10) {
-            ForEach(all, id: \.self) { action in
-                if action == primary {
-                    Button { perform(action) } label: { Label(action.title, systemImage: action.symbol) }
-                        .buttonStyle(.borderedProminent)
+        VStack(alignment: .leading, spacing: 8) {
+            screen
+                .aspectRatio(16.0 / 10.0, contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.primary.opacity(0.12)))
+                .overlay(alignment: .bottomTrailing) { playButton.padding(10) }
+                .shadow(color: .black.opacity(0.18), radius: 6, y: 3)
+            HStack(spacing: 6) {
+                if vm.activity != nil {
+                    ProgressView().controlSize(.mini)
                 } else {
-                    Button(role: action == .delete ? .destructive : nil) { perform(action) } label: {
-                        Label(action.title, systemImage: action.symbol)
-                    }
+                    Circle().fill(dot).frame(width: 8, height: 8)
+                }
+                Text(vm.name).font(.headline).lineLimit(1)
+            }
+            Text(VMRowLogic.statusText(for: vm) + " · " + VMRowLogic.subtitle(for: vm))
+                .font(.caption).foregroundStyle(.secondary).lineLimit(1)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { perform(.open) }
+        .contextMenu {
+            ForEach(VMRowLogic.actions(for: vm), id: \.self) { action in
+                Button(role: action == .delete ? .destructive : nil) { perform(action) } label: {
+                    Label(action.title, systemImage: action.symbol)
                 }
             }
         }
-        .controlSize(.large)
     }
 
-    private var details: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(VMRowLogic.details(for: vm).enumerated()), id: \.offset) { index, row in
-                if index > 0 { Divider() }
-                HStack {
-                    Text(row.label).foregroundStyle(.secondary)
-                    Spacer()
-                    Text(row.value)
-                }
-                .padding(.vertical, 9).padding(.horizontal, 14)
+    /// The last picture taken of the guest's screen, or a plain tile with the system's symbol.
+    @ViewBuilder private var screen: some View {
+        if let image {
+            Image(nsImage: image).resizable().scaledToFill()
+        } else {
+            ZStack {
+                LinearGradient(
+                    colors: vm.bootMode == .windows
+                        ? [Color(red: 0.10, green: 0.30, blue: 0.62), Color(red: 0.05, green: 0.14, blue: 0.34)]
+                        : [Color(red: 0.16, green: 0.18, blue: 0.30), Color(red: 0.07, green: 0.08, blue: 0.16)],
+                    startPoint: .topLeading, endPoint: .bottomTrailing)
+                Image(systemName: vm.bootMode == .windows ? "macwindow" : "terminal")
+                    .font(.system(size: 34, weight: .light)).foregroundStyle(.white.opacity(0.55))
             }
         }
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.08)))
     }
-}
 
-private enum StatusColor {
-    static func color(for vm: VmSummary) -> Color {
+    /// The one thing most wanted from a card: start it, resume it, or open it.
+    private var playButton: some View {
+        let action = VMRowLogic.primaryAction(for: vm)
+        return Button { perform(action) } label: {
+            Image(systemName: action == .open ? "macwindow" : "play.fill")
+                .font(.system(size: 13, weight: .bold))
+                .frame(width: 30, height: 30)
+                .background(Circle().fill(.regularMaterial))
+        }
+        .buttonStyle(.plain)
+        .help(action.title)
+    }
+
+    private var dot: Color {
         switch vm.state {
         case .running: return .green
         case .suspended: return .orange
         case .stopped, .starting, .stopping: return .gray
         }
+    }
+}
+
+private struct NewVMCard: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            // Colour.clear takes the whole width offered, so the tile is as big as a VM card.
+            Color.clear
+                .aspectRatio(16.0 / 10.0, contentMode: .fit)
+                .overlay(
+                    VStack(spacing: 8) {
+                        Image(systemName: "plus").font(.system(size: 30, weight: .light))
+                        Text("New VM…").font(.headline)
+                    }
+                    .foregroundStyle(.secondary))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.secondary.opacity(0.5), style: StrokeStyle(lineWidth: 1.5, dash: [6, 5])))
+                .contentShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
     }
 }
 

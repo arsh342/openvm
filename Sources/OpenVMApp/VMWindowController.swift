@@ -7,6 +7,7 @@
 import AppKit
 import OpenVMCore
 import OpenVMHost
+import SwiftUI
 import Virtualization
 
 @MainActor
@@ -19,6 +20,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItem
     private let resizer: ResizeCoalescer
     private let clipboard: ClipboardSync
     private let drops: DropSession
+    private let controls = TitlebarControlsModel()
+    private var thumbnailTimer: Timer?
     private(set) var vm: VmSummary
     private(set) var state: VMWindowState = .stopped
 
@@ -46,11 +49,17 @@ final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItem
         // 1249 wide for a 1280 request).
         let frameName = "vm-window-\(vm.uuid)"
         if !window.setFrameUsingName(frameName) { window.center() }
+        // A dark, slim title bar: the guest is what the window is for.
+        window.appearance = NSAppearance(named: .darkAqua)
+        window.titlebarAppearsTransparent = true
+        window.backgroundColor = .black
         window.setFrameAutosaveName(frameName)
         super.init(window: window)
         window.delegate = self
         sync.onNotice = { [weak window] notice in window?.subtitle = notice ?? "" }
         wireDrops()
+        wireTitlebar(window)
+        startThumbnailTimer()
         updateMinimumSize()
 
         // The display size is set by the host's display op, not by the view: the guest's
@@ -117,6 +126,45 @@ final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItem
         case .idle, .copying: break
         }
         drops.dismiss()
+    }
+
+    // MARK: the library's preview of this VM
+
+    /// Takes a picture of the guest's screen for the library card. Skipped unless a guest is showing.
+    /// A blank capture is dropped by the store, so a view that cannot be read leaves the old picture.
+    func captureThumbnail() {
+        guard state.showsScreen, !machineView.isHidden, machineView.bounds.width > 10,
+            let rep = machineView.bitmapImageRepForCachingDisplay(in: machineView.bounds)
+        else { return }
+        machineView.cacheDisplay(in: machineView.bounds, to: rep)
+        ThumbnailStore.shared.save(rep, for: vm.uuid)
+    }
+
+    /// While the window is up and the guest runs, refresh the picture now and then (the screen changes
+    /// slowly enough that this costs nothing a person would notice).
+    private func startThumbnailTimer() {
+        thumbnailTimer?.invalidate()
+        thumbnailTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated {
+                guard let self, self.window?.isVisible == true, self.state == .running else { return }
+                self.captureThumbnail()
+            }
+        }
+    }
+
+    // MARK: title bar buttons
+
+    private func wireTitlebar(_ window: NSWindow) {
+        controls.onPower = { [weak self] in self?.machinePower(nil) }
+        controls.onPause = { [weak self] in self?.machinePause(nil) }
+        controls.onFullScreen = { [weak self] in self?.machineFullScreen(nil) }
+        controls.onSettings = { [weak self] in self?.machineSettings(nil) }
+        let hosting = NSHostingView(rootView: TitlebarControls(model: controls))
+        hosting.frame.size = hosting.fittingSize
+        let accessory = NSTitlebarAccessoryViewController()
+        accessory.view = hosting
+        accessory.layoutAttribute = .trailing
+        window.addTitlebarAccessoryViewController(accessory)
     }
 
     // MARK: the Machine menu
@@ -187,6 +235,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItem
             machineView.virtualMachine = nil
         }
         machineView.isHidden = !state.showsScreen
+        controls.state = VMToolbarLogic.state(for: vm)
         cover.show(state) { [weak self] in
             guard let self else { return }
             Task { await self.model.start(self.vm) }
@@ -292,11 +341,14 @@ final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItem
     }
 
     func windowDidResignKey(_ notification: Notification) {
+        captureThumbnail()
         guard state == .running else { return }
         Task { await clipboard.focusLost() }
     }
 
     // MARK: full screen takes the system's hot keys for the guest
+
+    func windowWillClose(_ notification: Notification) { captureThumbnail() }
 
     func windowDidEnterFullScreen(_ notification: Notification) { machineView.capturesSystemKeys = true }
     func windowDidExitFullScreen(_ notification: Notification) { machineView.capturesSystemKeys = false }

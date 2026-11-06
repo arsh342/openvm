@@ -14,7 +14,7 @@ final class StatusMenuController: NSObject {
     ) {
         super.init()
         if let button = item.button {
-            button.image = NSImage(systemSymbolName: "desktopcomputer", accessibilityDescription: "openVM")
+            button.image = Self.icon()
             button.target = self
             button.action = #selector(toggle(_:))
         }
@@ -23,6 +23,7 @@ final class StatusMenuController: NSObject {
         let host = NSHostingController(
             rootView: StatusPopoverView(
                 model: model,
+                state: PopoverState(),
                 act: { [weak self] action, vm in
                     self?.popover.performClose(nil)
                     act(action, vm)
@@ -37,6 +38,20 @@ final class StatusMenuController: NSObject {
                 }))
         host.sizingOptions = .preferredContentSize  // the popover is as tall as its list
         popover.contentViewController = host
+    }
+
+    /// The app's own icon, at menu-bar size. Run outside a bundle (no icon yet) it falls back to a symbol.
+    private static func icon() -> NSImage? {
+        let size = NSSize(width: 20, height: 20)
+        if Bundle.main.bundleIdentifier != nil, let icon = NSApp.applicationIconImage {
+            let small = NSImage(size: size, flipped: false) { rect in
+                icon.draw(in: rect)
+                return true
+            }
+            small.accessibilityDescription = "openVM"
+            return small
+        }
+        return NSImage(systemSymbolName: "desktopcomputer", accessibilityDescription: "openVM")
     }
 
     @objc private func toggle(_ sender: NSStatusBarButton) {

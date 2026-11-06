@@ -96,13 +96,13 @@ struct SnapshotTests {
             FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
             FakeTransport.row("scratch", state: "stopped"),
         ])
-        Snapshot.check("list-mixed-states", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 900, height: 540)
+        Snapshot.check("list-mixed-states", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 900, height: 560)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
     func emptyList() async {
         let model = await model([])
-        Snapshot.check("list-empty", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 900, height: 540)
+        Snapshot.check("list-empty", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 900, height: 560)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
@@ -112,7 +112,22 @@ struct SnapshotTests {
         let model = VMListModel(transport: host)
         await model.refresh()
         model.lastError = "scratch is busy: start"
-        Snapshot.check("list-action-error", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 900, height: 540)
+        Snapshot.check("list-action-error", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 900, height: 560)
+    }
+}
+
+extension SnapshotTests {
+    @Test(.enabled(if: Snapshot.enabled))
+    func popoverWithASettingsPanelOpen() async {
+        let model = await model([
+            FakeTransport.row("ubuntu-lab", state: "running", cpus: 4, memoryMB: 8192, timezone: "Europe/Berlin", clipboardSync: true, outbox: false),
+            FakeTransport.row("scratch", state: "stopped"),
+        ])
+        let state = PopoverState()
+        state.toggle("uuid-ubuntu-lab")
+        Snapshot.check(
+            "popover-settings-open", StatusPopoverView(model: model, state: state, act: { _, _ in }, showLibrary: {}, quit: {}),
+            width: 340, height: 420)
     }
 }
 

@@ -54,36 +54,3 @@ struct MachineMenuLogicTests {
     }
 }
 
-@MainActor
-struct LibrarySelectionTests {
-    private func model(_ names: [String]) async -> VMListModel {
-        let host = FakeTransport()
-        host.rows = names.map { FakeTransport.row($0) }
-        let model = VMListModel(transport: host)
-        await model.refresh()
-        return model
-    }
-
-    @Test func nothingChosenMeansTheFirst() async {
-        let model = await model(["a", "b"])
-        #expect(model.selectedVM?.name == "a")
-    }
-
-    @Test func aChoiceIsKept() async {
-        let model = await model(["a", "b"])
-        model.selection = "uuid-b"
-        await model.refresh()
-        #expect(model.selectedVM?.name == "b")
-    }
-
-    @Test func aDeletedChoiceFallsBackToTheFirst() async {
-        let model = await model(["a", "b"])
-        model.selection = "uuid-gone"
-        #expect(model.selectedVM?.name == "a")
-    }
-
-    @Test func noVmsMeansNoSelection() async {
-        let model = await model([])
-        #expect(model.selectedVM == nil)
-    }
-}

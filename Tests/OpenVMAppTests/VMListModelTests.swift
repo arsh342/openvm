@@ -133,3 +133,26 @@ extension VMListModelTests {
         #expect(model.lastError?.contains("Stop") == true)
     }
 }
+
+@MainActor
+struct VMListOutboxTests {
+    @Test func theOutboxSwitchIsSentAsASetRequest() async {
+        let host = FakeTransport()
+        let model = VMListModel(transport: host)
+        await model.setOutbox(FakeTransport.summary(), false)
+        #expect(host.arg("set", "outbox") == .bool(false))
+        #expect(host.arg("set", "id") == .text("uuid-w"))
+    }
+}
+
+@MainActor
+struct PopoverStateTests {
+    @Test func rowsOpenAndCloseIndependently() {
+        let state = PopoverState()
+        state.toggle("a")
+        state.toggle("b")
+        #expect(state.expanded == ["a", "b"])
+        state.toggle("a")
+        #expect(state.expanded == ["b"])
+    }
+}

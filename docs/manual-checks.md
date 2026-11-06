@@ -67,6 +67,8 @@ A failure goes back as a bug with the step that showed it.
       `.iso`; closing the window mid-run asks first.
 - [ ] **Machine menu, library and Settings.** Every menu item does what it says, and is off with no VM window in front; CPU and memory are locked while a VM
       runs; sound warning appears before Windows sound turns on.
-- [ ] **Menu bar popover** lists VMs and opens their windows.
+- [ ] **Menu bar icon** is the app icon; its popover lists VMs, a chevron opens a VM's settings, and the switches there work.
+- [ ] **Library cards** show a picture of each running VM after a while (30 seconds, or when you leave its window). If a card stays a plain tile for a running VM, the screen could not be read: tell me.
+- [ ] **VM window title bar**: dark, with four round buttons that fade when the pointer leaves.
 - [ ] **Clean account.** On a new macOS user with no developer tools, do the whole of the above that
       the app offers. Any step that needs the terminal fails this.
