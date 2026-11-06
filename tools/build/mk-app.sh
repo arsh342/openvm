@@ -22,6 +22,18 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/openvm"
 cp "$(dirname "$0")/Info.plist" "$APP/Contents/Info.plist"
 
+# The icon is an Icon Composer document (tools/build/AppIcon.icon; open it in Icon Composer to edit).
+# actool ships with Xcode, not the Command Line Tools: without it the app is built with no icon.
+XCODE=/Applications/Xcode.app/Contents/Developer
+if [ -d "$XCODE" ]; then
+    DEVELOPER_DIR=$XCODE xcrun actool "$(dirname "$0")/AppIcon.icon" --compile "$APP/Contents/Resources" \
+        --platform macosx --minimum-deployment-target 14.0 --app-icon AppIcon \
+        --output-partial-info-plist "${TMPDIR:-/tmp}/openvm-icon.plist" >/dev/null \
+        || echo "mk-app: the icon did not compile; continuing without it" >&2
+else
+    echo "mk-app: Xcode not found; building without the icon" >&2
+fi
+
 # The guest payload goes in before signing: the signature seals the bundle's resources.
 sh "$(dirname "$0")/mk-payload.sh" "$APP/Contents/Resources/guest" >/dev/null
 
