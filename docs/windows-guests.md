@@ -250,3 +250,23 @@ Measured on a real Windows guest (`docs/evidence/windows-smoke-send-2026-11-06.t
 Desktop to Mac byte-identical in 12 s, and the received file carried the quarantine mark. Not yet
 measured: a 12 x 200 MB tree, and the SendTo menu itself by hand (the smoke starts the helper through
 the agent, not through Explorer).
+
+## The account
+
+The wizard asks for a user name, a password, and whether to sign in automatically. The account is made
+by the answer file, and `SetupComplete.cmd` then makes sure it is in Administrators, by the group's SID
+and with the computer's name in front of the user's, and writes the group's members to
+`C:\openvm\setupcomplete.log`. Without a wizard the script's defaults stand: `openvm` / `openvm`.
+
+Guests installed before this were left with no usable administrator: the computer and the account were
+both called `openvm`, and `net localgroup administrators` listed only the disabled built-in
+`Administrator`, so an elevation prompt had nobody to offer. Windows does not allow a user named like the
+computer, which is why the computer is now `OPENVM-GUEST`. That this collision is what stopped the account
+joining the group is the likely reading, not a proven one. A real install with this fix has not been
+checked yet: `make windows-smoke` now fails if the account is not an administrator.
+
+The password goes from the wizard to the media script through its environment, never its command line.
+It is plain text in the answer file on the install media, which the host deletes after the install. With
+automatic sign-in Windows keeps it in the guest, in a form that can be read. Without it, the guest starts
+at the sign-in screen, and what needs a session (clipboard, drops, display) waits until someone signs in;
+that path has not been run yet.

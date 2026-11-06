@@ -26,6 +26,7 @@ struct CreateWizardView: View {
         case .os: osPage
         case .source: sourcePage
         case .resources: resourcesPage
+        case .account: accountPage
         case .summary: summaryPage
         case .working: workingPage
         case .finished: finishedPage
@@ -158,6 +159,28 @@ struct CreateWizardView: View {
         megabytes % 1024 == 0 ? "\(megabytes / 1024) GB" : "\(megabytes) MB"
     }
 
+    private var accountPage: some View {
+        Form {
+            Section("Your Windows account") {
+                TextField("User name", text: $model.accountName)
+                SecureField("Password", text: $model.accountPassword)
+                SecureField("Confirm password", text: $model.accountConfirm)
+                Text("This is an administrator account inside the guest. It is separate from your Mac's.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            Section("Signing in") {
+                Toggle("Sign in automatically when Windows starts", isOn: $model.autoLogon)
+                Text(
+                    model.autoLogon
+                        ? "Clipboard, file drops and resizing work from the start. Your password is kept inside the guest to do this, in a form that can be read."
+                        : "Windows asks for your password at every start. Clipboard, file drops and resizing wait until you sign in."
+                )
+                .font(.callout).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+    }
+
     private var summaryPage: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Ready to create").font(.title2.weight(.semibold))
@@ -166,6 +189,7 @@ struct CreateWizardView: View {
             row("CPUs", "\(model.cpus)")
             row("Memory", memoryLabel(model.memoryMB))
             row("Disk", "\(model.diskGB) GB")
+            if model.os == .windows { row("Account", model.accountName) }
             Divider()
             ForEach(model.summaryNotes, id: \.self) { note in
                 Text(note).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
@@ -247,7 +271,7 @@ struct CreateWizardView: View {
             }
             Spacer()
             switch model.page {
-            case .os, .source, .resources, .summary:
+            case .os, .source, .resources, .account, .summary:
                 Button("Cancel") { Task { await model.cancel(); close() } }.keyboardShortcut(.cancelAction)
                 if model.page != .os { Button("Back") { model.back() } }
                 if model.page == .summary {

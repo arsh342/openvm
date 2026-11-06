@@ -31,10 +31,10 @@ sc query VirtioSocketWSP >> %LOG% 2>&1
 sc create OpenVMTools binPath= "C:\openvm\openvm-tools-win.exe" start= auto depend= VirtioSocketWSP DisplayName= "openVM guest tools" >> %LOG% 2>&1
 sc description OpenVMTools "Clipboard, time, shared folders and file transfer with the openVM host." >> %LOG% 2>&1
 sc failure OpenVMTools reset= 86400 actions= restart/5000/restart/5000/restart/30000 >> %LOG% 2>&1
-rem The answer file asks for openvm to be an administrator, but a guest has come up where elevation
+rem The answer file asks for the account to be an administrator, but a guest has come up where elevation
 rem offered no admin to use. Make sure of it, and record the result. By SID: the group's name is
 rem translated on other languages of Windows.
-powershell -NoProfile -Command "Add-LocalGroupMember -SID S-1-5-32-544 -Member openvm -ErrorAction SilentlyContinue; 'openvm-admins:'; Get-LocalGroupMember -SID S-1-5-32-544 | ForEach-Object { $_.Name }" >> %LOG% 2>&1
+powershell -NoProfile -Command "Add-LocalGroupMember -SID S-1-5-32-544 -Member ($env:COMPUTERNAME + '\@USER@') -ErrorAction SilentlyContinue; 'openvm-admins:'; Get-LocalGroupMember -SID S-1-5-32-544 | ForEach-Object { $_.Name }" >> %LOG% 2>&1
 echo openvm-setupcomplete: services installed %DATE% %TIME% >> %LOG%
 echo ok> C:\openvm\setupcomplete.ok
 rem "Send to Mac" in every user's SendTo menu (new profiles are copied from the default one).

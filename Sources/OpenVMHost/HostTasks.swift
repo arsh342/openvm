@@ -129,6 +129,16 @@ nonisolated final class HostTasks: @unchecked Sendable {
                 // Under the host's home, so a home of its own has its own downloads.
                 "OPENVM_CACHE": home.appendingPathComponent("cache").path,
             ]
+            // The account. Handed over in the environment, not the arguments, and never logged.
+            if let user = inputs.arguments["user"] {
+                if let problem = WindowsAccount.nameProblem(user) { return .failure(.badArgument(problem)) }
+                guard let password = inputs.arguments["password"],
+                    WindowsAccount.passwordProblem(password, confirm: password) == nil
+                else { return .failure(.badArgument("windows-media needs a usable password with a user")) }
+                environment["OPENVM_WIN_USER"] = user
+                environment["OPENVM_WIN_PASSWORD"] = WindowsAccount.templateValue(password)
+            }
+            if inputs.arguments["autologon"] == "no" { environment["OPENVM_WIN_AUTOLOGON"] = "0" }
             if let wimlib = inputs.wimlib {
                 environment["OPENVM_WIMLIB"] = wimlib  // the Mac's own copy is faster, so it is preferred
             } else if let helper = inputs.helper {
@@ -326,7 +336,7 @@ nonisolated let tasks = HostTasks()
 nonisolated func taskStartOp(_ r: VmRequest) throws -> Envelope {
     guard case .text(let kind)? = r.arg("kind") else { return r.fail("task-start needs a kind") }
     var arguments: [String: String] = [:]
-    for key in ["iso", "name"] {
+    for key in ["iso", "name", "user", "password", "autologon"] {
         if case .text(let value)? = r.arg(key) { arguments[key] = value }
     }
     let wimlib = findExecutable(

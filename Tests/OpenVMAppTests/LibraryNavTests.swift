@@ -51,3 +51,15 @@ struct WizardStepsTests {
         #expect(WizardSteps.all(for: .os).map(\.title) == ["System", "Source", "Resources", "Summary", "Install"])
     }
 }
+
+struct WindowsWizardStepsTests {
+    @Test func windowsHasAnAccountStep() {
+        let steps = WizardSteps.all(for: .account, os: .windows)
+        #expect(steps.map(\.title) == ["System", "Source", "Resources", "Account", "Summary", "Install"])
+        #expect(steps.map(\.state) == [.done, .done, .done, .current, .upcoming, .upcoming])
+    }
+
+    @Test func linuxHasNone() {
+        #expect(!WizardSteps.all(for: .os, os: .linux).map(\.title).contains("Account"))
+    }
+}

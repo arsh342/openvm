@@ -284,6 +284,8 @@ struct CreateWizardModelTests {
         model.next()
         model.name = "win"
         model.next()
+        model.fillInAnAccount()
+        model.next()
         #expect(model.page == .summary)
         await model.create()
         #expect(model.page == .finished)
@@ -292,6 +294,11 @@ struct CreateWizardModelTests {
         #expect(host.arg("task-start", "kind") == .text("windows-media"))
         #expect(host.arg("task-start", "iso") == .text("/Users/me/Win11.iso"))
         #expect(host.arg("task-start", "name") == .text("win"))
+        // The account went to the media, and the app did not keep the password after that.
+        #expect(host.arg("task-start", "user") == .text("arsh"))
+        #expect(host.arg("task-start", "password") == .text("a good password"))
+        #expect(host.arg("task-start", "autologon") == .text("yes"))
+        #expect(model.accountPassword.isEmpty && model.accountConfirm.isEmpty)
         #expect(host.arg("create", "boot-mode") == .text("windows"))
         #expect(host.arg("create", "install-media") == .text("/h/media/win.raw"))
         #expect(opened.names == ["win"])
@@ -300,7 +307,8 @@ struct CreateWizardModelTests {
     @Test func theSummaryStatesTheWindowsAccount() async {
         let (model, _) = await wizard()
         model.os = .windows
-        #expect(model.summaryNotes.contains { $0.contains("openvm") && $0.contains("password") })
+        model.accountName = "arsh"
+        #expect(model.summaryNotes.contains { $0.contains("arsh") && $0.contains("password") })
         model.os = .linux
         #expect(!model.summaryNotes.contains { $0.contains("password") })
     }
@@ -328,6 +336,8 @@ struct CreateWizardModelTests {
         await model.chooseISO("/Users/me/Win.iso")
         model.next()
         model.next()
+        model.fillInAnAccount()
+        model.next()
         let run = Task { await model.create() }
         #expect(await eventually { host.calls.contains("task-status") })
         await model.cancel()
@@ -352,7 +362,9 @@ struct CreateWizardModelTests {
         model.os = .windows
         model.next()
         await model.chooseISO("/Users/me/Win.iso")
-        model.next(); model.next(); model.next()
+        model.next(); model.next()
+        model.fillInAnAccount()
+        model.next()
         let run = Task { await model.create() }
         #expect(await eventually { host.calls.contains("task-status") })
         await model.cancel()  // returns after the bound, not never
@@ -427,6 +439,8 @@ struct CreateWizardModelTests {
         model.next()
         await model.chooseISO("/Users/me/Win.iso")
         model.next()
+        model.next()
+        model.fillInAnAccount()
         model.next()
         await model.create()
         guard case .failed(let why) = model.page else {
@@ -506,5 +520,83 @@ nonisolated final class Counter: @unchecked Sendable {
         lock.lock()
         defer { lock.unlock() }
         return count
+    }
+}
+
+@MainActor
+struct WizardAccountTests {
+    private func windowsWizard() async -> (CreateWizardModel, FakeTransport) {
+        let host = FakeTransport()
+        host.respond("host-info", with: FakeTransport.hostInfoFields + [("hostWimlib", .bool(true))])
+        host.respond("windows-iso-check", with: [("usable", .bool(true))])
+        let model = CreateWizardModel(transport: host, existingNames: [], pollInterval: .milliseconds(1))
+        await model.load()
+        model.os = .windows
+        model.next()
+        await model.chooseISO("/x/Win.iso")
+        model.next()
+        model.name = "win"
+        return (model, host)
+    }
+
+    @Test func windowsAsksForAnAccountAndLinuxDoesNot() async {
+        let (windows, _) = await windowsWizard()
+        windows.next()
+        #expect(windows.page == .account)
+        windows.back()
+        #expect(windows.page == .resources)
+    }
+
+    @Test func theAccountPageNeedsAGoodNameAndMatchingPasswords() async {
+        let (model, _) = await windowsWizard()
+        model.next()
+        model.accountName = "arsh"
+        #expect(model.problem != nil)  // no password yet
+        model.next()
+        #expect(model.page == .account)
+        model.accountPassword = "secret"
+        model.accountConfirm = "other"
+        #expect(model.problem?.contains("match") == true)
+        model.accountConfirm = "secret"
+        model.accountName = "Administrator"
+        #expect(model.problem != nil)
+        model.accountName = "arsh"
+        #expect(model.problem == nil)
+        model.next()
+        #expect(model.page == .summary)
+        model.back()
+        #expect(model.page == .account)
+    }
+
+    @Test func theSummaryNeverShowsThePassword() async {
+        let (model, _) = await windowsWizard()
+        model.next()
+        model.accountName = "arsh"
+        model.accountPassword = "hunter2"
+        model.accountConfirm = "hunter2"
+        model.next()
+        #expect(model.summaryNotes.allSatisfy { !$0.contains("hunter2") })
+        #expect(model.summaryNotes.contains { $0.contains("arsh") })
+    }
+
+    @Test func theSummarySaysWhatSigningInMeans() async {
+        let (model, _) = await windowsWizard()
+        model.autoLogon = false
+        #expect(model.summaryNotes.contains { $0.contains("ask for the password") })
+    }
+
+    @Test func aMacNameWindowsWouldRefuseIsNotSuggested() {
+        #expect(CreateWizardModel.suggestedAccountName("arsh") == "arsh")
+        #expect(CreateWizardModel.suggestedAccountName("Administrator") == "user")
+        #expect(CreateWizardModel.suggestedAccountName("a b") == "user")
+    }
+}
+
+extension CreateWizardModel {
+    /// What a person fills in on the account page.
+    func fillInAnAccount() {
+        accountName = "arsh"
+        accountPassword = "a good password"
+        accountConfirm = "a good password"
     }
 }

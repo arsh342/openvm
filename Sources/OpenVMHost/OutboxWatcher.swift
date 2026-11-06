@@ -43,6 +43,7 @@ nonisolated func receivedFolder(forVM name: String) -> URL {
 nonisolated final class OutboxWatcher: @unchecked Sendable {
     private let source: DispatchSourceFileSystemObject
     private let queue = DispatchQueue(label: "openvm.outbox", qos: .utility)
+    private let stopped = StopFlag()
 
     /// The space kept free on the Mac when taking files: a guest cannot fill the disk with a send.
     private static let reserve: UInt64 = 2 << 30
@@ -52,7 +53,11 @@ nonisolated final class OutboxWatcher: @unchecked Sendable {
         guard fd >= 0 else { return nil }
         source = DispatchSource.makeFileSystemObjectSource(
             fileDescriptor: fd, eventMask: [.write, .rename, .extend], queue: queue)
+        let stopped = self.stopped
         let handle: @Sendable () -> Void = {
+            // Cancelling the source does not recall a scan already queued, and turning the outbox off
+            // must mean nothing more is taken.
+            guard !stopped.isSet else { return }
             let budget = Self.budget(for: destination)
             for result in OutboxIntake.collect(outbox: outbox, into: destination, maxBytes: budget) {
                 switch result {
@@ -72,7 +77,10 @@ nonisolated final class OutboxWatcher: @unchecked Sendable {
         queue.async(execute: handle)
     }
 
-    func stop() { source.cancel() }
+    func stop() {
+        stopped.set()
+        source.cancel()
+    }
 
     /// Free space on the destination's volume, less the reserve.
     static func budget(for destination: URL) -> UInt64 {
@@ -85,6 +93,14 @@ nonisolated final class OutboxWatcher: @unchecked Sendable {
         let bytes = UInt64(max(0, free))
         return bytes > reserve ? bytes - reserve : 0
     }
+}
+
+nonisolated final class StopFlag: @unchecked Sendable {
+    private let lock = NSLock()
+    private var value = false
+
+    var isSet: Bool { lock.withLock { value } }
+    func set() { lock.withLock { value = true } }
 }
 
 /// The running watchers, one per guest.

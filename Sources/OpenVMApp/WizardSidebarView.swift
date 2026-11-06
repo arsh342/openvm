@@ -11,7 +11,7 @@ struct WizardSidebarView: View {
             Text("New Virtual Machine")
                 .font(.headline)
                 .padding(.horizontal, 18).padding(.top, 54).padding(.bottom, 10)
-            ForEach(WizardSteps.all(for: model.page)) { step in
+            ForEach(WizardSteps.all(for: model.page, os: model.os)) { step in
                 row(step)
             }
             Spacer()

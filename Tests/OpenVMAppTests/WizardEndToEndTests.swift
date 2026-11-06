@@ -139,7 +139,11 @@ struct WizardEndToEndTests {
         await model.chooseISO(iso)
         #expect(model.iso == .usable)
         model.name = "e2ewin"
-        model.next(); model.next(); model.next()
+        model.next()  // resources to account
+        model.accountName = "e2e"
+        model.accountPassword = "e2e-password"
+        model.accountConfirm = "e2e-password"
+        model.next()
         #expect(model.page == .summary)
 
         let run = Task { await model.create() }

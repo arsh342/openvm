@@ -11,23 +11,22 @@ struct WizardStep: Equatable, Identifiable {
 }
 
 enum WizardSteps {
-    private static let steps: [(title: String, symbol: String)] = [
-        ("System", "desktopcomputer"), ("Source", "opticaldisc"), ("Resources", "cpu"),
-        ("Summary", "list.bullet.rectangle"), ("Install", "arrow.down.circle"),
-    ]
-
-    static func all(for page: CreateWizardModel.Page) -> [WizardStep] {
+    /// Only Windows has an account to choose: Linux guests come with theirs.
+    static func all(for page: CreateWizardModel.Page, os: CreateWizardModel.OS = .linux) -> [WizardStep] {
+        var steps: [(title: String, symbol: String, page: CreateWizardModel.Page)] = [
+            ("System", "desktopcomputer", .os), ("Source", "opticaldisc", .source), ("Resources", "cpu", .resources),
+        ]
+        if os == .windows { steps.append(("Account", "person.fill", .account)) }
+        steps.append(("Summary", "list.bullet.rectangle", .summary))
+        steps.append(("Install", "arrow.down.circle", .working))
         let current: Int
         var allDone = false
         switch page {
-        case .os: current = 0
-        case .source: current = 1
-        case .resources: current = 2
-        case .summary: current = 3
-        case .working, .failed: current = 4
+        case .working, .failed: current = steps.count - 1
         case .finished:
-            current = 4
+            current = steps.count - 1
             allDone = true
+        default: current = steps.firstIndex { $0.page == page } ?? 0
         }
         return steps.enumerated().map { index, step in
             let state: WizardStepState = allDone || index < current ? .done : (index == current ? .current : .upcoming)

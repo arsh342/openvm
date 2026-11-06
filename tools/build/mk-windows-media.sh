@@ -238,12 +238,22 @@ cp "$EFI_DIR/openvm-efi.efi" "$pe/efi/BOOTAA64.EFI"
 cp "$EFI_DIR/openvm-framebuffer.efi" "$pe/efi/OPENVM-FB.EFI"
 # cmd wants CRLF; labels and goto misbehave on bare LF.
 sed 's/$/\r/' "$SCRIPTS/install.cmd" > "$pe/install.cmd"
-sed 's/$/\r/' "$SCRIPTS/SetupComplete.cmd" > "$pe/SetupComplete.cmd"
+# The account. A caller that sets these has already escaped them (WindowsAccount.templateValue).
+WIN_USER=${OPENVM_WIN_USER:-openvm}
+WIN_PASSWORD=${OPENVM_WIN_PASSWORD:-openvm}
+LC_ALL=C sed -e "s|@USER@|$WIN_USER|g" -e 's/$/\r/' "$SCRIPTS/SetupComplete.cmd" > "$pe/SetupComplete.cmd"
 # --- the wimlib steps ---------------------------------------------------------
 # Reading install.wim for the edition and language, and adding the payload to boot.wim, are done by
 # one script (wim-job.sh) that needs wimlib: run here if the Mac has it, otherwise in a helper VM
 # that gets wimlib from Alpine. Its inputs are staged in $job; the ISO is shared read-only.
-cp "$SCRIPTS/unattend.xml" "$job/unattend.xml.in"
+if [ "${OPENVM_WIN_AUTOLOGON:-1}" = 0 ]; then
+    no_logon='/@AUTOLOGON-BEGIN@/,/@AUTOLOGON-END@/d'
+else
+    no_logon='/@AUTOLOGON-/d'
+fi
+# @PASSWORD@ goes in last, so a password that spells a marker stays a password.
+LC_ALL=C sed -e "$no_logon" -e "s|@USER@|$WIN_USER|g" -e "s|@PASSWORD@|$WIN_PASSWORD|g" \
+    "$SCRIPTS/unattend.xml" > "$job/unattend.xml.in"
 cp "$SCRIPTS/winpeshl.ini" "$job/winpeshl.ini"
 cp "$WIM_JOB" "$job/job.sh"
 if [ -n "${OPENVM_WIM_EXEC:-}" ]; then

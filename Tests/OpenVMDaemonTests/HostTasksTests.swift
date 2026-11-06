@@ -471,3 +471,53 @@ extension HostTasksTests {
         #expect(FileManager.default.fileExists(atPath: path))
     }
 }
+
+/// The account reaches the media script in its environment, escaped, and never on its command line.
+@Suite struct WindowsMediaAccountTests {
+    private func plan(_ extra: [String: String]) throws -> Result<TaskPlan, TaskError> {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("acct-\(UUID().uuidString)")
+        let payload = root.appendingPathComponent("payload")
+        try FileManager.default.createDirectory(at: payload.appendingPathComponent("windows"), withIntermediateDirectories: true)
+        try Data().write(to: payload.appendingPathComponent("windows/mk-windows-media.sh"))
+        let iso = root.appendingPathComponent("Win.iso")
+        try Data().write(to: iso)
+        var arguments = ["iso": iso.path, "name": "win"]
+        arguments.merge(extra) { $1 }
+        return HostTasks.plan(
+            kind: "windows-media", payload: payload, support: nil,
+            inputs: TaskInputs(arguments: arguments, home: root, wimlib: "/opt/homebrew/bin/wimlib-imagex"))
+    }
+
+    @Test func theAccountGoesInTheEnvironmentNotTheArguments() throws {
+        guard case .success(let plan) = try plan(["user": "arsh", "password": "a&b", "autologon": "no"]) else {
+            Issue.record("expected a plan")
+            return
+        }
+        #expect(plan.environment["OPENVM_WIN_USER"] == "arsh")
+        #expect(plan.environment["OPENVM_WIN_PASSWORD"] == "a\\&amp;b")
+        #expect(plan.environment["OPENVM_WIN_AUTOLOGON"] == "0")
+        #expect(!plan.arguments.joined().contains("a&b"))
+    }
+
+    @Test func withoutAnAccountTheScriptsDefaultsStand() throws {
+        guard case .success(let plan) = try plan([:]) else {
+            Issue.record("expected a plan")
+            return
+        }
+        #expect(plan.environment["OPENVM_WIN_USER"] == nil)
+        #expect(plan.environment["OPENVM_WIN_PASSWORD"] == nil)
+    }
+
+    @Test func aBadAccountIsRefusedWithoutEchoingThePassword() throws {
+        guard case .failure(let error) = try plan(["user": "arsh", "password": "bad\npassword"]) else {
+            Issue.record("expected a refusal")
+            return
+        }
+        #expect(!error.description.contains("password\n"))
+        #expect(!error.description.contains("bad"))
+        guard case .failure = try plan(["user": "a/b", "password": "fine"]) else {
+            Issue.record("expected a refusal")
+            return
+        }
+    }
+}

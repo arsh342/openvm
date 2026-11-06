@@ -249,3 +249,21 @@ extension SnapshotTests {
         Snapshot.check("wizard-sidebar", WizardSidebarView(model: wizard), width: 240, height: 360)
     }
 }
+
+extension SnapshotTests {
+    @Test(.enabled(if: Snapshot.enabled))
+    func wizardAsksForTheWindowsAccount() async {
+        let host = FakeTransport()
+        host.respond("host-info", with: FakeTransport.hostInfoFields + [("hostWimlib", .bool(true))])
+        host.respond("windows-iso-check", with: [("usable", .bool(true))])
+        let model = CreateWizardModel(transport: host, existingNames: [])
+        await model.load()
+        model.os = .windows
+        model.next()
+        await model.chooseISO("/x/Win.iso")
+        model.next()
+        model.next()
+        model.accountName = "arsh"
+        Snapshot.check("wizard-account", CreateWizardView(model: model, close: {}), width: 600, height: 540)
+    }
+}

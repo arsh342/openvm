@@ -14,7 +14,7 @@ import OpenVMCore
 @MainActor
 final class CreateWizardModel: ObservableObject {
     enum OS: Equatable { case linux, windows }
-    enum Page: Equatable { case os, source, resources, summary, working, finished, failed(String) }
+    enum Page: Equatable { case os, source, resources, account, summary, working, finished, failed(String) }
     enum ISOState: Equatable { case none, checking, usable, problem(String) }
     enum FetchState: Equatable { case idle, running(String), done, failed(String) }
     enum StepState: Equatable { case pending, running, done }
@@ -36,6 +36,11 @@ final class CreateWizardModel: ObservableObject {
     @Published var cpus = 4
     @Published var memoryMB = 4096
     @Published var diskGB = 32
+    /// The Windows account. The password stays here, in memory, until the install media has it.
+    @Published var accountName = ""
+    @Published var accountPassword = ""
+    @Published var accountConfirm = ""
+    @Published var autoLogon = true
     @Published private(set) var isoPath: String?
     @Published private(set) var iso: ISOState = .none
     @Published private(set) var fetch: FetchState = .idle
@@ -69,6 +74,7 @@ final class CreateWizardModel: ObservableObject {
         self.cancelWait = cancelWait
         self.openWindow = openWindow
         applyDefaults()
+        accountName = Self.suggestedAccountName(NSUserName())
     }
 
     // MARK: sizes and names
@@ -191,6 +197,9 @@ final class CreateWizardModel: ObservableObject {
         switch page {
         case .source: return sourceProblem
         case .resources: return resourcesProblem
+        case .account:
+            return WindowsAccount.nameProblem(accountName)
+                ?? WindowsAccount.passwordProblem(accountPassword, confirm: accountConfirm)
         default: return nil
         }
     }
@@ -244,12 +253,19 @@ final class CreateWizardModel: ObservableObject {
         switch os {
         case .windows:
             return [
-                "Windows will have a local account called openvm with the password openvm. Change the password after setup if the guest matters.",
+                autoLogon
+                    ? "Windows will sign in to the administrator account \(accountName) by itself at every start. Your password is kept inside the guest to do that."
+                    : "Windows will ask for the password of the administrator account \(accountName) at every start. Clipboard, file drops and resizing wait until you sign in.",
                 "Setup takes about 15 to 30 minutes. You can watch it in the VM's window.",
             ]
         case .linux:
             return ["Alpine Linux installs itself on first start, with an XFCE desktop. This takes a few minutes."]
         }
+    }
+
+    /// The Mac's short name when Windows would take it, because it is what most people would type.
+    static func suggestedAccountName(_ macName: String) -> String {
+        WindowsAccount.nameProblem(macName) == nil ? macName : "user"
     }
 
     // MARK: moving between pages
@@ -259,7 +275,8 @@ final class CreateWizardModel: ObservableObject {
         switch page {
         case .os: page = .source
         case .source: page = .resources
-        case .resources: page = .summary
+        case .resources: page = os == .windows ? .account : .summary
+        case .account: page = .summary
         default: break
         }
     }
@@ -268,7 +285,8 @@ final class CreateWizardModel: ObservableObject {
         switch page {
         case .source: page = .os
         case .resources: page = .source
-        case .summary: page = .resources
+        case .account: page = .resources
+        case .summary: page = os == .windows ? .account : .resources
         default: break
         }
     }
@@ -322,7 +340,15 @@ final class CreateWizardModel: ObservableObject {
         mark("media", .running)
         guard let isoPath else { throw HostError.remote("No ISO was chosen.") }
         let started = try await transport.send(
-            "task-start", [("kind", .text("windows-media")), ("iso", .text(isoPath)), ("name", .text(name))])
+            "task-start",
+            [
+                ("kind", .text("windows-media")), ("iso", .text(isoPath)), ("name", .text(name)),
+                ("user", .text(accountName)), ("password", .text(accountPassword)),
+                ("autologon", .text(autoLogon ? "yes" : "no")),
+            ])
+        // The media has it now. Nothing else in the app needs the password.
+        accountPassword = ""
+        accountConfirm = ""
         guard case .text(let id)? = DaemonClient.field(started, "taskId"),
             case .text(let output)? = DaemonClient.field(started, "output")
         else { throw HostError.remote("The host did not start building the installation media.") }

@@ -62,6 +62,7 @@ A failure goes back as a bug with the step that showed it.
 
 ## The app
 
+- [ ] **Windows account.** Create a Windows VM with your own user name and password; `net localgroup administrators` lists it, and Run as administrator works. Try it once with automatic sign-in off.
 - [ ] **Wizard.** Create a Linux VM and a Windows VM from the wizard alone. Cancel one install at
       each stage and check nothing is left in `~/.openvm` or the list. The ISO chooser accepts only
       `.iso`; closing the window mid-run asks first.

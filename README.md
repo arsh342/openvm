@@ -96,7 +96,7 @@ Check that the ISO is one openVM can use, then build the install media (about a 
 
 Without `wimlib` on the Mac, fetch the Linux files first (`openvmctl task start fetch-linux`): the media is then built in a helper VM. The media needs about 22 GB of disk while it exists.
 
-The Windows guest has a local account `openvm` with the password `openvm`. Change it if the guest matters to you.
+From the wizard you choose the Windows user name and password. Built by hand, the guest has an administrator account `openvm` with the password `openvm`, so change it if the guest matters to you.
 
 ## Using a guest
 
