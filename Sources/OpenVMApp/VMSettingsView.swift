@@ -75,7 +75,7 @@ struct VMSettingsView: View {
     }
 
     private var clipboardSection: some View {
-        Section("Clipboard") {
+        Section("Clipboard and files") {
             Toggle("Share the clipboard with this VM", isOn: $model.clipboardSync)
             Text("Text only. Passwords copied from a password manager are never shared.")
                 .font(.callout).foregroundStyle(.secondary)
