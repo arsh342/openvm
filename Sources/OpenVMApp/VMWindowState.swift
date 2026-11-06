@@ -32,7 +32,7 @@ enum VMWindowState: Equatable {
         }
     }
 
-    private static func label(for activity: String) -> String {
+    static func label(for activity: String) -> String {
         switch activity {
         case "start": return "Starting…"
         case "stop": return "Shutting down…"

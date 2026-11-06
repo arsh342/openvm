@@ -93,3 +93,43 @@ extension VMListModelTests {
         #expect(model.lastError == "a is busy: start")
     }
 }
+
+extension VMListModelTests {
+    /// The confirmation is the model's state, not the view's, so it can be tested and
+    /// so the view needs no property-wrapper macros (the Command Line Tools lack their plugin).
+    @Test func deleteAsksBeforeItActs() async {
+        let host = FakeTransport()
+        host.rows = [FakeTransport.row("a")]
+        let model = VMListModel(transport: host)
+        await model.refresh()
+        model.requestDelete(model.vms[0])
+        #expect(model.pendingDelete?.name == "a")
+        #expect(!host.calls.contains("delete"))  // nothing happens until it is confirmed
+        model.cancelDelete()
+        #expect(model.pendingDelete == nil)
+        #expect(!host.calls.contains("delete"))
+    }
+
+    @Test func confirmingDeleteSendsIt() async {
+        let host = FakeTransport()
+        host.rows = [FakeTransport.row("a")]
+        let model = VMListModel(transport: host)
+        await model.refresh()
+        let vm = model.vms[0]
+        model.requestDelete(vm)
+        model.cancelDelete()  // the dialog dismisses itself as the button is tapped
+        await model.confirmDelete(vm)  // and the confirm still goes through
+        #expect(host.calls.contains("delete"))
+        #expect(model.pendingDelete == nil)
+    }
+
+    @Test func aLiveVmCannotEvenBeAskedAbout() async {
+        let host = FakeTransport()
+        host.rows = [FakeTransport.row("a", state: "running")]
+        let model = VMListModel(transport: host)
+        await model.refresh()
+        model.requestDelete(model.vms[0])
+        #expect(model.pendingDelete == nil)
+        #expect(model.lastError?.contains("Stop") == true)
+    }
+}

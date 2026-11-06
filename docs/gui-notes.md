@@ -90,3 +90,19 @@ measuring, not by guessing:
 
 Verified afterwards in the running app: every fit succeeded, the view equalled its container,
 and a full-screen window (1470 x 923 points) gave a guest of 2936 x 1846 pixels.
+
+## The VM list
+
+* The list window opens at launch, from Window > Library (Cmd+0), and when the Dock icon is
+  clicked with no window open. Closing it does not stop any VM.
+* Each row offers only what its state allows: a stopped VM can start or be deleted, a running
+  one can open, pause or stop, a paused one can open, resume or stop, and while the host is
+  doing something to a VM the row offers only to open it. A running or paused VM cannot be
+  deleted, and deleting asks first, naming the disk that is lost.
+* **Toolchain limit.** Under the Command Line Tools, SwiftUI's `@State` is a macro whose plugin
+  is missing, so the app avoids property-wrapper macros (the pending delete lives in the model,
+  not in a `@State`). With Xcode's toolchain this limit does not apply, but then a contributor
+  without Xcode could not build the app.
+* **Measured.** A Unix socket path is limited to about 104 characters on macOS. A home
+  directory with a longer path makes the host fail to start with "socket path too long", and the
+  app shows that in its startup alert.

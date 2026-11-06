@@ -17,6 +17,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The windows and menus talk to the host through its socket, like openvmctl does.
     private let model = VMListModel(transport: DaemonClient())
     private var menu: AppMenu?
+    private var library: LibraryWindowController?
     private var subscription: AnyCancellable?
 
     func application(_ application: NSApplication, open urls: [URL]) {
@@ -35,7 +36,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let menu = AppMenu(model: model)
+        let menu = AppMenu(model: model) { [weak self] in self?.showLibrary() }
         self.menu = menu
         NSApp.mainMenu = menu.build()
         do {
@@ -52,5 +53,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         subscription = model.$vms.sink { WindowRegistry.shared.update($0) }
         model.begin()
+        showLibrary()
+    }
+
+    /// The window that lists every VM. Opened at launch, from the Window menu, and by a click
+    /// on the Dock icon when no window is open.
+    private func showLibrary() {
+        let controller =
+            library
+            ?? LibraryWindowController(model: model) { [weak self] vm in
+                guard let self else { return }
+                WindowRegistry.shared.show(vm, transport: self.model.transport) { [model] vm in
+                    Task { await model.start(vm) }
+                }
+            }
+        library = controller
+        controller.showWindow(nil)
+        NSApp.activate()
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if !flag { showLibrary() }
+        return true
     }
 }

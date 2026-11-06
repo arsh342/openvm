@@ -3,6 +3,7 @@
 | Command | Time | Needs |
 | --- | --- | --- |
 | `make check` | About a minute | Swift |
+| `OPENVM_UI_SNAPSHOTS=1 make test` | About ten seconds more | Nothing extra |
 | `OPENVM_SMOKE_REAL=1 tools/test/daemon-smoke.sh` | About 10 minutes | Network, for the Alpine install |
 | `make windows-smoke ISO=<windows-iso>` | About 30 minutes | A Windows 11 ARM64 ISO, `wimlib`, `zig`, and about 40 GB of disk |
 
@@ -28,6 +29,15 @@ Each smoke installs a real guest in a throwaway `OPENVM_HOME` and exercises ever
 While they run, the smokes use the Mac's clipboard, restoring plain text at the end, and play a test tone. Do not copy anything during a run. If something else is playing on the Mac, the sound step says the host check proved nothing.
 
 Printing uses a stand-in for CUPS, so no paper is involved. Output from passing runs is in `docs/evidence`.
+
+## UI snapshots
+
+`Tests/OpenVMAppTests/SnapshotTests.swift` renders the VM list to a PNG and compares it with
+the baselines in `Tests/OpenVMAppTests/Snapshots`. They are opt-in (`OPENVM_UI_SNAPSHOTS=1`),
+because how text and controls draw depends on the macOS version, so a baseline recorded on one
+Mac fails on another and on CI. After a deliberate change to a view, refresh them with
+`OPENVM_UI_SNAPSHOTS=1 OPENVM_UI_RECORD=1 make test`, then open the PNGs and look at them
+before committing: a baseline of a broken layout passes just as well.
 
 ## Formatting
 

@@ -52,6 +52,7 @@ let package = Package(
             name: "OpenVMAppTests",
             dependencies: ["OpenVMApp", "OpenVMHost"],
             path: "Tests/OpenVMAppTests",
+            exclude: ["Snapshots"],
             swiftSettings: settings
         ),
         .testTarget(

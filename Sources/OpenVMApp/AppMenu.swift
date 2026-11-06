@@ -5,8 +5,12 @@ import OpenVMCore
 @MainActor
 final class AppMenu: NSObject, NSMenuDelegate {
     private let model: VMListModel
+    private let showLibrary: () -> Void
 
-    init(model: VMListModel) { self.model = model }
+    init(model: VMListModel, showLibrary: @escaping () -> Void) {
+        self.model = model
+        self.showLibrary = showLibrary
+    }
 
     func build() -> NSMenu {
         let main = NSMenu()
@@ -40,6 +44,10 @@ final class AppMenu: NSObject, NSMenuDelegate {
         main.addItem(windowItem)
         let window = NSMenu(title: "Window")
         windowItem.submenu = window
+        let library = window.addItem(
+            withTitle: "Library", action: #selector(openLibrary(_:)), keyEquivalent: "0")
+        library.target = self
+        window.addItem(.separator())
         window.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
         window.addItem(withTitle: "Zoom", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
         NSApp.windowsMenu = window
@@ -61,6 +69,8 @@ final class AppMenu: NSObject, NSMenuDelegate {
             item.representedObject = vm.uuid
         }
     }
+
+    @objc private func openLibrary(_ item: NSMenuItem) { showLibrary() }
 
     @objc private func openWindow(_ item: NSMenuItem) {
         guard let uuid = item.representedObject as? String, let vm = model.vm(uuid: uuid) else { return }
