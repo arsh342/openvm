@@ -11,7 +11,7 @@ import Virtualization
 
 @MainActor
 final class VMWindowController: NSWindowController, NSWindowDelegate {
-    private let machineView = VZVirtualMachineView()
+    private let machineView = DropMachineView()
     private let cover = VMStatusView()
     private let toolbar = VMToolbar()
     /// The same model the list and the menus use, so every button acts the way theirs do.
@@ -19,6 +19,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private let showSettings: (VmSummary) -> Void
     private let resizer: ResizeCoalescer
     private let clipboard: ClipboardSync
+    private let drops: DropSession
     private(set) var vm: VmSummary
     private(set) var state: VMWindowState = .stopped
 
@@ -33,6 +34,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         }
         let sync = ClipboardSync(vm: vm, transport: transport, pasteboard: MacPasteboard())
         self.clipboard = sync
+        let dropSession = DropSession(uuid: vm.uuid, name: vm.name, transport: transport)
+        self.drops = dropSession
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 1280, height: 720),
             styleMask: [.titled, .closable, .miniaturizable, .resizable],
@@ -48,6 +51,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         super.init(window: window)
         window.delegate = self
         sync.onNotice = { [weak window] notice in window?.subtitle = notice ?? "" }
+        wireDrops()
         updateMinimumSize()
 
         // The display size is set by the host's display op, not by the view: the guest's
@@ -79,6 +83,42 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     }
 
     required init?(coder: NSCoder) { fatalError("not used") }
+
+    // MARK: files dropped onto the screen
+
+    private func wireDrops() {
+        machineView.acceptsDrops = { [weak self] in
+            guard let self else { return false }
+            return self.state == .running && !self.drops.isRunning
+        }
+        machineView.onFiles = { [weak self] urls, cleanup in
+            guard let self else { return }
+            Task { @MainActor in
+                self.window?.subtitle = "Copying to \(self.vm.name)\u{2019}s Desktop\u{2026}"
+                await self.drops.begin(paths: urls.map(\.path))
+                if let cleanup { try? FileManager.default.removeItem(at: cleanup) }
+                self.showDropResult()
+            }
+        }
+    }
+
+    private func showDropResult() {
+        switch drops.state {
+        case .finished(let names):
+            window?.subtitle = names.count == 1 ? "Copied 1 item to the Desktop" : "Copied \(names.count) items to the Desktop"
+        case .failed(let why):
+            window?.subtitle = ""
+            if let window {
+                let alert = NSAlert()
+                alert.alertStyle = .warning
+                alert.messageText = "Could not copy the files"
+                alert.informativeText = why
+                alert.beginSheetModal(for: window) { _ in }
+            }
+        case .idle, .copying: break
+        }
+        drops.dismiss()
+    }
 
     // MARK: toolbar
 

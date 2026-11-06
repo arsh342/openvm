@@ -230,3 +230,25 @@ guest costs nothing, and neither guest agent needed a change. The decisions are 
 To check by hand (the terminal cannot focus windows): copy in a Mac app, click into the VM window, and
 paste in the guest; copy in the guest, click out to the Mac, and paste; copy from a password manager,
 click into the VM, and see that nothing arrives and the subtitle says why.
+
+## Dropping files onto a window
+
+Files dragged from Finder (or Photos, Mail) onto a running VM's screen are copied to the guest
+user's Desktop. The screen is a `VZVirtualMachineView` subclass (`DropMachineView`) that also
+accepts drags, so keyboard and mouse reach the guest exactly as before; no overlay sits on top.
+
+* **Checked first.** `DropSession` applies the host's own rules before anything is sent: 1 to 64
+  items, valid names, no two with the same name. A bad drop fails at once, with the reason, and
+  copies nothing.
+* **One at a time.** The window takes no drop while one is running (the cursor shows no copy), and a
+  second one reaching `DropSession` is refused with a message. The host refuses it too.
+* **Followed to the end.** The host stages and copies; the app polls `status` once a second, only
+  while a drop runs, and stops when the guest says it is done, reports an error, or the VM stops.
+  The window's subtitle shows the result; a failure opens a sheet with the guest's reason.
+* **Promised files** (Photos, Mail) are written to a temporary folder by the app first, and that
+  folder is removed once the copy has finished.
+
+To check by hand (the terminal cannot drag): drop one file, a folder, a file with a Unicode name, a
+photo from Photos, and a 1 GiB file on each guest; the guest must keep answering while it copies;
+mouse input must still work over the whole screen. Not yet measured: whether the view reports
+drag events while the guest has the pointer captured.
