@@ -123,7 +123,8 @@ nonisolated final class HostTasks: @unchecked Sendable {
             var environment = [
                 "OPENVM_PREBUILT": payload.appendingPathComponent("windows/prebuilt").path,
                 "OPENVM_WINDOWS_FILES": payload.appendingPathComponent("windows/scripts").path,
-                "OPENVM_HOME": home.path,
+                // Under the host's home, so a home of its own has its own downloads.
+                "OPENVM_CACHE": home.appendingPathComponent("cache").path,
             ]
             if let wimlib = inputs.wimlib {
                 environment["OPENVM_WIMLIB"] = wimlib  // the Mac's own copy is faster, so it is preferred

@@ -304,7 +304,7 @@ extension HostTasksTests {
         #expect(plan.environment["OPENVM_WIM_EXEC"] == nil)  // the Mac's own wimlib is faster, so no helper
         #expect(plan.environment["OPENVM_PREBUILT"] == f.payload.appendingPathComponent("windows/prebuilt").path)
         #expect(plan.environment["OPENVM_WINDOWS_FILES"] == f.payload.appendingPathComponent("windows/scripts").path)
-        #expect(plan.environment["OPENVM_HOME"] == f.home.path)
+        #expect(plan.environment["OPENVM_CACHE"] == f.home.appendingPathComponent("cache").path)
     }
 
     @Test func withoutWimlibTheHelperIsUsed() throws {
@@ -378,5 +378,50 @@ extension HostTasksTests {
             return
         }
         #expect(error.description.contains("Windows"))
+    }
+}
+
+extension HostTasksTests {
+    /// The downloads (virtio-win, WinFsp, the sound driver) are about 900 MB, so the cache is named
+    /// explicitly and lives under the host's home; a script run without it keeps using
+    /// ~/.openvm/cache, whatever throwaway home it runs in (checked in the script below).
+    @Test func theMediaTaskNamesItsDownloadCache() throws {
+        let f = try fixtureForCache()
+        defer { f.cleanup() }
+        guard case .success(let plan) = HostTasks.plan(
+            kind: "windows-media", payload: f.payload, support: nil,
+            inputs: TaskInputs(arguments: ["iso": f.iso.path, "name": "w"], home: f.home, wimlib: "/x/wimlib-imagex"))
+        else {
+            Issue.record("expected a plan")
+            return
+        }
+        #expect(plan.environment["OPENVM_CACHE"] == f.home.appendingPathComponent("cache").path)
+    }
+
+    private func fixtureForCache() throws -> (payload: URL, iso: URL, home: URL, cleanup: () -> Void) {
+        let fm = FileManager.default
+        let base = fm.temporaryDirectory
+        let payload = base.appendingPathComponent("wc-\(UUID().uuidString)")
+        try fm.createDirectory(at: payload.appendingPathComponent("windows"), withIntermediateDirectories: true)
+        try Data().write(to: payload.appendingPathComponent("windows/mk-windows-media.sh"))
+        let dir = base.appendingPathComponent("wci-\(UUID().uuidString)")
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let iso = dir.appendingPathComponent("a.iso")
+        try Data("x".utf8).write(to: iso)
+        let home = base.appendingPathComponent("wch-\(UUID().uuidString)")
+        try fm.createDirectory(at: home, withIntermediateDirectories: true)
+        return (payload, iso, home, { for u in [payload, dir, home] { try? fm.removeItem(at: u) } })
+    }
+
+    /// A smoke runs in a throwaway home. If the script's cache followed OPENVM_HOME, each smoke
+    /// would download 900 MB again (measured: it did, after the cache moved under the home).
+    @Test func theScriptsCacheDoesNotFollowAThrowawayHome() throws {
+        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+            .deletingLastPathComponent().deletingLastPathComponent()
+        let script = try String(contentsOf: root.appendingPathComponent("tools/build/mk-windows-media.sh"), encoding: .utf8)
+        let line = script.split(separator: "\n").first { $0.hasPrefix("CACHE=") }.map(String.init) ?? ""
+        #expect(line.contains("OPENVM_CACHE"))
+        #expect(line.contains("$HOME/.openvm/cache"))
+        #expect(!line.contains("OPENVM_HOME"))
     }
 }

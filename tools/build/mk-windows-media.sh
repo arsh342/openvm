@@ -141,7 +141,8 @@ if [ -z "${OPENVM_WIM_EXEC:-}" ]; then
         exit 1
     fi
 fi
-CACHE="${OPENVM_HOME:-$HOME/.openvm}/cache"
+# The downloads are about 900 MB, so the cache stays put whatever throwaway home a test runs in.
+CACHE="${OPENVM_CACHE:-$HOME/.openvm/cache}"
 VIRTIO_ISO="${OPENVM_VIRTIO_ISO:-$CACHE/virtio-win/virtio-win.iso}"
 VIRTIO_URL="https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso"
 WINFSP_VERSION="2.1.25156"
