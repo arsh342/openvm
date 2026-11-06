@@ -130,3 +130,31 @@ button does what it says; Cmd+Q with a guest running shows the dialog, Cancel ke
 everything, and Shut Down and Quit shuts a guest down cleanly (on Windows, no Kernel-Power 41
 afterwards); closing the last window with a guest running removes the Dock icon, and the
 menu-bar icon brings a window back; host sleep with a window open pauses and resumes.
+
+## The toolbar and settings
+
+* **Toolbar** (VM window): Start or Shut Down, Pause or Resume, Full Screen, Share Folder and
+  Settings. Which are live follows the VM's state: a stopped VM can only start, a booting one can
+  only be cancelled, and while the host is busy with a VM the power and pause buttons are off.
+  Share Folder asks for a folder and says the guest can read and change what is in it.
+* **Settings** (toolbar, or the gear on a row in the library, which is the only way to reach a
+  stopped VM's): CPUs and memory, time zone, shared folders, and for Windows, sound.
+  * CPUs and memory are read when the VM starts, so a running VM shows them greyed out with the
+    reason. The choices come from `host-info`, so only what this Mac can give a VM is offered
+    (CPUs 1 to 32 at most, memory up to what the framework allows).
+  * The time zone applies the next time the guest starts or resumes.
+  * Windows sound turns on Test Mode, which weakens driver signature checks, trusts a
+    third-party certificate and puts a watermark on the desktop. The app shows all of that and
+    sends nothing until the person agrees, and the **host** refuses `audio enable` without
+    `testMode: true`, so no other client can switch it on silently either.
+* **The clipboard toggle is not here yet.** The per-VM setting exists on the host
+  (`set --clipboard-sync on|off`, and every row carries it), but nothing reads it until the
+  clipboard sync itself lands, so the toolbar and settings do not show a control that would do
+  nothing.
+* **Measured.** `host-info` first reported 64 CPUs (the framework's limit) while `set` rejects
+  more than 32, so the settings would have offered choices the host refuses. The two now share
+  one ceiling, with a test.
+
+To check by hand: the toolbar buttons enable and disable as the VM starts, pauses and stops;
+Share Folder, Settings and the Windows sound consent dialog behave as described; changing the
+memory of a stopped VM takes effect at its next start.

@@ -8,9 +8,12 @@ final class WindowRegistry {
     private var controllers: [String: VMWindowController] = [:]
 
     /// Opens (or brings forward) the window for a VM.
-    func show(_ vm: VmSummary, transport: any HostTransport, onStart: @escaping (VmSummary) -> Void) {
+    func show(_ vm: VmSummary, model: VMListModel) {
         let controller =
-            controllers[vm.uuid] ?? VMWindowController(vm: vm, transport: transport, onStart: onStart)
+            controllers[vm.uuid]
+            ?? VMWindowController(vm: vm, model: model) { vm in
+                SettingsWindows.shared.show(vm, transport: model.transport)
+            }
         controllers[vm.uuid] = controller
         controller.update(vm)
         controller.showWindow(nil)
@@ -23,5 +26,6 @@ final class WindowRegistry {
         let known = Set(vms.map(\.uuid))
         for uuid in controllers.keys where !known.contains(uuid) { controllers[uuid] = nil }
         for vm in vms { controllers[vm.uuid]?.update(vm) }
+        SettingsWindows.shared.update(vms)
     }
 }

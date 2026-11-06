@@ -74,6 +74,6 @@ final class AppMenu: NSObject, NSMenuDelegate {
 
     @objc private func openWindow(_ item: NSMenuItem) {
         guard let uuid = item.representedObject as? String, let vm = model.vm(uuid: uuid) else { return }
-        WindowRegistry.shared.show(vm, transport: model.transport) { [model] vm in Task { await model.start(vm) } }
+        WindowRegistry.shared.show(vm, model: model)
     }
 }

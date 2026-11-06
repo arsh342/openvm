@@ -83,6 +83,12 @@ case "set":
             args.append((key, .text(mode)))
         case "variable-store-path":
             args.append((key, .text(argv[i + 1])))
+        case "clipboard-sync":
+            guard ["on", "off"].contains(argv[i + 1]) else {
+                print(usage)
+                exit(2)
+            }
+            args.append((key, .bool(argv[i + 1] == "on")))
         default:
             print(usage)
             exit(2)
@@ -94,6 +100,9 @@ case "list":
         print(usage)
         exit(2)
     }
+case "host-info" where argv.count == 1:
+    // What this Mac can give a VM, and what is ready.
+    break
 case "stop-all" where argv.count == 1:
     // Shut down every running guest, as quitting the app does.
     break
@@ -218,6 +227,8 @@ case "audio":
         requestOp = "audio"
         args.append(("id", .text(argv[2])))
         args.append(("op", .text(argv[1])))
+        // Typing --test-mode is the consent; the host will not enable Windows sound without it.
+        if turnsOn { args.append(("testMode", .bool(true))) }
     } else {
         print(usage)
         exit(2)
@@ -300,6 +311,17 @@ do {
         {
             for row in rows { printRow(row) }
         }
+        if requestOp == "host-info", case .map(let res)? = (entries.first { $0.key == "result" }?.value) {
+            print(
+                res.map { entry -> String in
+                    switch entry.value {
+                    case .uint(let n): return "\(entry.key)=\(n)"
+                    case .bool(let b): return "\(entry.key)=\(b)"
+                    case .text(let t): return "\(entry.key)=\(t)"
+                    default: return entry.key
+                    }
+                }.joined(separator: "  "))
+        }
         if requestOp == "audio", case .map(let res)? = (entries.first { $0.key == "result" }?.value),
             let audio = GuestAudioStatus(.map(res))
         {
@@ -355,6 +377,7 @@ func printRow(_ item: CBOR) {
         switch e.value {
         case .text(let s): return "\(e.key)=\(s)"
         case .uint(let u): return "\(e.key)=\(u)"
+        case .bool(let b): return "\(e.key)=\(b)"
         default: return "\(e.key)=?"
         }
     }

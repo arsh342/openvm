@@ -96,13 +96,13 @@ struct SnapshotTests {
             FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
             FakeTransport.row("scratch", state: "stopped"),
         ])
-        Snapshot.check("list-mixed-states", VMListView(model: model, open: { _ in }), width: 820, height: 300)
+        Snapshot.check("list-mixed-states", VMListView(model: model, open: { _ in }, settings: { _ in }), width: 820, height: 300)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
     func emptyList() async {
         let model = await model([])
-        Snapshot.check("list-empty", VMListView(model: model, open: { _ in }), width: 820, height: 300)
+        Snapshot.check("list-empty", VMListView(model: model, open: { _ in }, settings: { _ in }), width: 820, height: 300)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
@@ -112,7 +112,7 @@ struct SnapshotTests {
         let model = VMListModel(transport: host)
         await model.refresh()
         model.lastError = "scratch is busy: start"
-        Snapshot.check("list-action-error", VMListView(model: model, open: { _ in }), width: 820, height: 300)
+        Snapshot.check("list-action-error", VMListView(model: model, open: { _ in }, settings: { _ in }), width: 820, height: 300)
     }
 }
 
@@ -128,5 +128,32 @@ extension SnapshotTests {
         Snapshot.check(
             "popover-mixed-states", StatusPopoverView(model: model, act: { _, _ in }, showLibrary: {}, quit: {}),
             width: 340, height: 330)
+    }
+}
+
+extension SnapshotTests {
+    private func settingsModel(_ vm: VmSummary, shares: Bool = false) async -> VMSettingsModel {
+        let host = FakeTransport()
+        host.respond("host-info", with: FakeTransport.hostInfoFields)
+        if shares {
+            host.respond("share-list", with: [
+                ("shares", .array([.map([("hostPath", .text("/Users/me/Projects")), ("guestPath", .text("/mnt/openvm/Projects"))])]))
+            ])
+        }
+        let model = VMSettingsModel(vm: vm, transport: host)
+        await model.load()
+        return model
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func settingsOfAStoppedLinuxVm() async {
+        let model = await settingsModel(FakeTransport.summary("lab", state: "stopped", timezone: "Europe/Berlin"), shares: true)
+        Snapshot.check("settings-stopped-linux", VMSettingsView(model: model, close: {}), width: 520, height: 740)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func settingsOfARunningWindowsVm() async {
+        let model = await settingsModel(FakeTransport.summary("win11", state: "running", bootMode: "windows", cpus: 4, memoryMB: 8192))
+        Snapshot.check("settings-running-windows", VMSettingsView(model: model, close: {}), width: 520, height: 740)
     }
 }

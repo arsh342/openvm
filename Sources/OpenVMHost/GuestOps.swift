@@ -68,9 +68,17 @@ nonisolated func printerOp(_ r: VmRequest) throws -> Envelope {
 }
 
 nonisolated func audioOp(_ r: VmRequest) throws -> Envelope {
+    // The consent check needs nothing from the guest, so it comes first: a client that has not
+    // agreed to Test Mode is told that, not that the guest is not running.
+    if case .text(let op)? = r.arg("op") {
+        var consent: Bool?
+        if case .bool(let yes)? = r.arg("testMode") { consent = yes }
+        if let refusal = audioEnableRefusal(op: op, testMode: consent) { return r.fail(refusal) }
+    }
     let record = try r.record()
     let g = try r.liveGuest(record)
-    let body = r.bodyForGuest
+    // testMode is the host's consent flag, not part of the guest's request.
+    let body = CBOR.map(r.args.filter { $0.key != "id" && $0.key != "testMode" })
     let reply = try GuestChannel.audio(g, body: body)
     guard case .map(let result) = reply else { return r.fail("guest audio reply was not a map") }
     return r.ok(result + [("hostOutputRunning", .bool(HostAudio.outputIsRunning()))])

@@ -20,16 +20,18 @@ struct VMRowLogicTests {
     }
 
     @Test func eachStateOffersItsOwnActions() {
-        #expect(VMRowLogic.actions(for: vm(state: "stopped")) == [.start, .delete])
-        #expect(VMRowLogic.actions(for: vm(state: "running")) == [.open, .pause, .stop])
-        #expect(VMRowLogic.actions(for: vm(state: "suspended")) == [.open, .resume, .stop])
+        // Settings is always there: a stopped VM has no window to reach it from.
+        #expect(VMRowLogic.actions(for: vm(state: "stopped")) == [.start, .settings, .delete])
+        #expect(VMRowLogic.actions(for: vm(state: "running")) == [.open, .pause, .stop, .settings])
+        #expect(VMRowLogic.actions(for: vm(state: "suspended")) == [.open, .resume, .stop, .settings])
     }
 
-    /// While the host is doing something to a VM, the only safe thing left is to watch it.
+    /// While the host is doing something to a VM, the only safe things left are to watch it and
+    /// to look at its settings (which lock what cannot change now).
     @Test func aBusyVmOffersOnlyToWatchIt() {
         for activity in ["start", "stop", "suspend", "resume", "delete"] {
             for state in ["stopped", "running", "suspended"] {
-                #expect(VMRowLogic.actions(for: vm(state: state, activity: activity)) == [.open])
+                #expect(VMRowLogic.actions(for: vm(state: state, activity: activity)) == [.open, .settings])
             }
         }
     }

@@ -4,19 +4,19 @@ import Foundation
 import OpenVMCore
 
 enum VMAction: Equatable {
-    case open, start, pause, resume, stop, delete
+    case open, start, pause, resume, stop, settings, delete
 }
 
 enum VMRowLogic {
     /// The actions a row offers, in the order they are shown.
     static func actions(for vm: VmSummary) -> [VMAction] {
-        // While the host is doing something to the VM the only safe thing left is to watch it.
-        if vm.activity != nil { return [.open] }
+        // While the host is doing something to the VM, watching it and reading its settings are safe.
+        if vm.activity != nil { return [.open, .settings] }
         switch vm.state {
-        case .stopped: return [.start, .delete]
-        case .running: return [.open, .pause, .stop]
-        case .suspended: return [.open, .resume, .stop]
-        case .starting, .stopping: return [.open]
+        case .stopped: return [.start, .settings, .delete]
+        case .running: return [.open, .pause, .stop, .settings]
+        case .suspended: return [.open, .resume, .stop, .settings]
+        case .starting, .stopping: return [.open, .settings]
         }
     }
 

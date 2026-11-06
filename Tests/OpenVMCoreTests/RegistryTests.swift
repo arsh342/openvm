@@ -331,3 +331,45 @@ extension RegistryTests {
         #expect(try reg.list().allSatisfy { $0.state == .running })
     }
 }
+
+extension RegistryTests {
+    /// The clipboard policy and the time zone are not resources: they can change while the VM runs.
+    @Test func clipboardSyncAndTimezoneChangeWhileRunning() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        _ = try reg.create(name: "live")
+        _ = try reg.start("live")
+        #expect(try reg.set("live", timezone: "Europe/Berlin").timezone == "Europe/Berlin")
+        let updated = try reg.set("live", clipboardSync: false)
+        #expect(updated.clipboardSync == false)
+        #expect(updated.syncsClipboard == false)
+        #expect(try reg.resolve("live").state == .running)  // changing a setting does not touch the state
+    }
+
+    /// CPUs, memory and the boot setup are read when the VM boots, so a running VM refuses them.
+    @Test func resourcesStillNeedAStoppedVm() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        _ = try reg.create(name: "busy")
+        _ = try reg.start("busy")
+        #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", cpus: 2) }
+        #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", memoryMB: 2048) }
+        #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", bootMode: .windows) }
+        #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", variableStorePath: "/x") }
+        // and a refused change leaves the rest alone, even when a permitted field came with it
+        #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", cpus: 2, clipboardSync: false) }
+        #expect(try reg.resolve("busy").clipboardSync == nil)
+    }
+
+    @Test func recordsWithoutClipboardSyncDecodeAsOn() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        let json = """
+            {"vms":[{"uuid":"U","name":"old","state":"stopped","cpus":2,"memoryMB":1024,"createdAt":"2026-01-01T00:00:00Z"}]}
+            """
+        try json.write(to: home.appendingPathComponent("vms.json"), atomically: true, encoding: .utf8)
+        let record = try reg.resolve("old")
+        #expect(record.clipboardSync == nil)
+        #expect(record.syncsClipboard)  // missing means on
+    }
+}

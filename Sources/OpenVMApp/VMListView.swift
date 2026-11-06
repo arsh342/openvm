@@ -7,6 +7,8 @@ struct VMListView: View {
     @ObservedObject var model: VMListModel
     /// Opens a VM's window.
     let open: (VmSummary) -> Void
+    /// Opens a VM's settings.
+    let settings: (VmSummary) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
@@ -24,7 +26,7 @@ struct VMListView: View {
                 }
             }
         }
-        .frame(minWidth: 780, minHeight: 300)
+        .frame(minWidth: 820, minHeight: 300)
         .confirmationDialog(
             model.pendingDelete.map { VMRowLogic.deleteConfirmation(for: $0).title } ?? "", isPresented: isDeleting,
             titleVisibility: .visible, presenting: model.pendingDelete
@@ -62,6 +64,7 @@ struct VMListView: View {
     private func perform(_ action: VMAction, on vm: VmSummary) {
         switch action {
         case .open: open(vm)
+        case .settings: settings(vm)
         case .start: Task { await model.start(vm) }
         case .pause: Task { await model.suspend(vm) }
         case .resume: Task { await model.resume(vm) }
@@ -92,13 +95,18 @@ private struct VMRow: View {
                     Button(role: action == .delete ? .destructive : nil) {
                         perform(action)
                     } label: {
-                        Label(title(action), systemImage: icon(action))
+                        // Settings is a gear on its own: a fourth labelled button would not fit.
+                        if action == .settings {
+                            Label(title(action), systemImage: icon(action)).labelStyle(.iconOnly)
+                        } else {
+                            Label(title(action), systemImage: icon(action))
+                        }
                     }
                     .controlSize(.small)
                     .help(title(action))
                 }
             }
-            .frame(width: 290, alignment: .trailing)
+            .frame(width: 330, alignment: .trailing)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
@@ -131,6 +139,7 @@ private struct VMRow: View {
         case .pause: return "Pause"
         case .resume: return "Resume"
         case .stop: return "Stop"
+        case .settings: return "Settings"
         case .delete: return "Delete"
         }
     }
@@ -142,6 +151,7 @@ private struct VMRow: View {
         case .pause: return "pause.fill"
         case .resume: return "play.fill"
         case .stop: return "stop.fill"
+        case .settings: return "gearshape"
         case .delete: return "trash"
         }
     }

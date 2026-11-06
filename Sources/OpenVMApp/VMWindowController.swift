@@ -13,17 +13,20 @@ import Virtualization
 final class VMWindowController: NSWindowController, NSWindowDelegate {
     private let machineView = VZVirtualMachineView()
     private let cover = VMStatusView()
-    private let transport: any HostTransport
-    private let onStart: (VmSummary) -> Void
+    private let toolbar = VMToolbar()
+    /// The same model the list and the menus use, so every button acts the way theirs do.
+    private let model: VMListModel
+    private let showSettings: (VmSummary) -> Void
     private let resizer: ResizeCoalescer
     private(set) var vm: VmSummary
     private(set) var state: VMWindowState = .stopped
 
-    init(vm: VmSummary, transport: any HostTransport, onStart: @escaping (VmSummary) -> Void) {
+    init(vm: VmSummary, model: VMListModel, showSettings: @escaping (VmSummary) -> Void) {
         self.vm = vm
-        self.transport = transport
-        self.onStart = onStart
+        self.model = model
+        self.showSettings = showSettings
         let uuid = vm.uuid
+        let transport = model.transport
         self.resizer = ResizeCoalescer { mode in
             await Self.applyDisplay(mode, to: uuid, over: transport)
         }
@@ -64,10 +67,69 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
             ])
         }
         window.contentView = container
+
+        wireToolbar()
+        window.toolbar = toolbar.toolbar
+        window.toolbarStyle = .unified
         update(vm)
     }
 
     required init?(coder: NSCoder) { fatalError("not used") }
+
+    // MARK: toolbar
+
+    private func wireToolbar() {
+        toolbar.onPower = { [weak self] button in
+            guard let self else { return }
+            switch button {
+            case .start: Task { await self.model.start(self.vm) }
+            // Shutting down asks the guest to stop, as the list's Stop does. Cancel stops a boot.
+            case .shutDown, .cancel: Task { await self.model.stop(self.vm) }
+            case .disabled: break
+            }
+        }
+        toolbar.onPause = { [weak self] button in
+            guard let self else { return }
+            switch button {
+            case .pause: Task { await self.model.suspend(self.vm) }
+            case .resume: Task { await self.model.resume(self.vm) }
+            case .disabled: break
+            }
+        }
+        toolbar.onFullScreen = { [weak self] in self?.window?.toggleFullScreen(nil) }
+        toolbar.onShareFolder = { [weak self] in self?.shareFolder() }
+        toolbar.onSettings = { [weak self] in
+            guard let self else { return }
+            self.showSettings(self.vm)
+        }
+    }
+
+    /// Shares one folder with the guest. The guest can change what is in it, so the panel
+    /// says so before anything is shared.
+    private func shareFolder() {
+        guard let window else { return }
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.allowsMultipleSelection = false
+        panel.prompt = "Share"
+        panel.message = "Choose a folder to share with \(vm.name). The guest can read and change what is in it."
+        panel.beginSheetModal(for: window) { [weak self] response in
+            guard response == .OK, let url = panel.url, let self else { return }
+            Task { @MainActor in
+                do {
+                    _ = try await self.model.transport.send(
+                        "share-add", [("id", .text(self.vm.uuid)), ("hostPath", .text(url.path))])
+                } catch {
+                    let alert = NSAlert()
+                    alert.alertStyle = .warning
+                    alert.messageText = "Could not share the folder"
+                    alert.informativeText = "\(error)"
+                    alert.beginSheetModal(for: window) { _ in }
+                }
+            }
+        }
+    }
 
     /// Called whenever the host's list changes.
     func update(_ vm: VmSummary) {
@@ -83,8 +145,9 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         machineView.isHidden = !state.showsScreen
         cover.show(state) { [weak self] in
             guard let self else { return }
-            self.onStart(self.vm)
+            Task { await self.model.start(self.vm) }
         }
+        toolbar.update(VMToolbarLogic.state(for: vm))
         window?.title = title(for: state)
         if state == .running, window?.firstResponder !== machineView { window?.makeFirstResponder(machineView) }
         // A guest that has just become ready (first boot, or back from a pause) is sized to

@@ -10,10 +10,11 @@ let usage = """
       openvmctl ping <name|uuid>
       openvmctl stop <name|uuid> [--no-wait]
       openvmctl stop-all
+      openvmctl host-info
       openvmctl delete <name|uuid>
       openvmctl suspend <name|uuid>
       openvmctl resume <name|uuid>
-      openvmctl set <name|uuid> [--cpus N] [--memoryMB N] [--tz Zone] [--boot-mode linux|windows] [--variable-store-path PATH]
+      openvmctl set <name|uuid> [--cpus N] [--memoryMB N] [--tz Zone] [--boot-mode linux|windows] [--variable-store-path PATH] [--clipboard-sync on|off]
       openvmctl clipboard push|pull <name|uuid>
       openvmctl file push <name|uuid> <host-path> [guest-name]
       openvmctl file pull <name|uuid> <guest-name> <host-path>

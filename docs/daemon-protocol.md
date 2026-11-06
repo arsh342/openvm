@@ -36,7 +36,8 @@ the daemon replies on the same id.
 | delete| `id`                                        | sweeps the raw disk (+ sidecars) and removes the record; requires `stopped` |
 | suspend| `id`                                       | pauses the live guest (VZ pause) and records `suspended`; needs this daemon to hold the live guest |
 | resume | `id`                                       | unpauses the suspended live guest and records `running`; needs this daemon to hold the live guest |
-| set    | `id`; `cpus`, `memoryMB`, `tz`, `boot-mode`, `variable-store-path` (at least one) | updates the record while it is `stopped` (same ranges as `create`; `tz` is an IANA zone name, applied to the guest at the next boot or resume) |
+| set    | `id`; `cpus`, `memoryMB`, `tz`, `boot-mode`, `variable-store-path`, `clipboard-sync` (bool) (at least one) | updates the record. `cpus`, `memoryMB`, `boot-mode` and `variable-store-path` need a `stopped` VM; `tz` and `clipboard-sync` may change while it runs. `cpus` is 1 to 32 and no more than the Mac allows, `memoryMB` is 128 to what the Mac allows (see `host-info`); `tz` is an IANA zone name, applied to the guest at the next boot or resume) |
+| host-info | (none) | answers `maxCpus` (at most 32), `maxMemoryMB`, `freeDiskMB` (where VMs live), `linuxReady` (the Linux guest files are fetched) and `hostWimlib` (`wimlib-imagex` is installed), so a client offers only choices that will work. Also `openvmctl host-info` |
 | stop-all | (none) | stops every live guest at once, the way quitting the app does, and answers how many it stopped. A guest still booting is cancelled |
 | ping  | `id` (name or uuid)                         | host sends `echoRequest` over the guest's dedicated channel port and waits for the in-guest agent's `echoReply`; needs this daemon to hold the live guest |
 | clipboard-write | `id`, `text` (UTF-8 text) | sends host clipboard text to the guest agent |
@@ -49,10 +50,10 @@ the daemon replies on the same id.
 | share-list | `id` | lists the record's shares as `hostPath`/`guestPath` rows |
 | drag | `id`, `op` (`enter`, `leave`, `drop`, `status`); `paths` for `drop` | stages host files and has the guest put them on the user's Desktop |
 | printer | `id`, `op` (`list`, `test`), `name` for `test` | lists the guest's queues, or prints a test page |
-| audio | `id`, `op` (`status`, `test`, `enable`, `disable`) | reports or tests guest sound; adds `hostOutputRunning`. `enable` and `disable` are Windows only |
+| audio | `id`, `op` (`status`, `test`, `enable`, `disable`); `enable` also needs `testMode: true` | reports or tests guest sound; adds `hostOutputRunning`. `enable` and `disable` are Windows only |
 | display | `id`; `op` `capture`, or `width`, `height` and optional `scale` (1 to 3) | changes the guest's mode and scale, or saves its screen for `file pull` |
 
-`list` and `info` rows also carry `bootMode`, `timezone` (when set), `diskBytes` (the disk's size as the guest sees it), `activity` (the op in flight, absent when idle), `installing` (a Windows install is running) and `dropping` (files are being copied in); the last two are absent unless true. The ops that change a VM's life (`start`, `stop`, `suspend`, `resume`, `delete`, `set`) hold its slot while they run: a second one answers `<name> is busy: <op>`. A `stop` is let through a `start`, because it is how a boot is cancelled.
+`list` and `info` rows also carry `bootMode`, `timezone` (when set), `diskBytes` (the disk's size as the guest sees it), `activity` (the op in flight, absent when idle), `installing` (a Windows install is running), `dropping` (files are being copied in) and `clipboardSync` (the per-VM clipboard policy, true unless turned off); `installing` and `dropping` are absent unless true. The host refuses `audio enable` unless the request carries `testMode: true`, because Windows sound turns on Test Mode, which weakens driver signature checks; `openvmctl audio enable --test-mode` is how a person says so, and the app asks first. The ops that change a VM's life (`start`, `stop`, `suspend`, `resume`, `delete`, `set`) hold its slot while they run: a second one answers `<name> is busy: <op>`. A `stop` is let through a `start`, because it is how a boot is cancelled.
 
 Name rule: 1–64 chars of `[A-Za-z0-9_-]`, first char alphanumeric (so CLI flags never
 collide). Record ids are `UUID().uuidString` values, generated at create time.

@@ -25,6 +25,7 @@ nonisolated func vmRow(_ rec: VmRecord) -> [(key: String, value: CBOR)] {
     if let live = liveVMs.peek(rec.uuid), activeDrops.get(live.boot) != nil {
         row.append(("dropping", .bool(true)))
     }
+    row.append(("clipboardSync", .bool(rec.syncsClipboard)))
     return row
 }
 
@@ -168,7 +169,9 @@ nonisolated func setVm(_ r: VmRequest) throws -> Envelope {
     guard case .text(let id)? = r.arg("id") else { return r.fail("missing id") }
     var cpus: Int?
     if case .uint(let n)? = r.arg("cpus") {
-        guard n >= 1, n <= 32 else { return r.fail("cpus must be between 1 and 32") }
+        guard n >= 1, n <= UInt64(ResourceLimits.cpuCeiling) else {
+            return r.fail("cpus must be between 1 and \(ResourceLimits.cpuCeiling)")
+        }
         cpus = Int(n)
     }
     var memoryMB: Int?
@@ -192,26 +195,36 @@ nonisolated func setVm(_ r: VmRequest) throws -> Envelope {
     if case .text(let path)? = r.arg("variable-store-path") {
         variableStorePath = path
     }
+    var clipboardSync: Bool?
+    if case .bool(let on)? = r.arg("clipboard-sync") { clipboardSync = on }
     guard cpus != nil || memoryMB != nil || timezone != nil || bootMode != nil || variableStorePath != nil
+        || clipboardSync != nil
     else {
-        return r.fail("set requires at least one of cpus, memoryMB, tz, boot-mode, variable-store-path")
+        return r.fail(
+            "set requires at least one of cpus, memoryMB, tz, boot-mode, variable-store-path, clipboard-sync")
     }
+    if let problem = validateResources(cpus: cpus, memoryMB: memoryMB, limits: .current) { return r.fail(problem) }
     let record = try registry.resolve(id)
-    guard record.state == .stopped else {
-        return r.fail("set requires a stopped VM (state=\(record.state.rawValue))")
-    }
-    guard liveVMs.peek(record.uuid) == nil else {
-        // defensive: a stopped record with a live handle should not exist
-        return r.fail("set requires a stopped VM (\(record.name) is live in this daemon)")
+    // CPUs, memory and the boot setup are read at boot; the time zone and the clipboard policy
+    // are not, so they can change while the VM runs.
+    if cpus != nil || memoryMB != nil || bootMode != nil || variableStorePath != nil {
+        guard record.state == .stopped else {
+            return r.fail("changing CPUs or memory needs a stopped VM (state=\(record.state.rawValue))")
+        }
+        guard liveVMs.peek(record.uuid) == nil else {
+            // defensive: a stopped record with a live handle should not exist
+            return r.fail("changing CPUs or memory needs a stopped VM (\(record.name) is live in this daemon)")
+        }
     }
     _ = try registry.set(
         record.uuid, cpus: cpus, memoryMB: memoryMB, timezone: timezone, bootMode: bootMode,
-        variableStorePath: variableStorePath)
+        variableStorePath: variableStorePath, clipboardSync: clipboardSync)
     var applied: [String] = []
     if let cpus { applied.append("cpus=\(cpus)") }
     if let memoryMB { applied.append("memoryMB=\(memoryMB)") }
     if let timezone { applied.append("tz=\(timezone)") }
     if let bootMode { applied.append("boot-mode=\(bootMode.rawValue)") }
     if let variableStorePath { applied.append("variable-store-path=\(variableStorePath)") }
+    if let clipboardSync { applied.append("clipboard-sync=\(clipboardSync)") }
     return r.ok([("message", .text("set \(record.name) (\(applied.joined(separator: ", ")))"))])
 }

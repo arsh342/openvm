@@ -73,16 +73,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showLibrary() {
         let controller =
             library
-            ?? LibraryWindowController(model: model) { [weak self] vm in self?.openWindow(vm) }
+            ?? LibraryWindowController(
+                model: model, open: { [weak self] vm in self?.openWindow(vm) },
+                settings: { [weak self] vm in self?.showSettings(vm) })
         library = controller
         NSApp.setActivationPolicy(.regular)  // a window needs the Dock icon back
         controller.showWindow(nil)
         NSApp.activate()
     }
 
+    private func showSettings(_ vm: VmSummary) {
+        NSApp.setActivationPolicy(.regular)
+        SettingsWindows.shared.show(vm, transport: model.transport)
+    }
+
     private func openWindow(_ vm: VmSummary) {
         NSApp.setActivationPolicy(.regular)
-        WindowRegistry.shared.show(vm, transport: model.transport) { [model] vm in Task { await model.start(vm) } }
+        WindowRegistry.shared.show(vm, model: model)
     }
 
     // MARK: the menu-bar icon
@@ -102,7 +109,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             openWindow(vm)
         case .resume: Task { await model.resume(vm) }
         case .open: openWindow(vm)
-        case .pause, .stop, .delete: break  // the popover offers only the obvious action
+        case .pause, .stop, .settings, .delete: break  // the popover offers only the obvious action
         }
     }
 

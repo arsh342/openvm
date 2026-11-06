@@ -128,3 +128,27 @@ extension VmSummaryTests {
         #expect(busy?.dropping == true)
     }
 }
+
+extension VmSummaryTests {
+    @Test func clipboardSyncDefaultsToOnAndDecodesWhenSent() {
+        let base: [(key: String, value: CBOR)] = [
+            ("name", .text("w")), ("state", .text("stopped")), ("uuid", .text("u")),
+        ]
+        #expect(VmSummary(row: .map(base))?.clipboardSync == true)  // an older host sends nothing
+        #expect(VmSummary(row: .map(base + [("clipboardSync", .bool(false))]))?.clipboardSync == false)
+    }
+}
+
+@Suite struct HostInfoDecodingTests {
+    @Test func hostInfoDecodes() {
+        let info = HostInfo(fields: [
+            ("maxCpus", .uint(8)), ("maxMemoryMB", .uint(16384)), ("freeDiskMB", .uint(500_000)),
+            ("linuxReady", .bool(true)), ("hostWimlib", .bool(false)),
+        ])
+        #expect(info == HostInfo(maxCpus: 8, maxMemoryMB: 16384, freeDiskMB: 500_000, linuxReady: true, hostWimlib: false))
+    }
+
+    @Test func aReplyMissingTheLimitsIsRejected() {
+        #expect(HostInfo(fields: [("linuxReady", .bool(true))]) == nil)
+    }
+}

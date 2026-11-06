@@ -18,6 +18,8 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
     public let installing: Bool
     /// Files are being copied into this VM. Quitting would cut them off.
     public let dropping: Bool
+    /// Whether the clipboard is shared with this VM. On unless the host says otherwise.
+    public let clipboardSync: Bool
 
     /// Rows from an older host lack the newer fields, and still decode.
     public init?(row: CBOR) {
@@ -50,5 +52,10 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
         self.timezone = text("timezone")
         self.installing = flag("installing")
         self.dropping = flag("dropping")
+        if case .bool(let sync)? = fields.first(where: { $0.key == "clipboardSync" })?.value {
+            self.clipboardSync = sync
+        } else {
+            self.clipboardSync = true
+        }
     }
 }
