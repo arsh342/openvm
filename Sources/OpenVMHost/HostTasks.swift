@@ -74,9 +74,12 @@ nonisolated final class HostTasks: @unchecked Sendable {
         var cancelRequested = false
         var error: String?
         let kind: String?
-        init(pid: pid_t, kind: String?) {
+        /// The file the job is making. If the job does not finish, it is removed: media is 22 GB.
+        let output: String?
+        init(pid: pid_t, kind: String?, output: String?) {
             self.pid = pid
             self.kind = kind
+            self.output = output
         }
     }
 
@@ -222,7 +225,7 @@ nonisolated final class HostTasks: @unchecked Sendable {
         }
 
         let id = UUID().uuidString.lowercased()
-        let job = Job(pid: pid, kind: kind)
+        let job = Job(pid: pid, kind: kind, output: plan.output)
         lock.lock()
         jobs[id] = job
         order.append(id)
@@ -271,8 +274,11 @@ nonisolated final class HostTasks: @unchecked Sendable {
             let context = job.tail.suffix(3).joined(separator: " | ")
             job.error = String("\(why)\(context.isEmpty ? "" : ": \(context)")".prefix(400))
         }
+        let leftover = job.state == .done ? nil : job.output
         prune()
         lock.unlock()
+        // A job that did not finish leaves a half-written file: take it away.
+        if let leftover { try? FileManager.default.removeItem(atPath: leftover) }
     }
 
     /// Drops the oldest finished jobs beyond what is kept. The caller holds the lock.

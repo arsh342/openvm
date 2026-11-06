@@ -96,13 +96,13 @@ struct SnapshotTests {
             FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
             FakeTransport.row("scratch", state: "stopped"),
         ])
-        Snapshot.check("list-mixed-states", VMListView(model: model, open: { _ in }, settings: { _ in }), width: 820, height: 300)
+        Snapshot.check("list-mixed-states", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 820, height: 300)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
     func emptyList() async {
         let model = await model([])
-        Snapshot.check("list-empty", VMListView(model: model, open: { _ in }, settings: { _ in }), width: 820, height: 300)
+        Snapshot.check("list-empty", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 820, height: 300)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
@@ -112,7 +112,7 @@ struct SnapshotTests {
         let model = VMListModel(transport: host)
         await model.refresh()
         model.lastError = "scratch is busy: start"
-        Snapshot.check("list-action-error", VMListView(model: model, open: { _ in }, settings: { _ in }), width: 820, height: 300)
+        Snapshot.check("list-action-error", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 820, height: 300)
     }
 }
 
@@ -155,5 +155,76 @@ extension SnapshotTests {
     func settingsOfARunningWindowsVm() async {
         let model = await settingsModel(FakeTransport.summary("win11", state: "running", bootMode: "windows", cpus: 4, memoryMB: 8192))
         Snapshot.check("settings-running-windows", VMSettingsView(model: model, close: {}), width: 520, height: 740)
+    }
+}
+
+extension SnapshotTests {
+    private func wizardModel(_ host: FakeTransport = FakeTransport(), linuxReady: Bool = true) async -> CreateWizardModel {
+        host.respond("host-info", with: [
+            ("maxCpus", .uint(8)), ("maxMemoryMB", .uint(16384)), ("freeDiskMB", .uint(500_000)),
+            ("linuxReady", .bool(linuxReady)), ("hostWimlib", .bool(false)),
+        ])
+        let model = CreateWizardModel(transport: host, existingNames: ["lab"], pollInterval: .milliseconds(1))
+        await model.load()
+        return model
+    }
+
+    private func wizardView(_ model: CreateWizardModel) -> CreateWizardView { CreateWizardView(model: model, close: {}) }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func wizardChoosesTheSystem() async {
+        let model = await wizardModel()
+        Snapshot.check("wizard-os", wizardView(model), width: 600, height: 540)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func wizardRefusesAnX64Iso() async {
+        let host = FakeTransport()
+        host.respond("windows-iso-check", with: [
+            ("usable", .bool(false)),
+            ("problem", .text("This is not a Windows 11 ARM64 ISO. A Mac with Apple Silicon needs the ARM64 edition, not the x64 one.")),
+        ])
+        let model = await wizardModel(host, linuxReady: false)
+        model.os = .windows
+        model.next()
+        await model.chooseISO("/Users/me/Downloads/Win11_x64.iso")
+        Snapshot.check("wizard-source-x64", wizardView(model), width: 600, height: 540)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func wizardSizesTheVm() async {
+        let model = await wizardModel()
+        model.next()  // source (Linux files are ready)
+        model.next()
+        Snapshot.check("wizard-resources", wizardView(model), width: 600, height: 540)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func wizardWhileInstalling() async {
+        let host = FakeTransport()
+        host.respond("create", with: [])
+        host.handle("start") { _ in
+            try await Task.sleep(for: .seconds(60))
+            return []
+        }
+        let model = await wizardModel(host)
+        model.name = "demo"
+        model.next(); model.next(); model.next()
+        let run = Task { await model.create() }
+        _ = await eventually { host.calls.contains("start") }
+        Snapshot.check("wizard-working", wizardView(model), width: 600, height: 540)
+        run.cancel()
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func wizardAfterAFailedStart() async {
+        let host = FakeTransport()
+        host.respond("create", with: [])
+        host.fail("start", with: HostError.remote("guest did not reach boot readiness with a responding openvm-tools agent; console tail:\nrandom: crng init done"))
+        let model = await wizardModel(host)
+        model.name = "demo"
+        model.next(); model.next(); model.next()
+        await model.create()
+        Snapshot.check("wizard-failed", wizardView(model), width: 600, height: 540)
     }
 }

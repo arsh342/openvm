@@ -140,6 +140,8 @@ nonisolated func deleteVm(_ r: VmRequest) throws -> Envelope {
     if let diskPath = record.diskPath {
         let diskURL = URL(fileURLWithPath: diskPath)
         let directory = diskURL.deletingLastPathComponent()
+        // The install media openVM built for this VM goes with it (never a file it did not make).
+        if let media = record.installMediaPath { _ = removeOwnedMedia(media, mediaRoot: mediaFolder) }
         // sidecars live next to the disk (installed marker + exported kernel/initramfs)
         for extensionName in ["openvm-installed", "openvm-kernel", "openvm-initramfs"] {
             try? FileManager.default.removeItem(at: diskURL.appendingPathExtension(extensionName))

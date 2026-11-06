@@ -373,3 +373,17 @@ extension RegistryTests {
         #expect(record.syncsClipboard)  // missing means on
     }
 }
+
+extension RegistryTests {
+    /// Once the install is done the media is removed, so the record must not point at a missing file.
+    @Test func installMediaCanBeForgotten() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        _ = try reg.create(name: "win", bootMode: .windows, installMediaPath: "/x/media/win.raw")
+        #expect(try reg.resolve("win").installMediaPath == "/x/media/win.raw")
+        try reg.clearInstallMedia("win")
+        #expect(try reg.resolve("win").installMediaPath == nil)
+        try reg.clearInstallMedia("win")  // already gone: not an error
+        #expect(throws: VmRegistryError.notFound) { try reg.clearInstallMedia("nope") }
+    }
+}

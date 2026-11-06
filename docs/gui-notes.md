@@ -158,3 +158,49 @@ menu-bar icon brings a window back; host sleep with a window open pauses and res
 To check by hand: the toolbar buttons enable and disable as the VM starts, pauses and stops;
 Share Folder, Settings and the Windows sound consent dialog behave as described; changing the
 memory of a stopped VM takes effect at its next start.
+
+## The creation wizard
+
+File > New Virtual Machine (Cmd+N), or "New VM…" in the library. It does nothing a person could not
+do with `openvmctl`; what it adds is the order, the checks before each step, and the cleanup.
+
+1. **System.** Linux or Windows 11. Choosing resets the defaults: Linux 4 CPUs, 4 GB, 32 GB disk;
+   Windows 4 CPUs, 8 GB, 64 GB disk. The suggested name is taken only if it is free
+   (`linux`, `linux-2`, …).
+2. **Source.** Linux: the Linux files, fetched with live progress if they are not there yet. Windows:
+   the person's own ISO, checked at once by `windows-iso-check` (an x64 ISO, a Linux ISO or an ISO
+   with `install.esd` is refused with the reason, and Continue stays off). With no wimlib on the Mac
+   the media is built in a helper VM, which needs the Linux files, so those are offered here too.
+3. **Size.** Name (valid, and not already used), CPUs and memory within what this Mac allows, disk.
+   Continue is off, with the reason, if the disk is too small for the system, or the Mac does not
+   have the free space: Windows needs about 42 GB (22 GB for the media while it is built, about
+   20 GB for Windows), Linux about 4 GB.
+4. **Summary.** For Windows it says the guest has a local account `openvm` with the password
+   `openvm`, to be changed after setup.
+5. **Run.** Windows: build the media (progress is the build's last line), create the VM with it.
+   Both: create, open the VM's window so the install can be watched, start. The wizard is not modal.
+
+**Cleanup is the point of the design.**
+
+* **Cancel during the media build** cancels the task. The host stops the script and everything it
+  started, and deletes the half-written image. Cancel waits until that has finished (it takes a few
+  seconds: the ISO and the 22 GB image are unmounted first), so a new run with the same name never
+  meets the old one's cleanup. The wait is bounded.
+* **Cancel during the install** stops the VM (which cancels a boot in progress), waits until it is
+  stopped, and deletes it. The host deletes the install media with the VM, but only a file inside its
+  own `media` folder, never one a person passed in by hand.
+* **A failure after the VM exists keeps it**, with the host's message (including the console tail),
+  and offers to delete it. A failed media build makes no VM and leaves no image.
+* Once a Windows install has finished, the host deletes the install media (it was about 22 GB).
+* Closing the wizard window mid-run asks first, because it cancels the run.
+
+**Measured on real hosts** (`OPENVM_E2E=1 make test`; these start a real `openvmd`):
+
+* Cancelling a Linux install while it boots left no VM and no disk folder (1 s).
+* Cancelling a Windows media build with the real ISO, while the image existed and the ISO and image
+  were mounted, left no media file, no attached image and no VM (4 s).
+* Killing the media script used to leave the ISO and the image attached. It now stops on SIGTERM and
+  runs its own cleanup, which is what cancelling relies on.
+
+To check by hand: the pages and buttons behave as above (the terminal cannot drive them); the ISO
+chooser opens and accepts only `.iso` files; closing the window mid-run asks.

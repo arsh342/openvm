@@ -31,6 +31,9 @@
 #
 # usage: mk-windows-media.sh <windows-iso> <out-disk.raw> [boot-mb] [data-mb]
 set -eu
+# A cancelled build is stopped with SIGTERM. Without this the shell dies at once and its EXIT
+# trap never runs, leaving the ISO and the 22 GB image attached.
+trap 'exit 1' TERM INT HUP
 
 ISO=${1:?usage: mk-windows-media.sh <windows-iso> <out-disk.raw> [boot-mb] [data-mb]}
 OUT=${2:?usage: mk-windows-media.sh <windows-iso> <out-disk.raw> [boot-mb] [data-mb]}

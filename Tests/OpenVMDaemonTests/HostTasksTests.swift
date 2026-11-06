@@ -12,7 +12,7 @@ nonisolated struct HostTasksTests {
     }
 
     /// Waits for a task to leave `running`, for up to `seconds`.
-    private func finish(_ tasks: HostTasks, _ id: String, seconds: Double = 5) -> HostTasks.Snapshot? {
+    fileprivate func finish(_ tasks: HostTasks, _ id: String, seconds: Double = 5) -> HostTasks.Snapshot? {
         let deadline = Date().addingTimeInterval(seconds)
         while Date() < deadline {
             if let snapshot = tasks.status(id), snapshot.state != .running { return snapshot }
@@ -423,5 +423,51 @@ extension HostTasksTests {
         #expect(line.contains("OPENVM_CACHE"))
         #expect(line.contains("$HOME/.openvm/cache"))
         #expect(!line.contains("OPENVM_HOME"))
+    }
+}
+
+// MARK: a job that makes a file removes it if it did not finish
+
+extension HostTasksTests {
+    private func output() -> String {
+        FileManager.default.temporaryDirectory.appendingPathComponent("taskout-\(UUID().uuidString).raw").path
+    }
+
+    private func writing(_ path: String, then script: String) -> TaskPlan {
+        TaskPlan(
+            executable: "/bin/sh", arguments: ["-c", "echo partial > \"$0\"; \(script)", path], environment: [:],
+            output: path)
+    }
+
+    /// Media is 22 GB: a build that was cancelled or failed must not leave its half-written image.
+    @Test func aCancelledTaskRemovesItsOutput() throws {
+        let tasks = HostTasks()
+        let path = output()
+        let id = try tasks.start(writing(path, then: "sleep 30"))
+        let started = Date()
+        while !FileManager.default.fileExists(atPath: path), Date().timeIntervalSince(started) < 3 {
+            Thread.sleep(forTimeInterval: 0.02)
+        }
+        #expect(FileManager.default.fileExists(atPath: path))
+        #expect(tasks.cancel(id))
+        #expect(finish(tasks, id)?.state == .cancelled)
+        #expect(!FileManager.default.fileExists(atPath: path))
+    }
+
+    @Test func aFailedTaskRemovesItsOutput() throws {
+        let tasks = HostTasks()
+        let path = output()
+        let id = try tasks.start(writing(path, then: "exit 3"))
+        #expect(finish(tasks, id)?.state == .failed)
+        #expect(!FileManager.default.fileExists(atPath: path))
+    }
+
+    @Test func aFinishedTaskKeepsItsOutput() throws {
+        let tasks = HostTasks()
+        let path = output()
+        defer { try? FileManager.default.removeItem(atPath: path) }
+        let id = try tasks.start(writing(path, then: "true"))
+        #expect(finish(tasks, id)?.state == .done)
+        #expect(FileManager.default.fileExists(atPath: path))
     }
 }

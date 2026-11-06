@@ -150,6 +150,15 @@ public nonisolated struct VmRegistry: Sendable {
         }
     }
 
+    /// Forgets the install media: it was removed once the install finished, so the record must not
+    /// point at a file that is gone. Already forgotten is fine.
+    public func clearInstallMedia(_ id: String) throws {
+        try mutate { vms in
+            guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
+            vms[idx].installMediaPath = nil
+        }
+    }
+
     /// Updates the given fields of a stopped VM; nil leaves a field unchanged.
     /// The daemon op owns the "at least one field" presence check.
     public func set(

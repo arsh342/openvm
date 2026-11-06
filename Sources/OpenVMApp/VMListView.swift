@@ -9,9 +9,19 @@ struct VMListView: View {
     let open: (VmSummary) -> Void
     /// Opens a VM's settings.
     let settings: (VmSummary) -> Void
+    /// Starts the creation wizard.
+    let newVM: () -> Void
 
     var body: some View {
         VStack(spacing: 0) {
+            HStack {
+                Spacer()
+                Button(action: newVM) { Label("New VM…", systemImage: "plus") }
+                    .controlSize(.regular)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+            Divider()
             banners
             if model.vms.isEmpty {
                 emptyState
@@ -55,7 +65,8 @@ struct VMListView: View {
         VStack(spacing: 8) {
             Image(systemName: "desktopcomputer").font(.system(size: 40)).foregroundStyle(.secondary)
             Text("No virtual machines").font(.title3.weight(.medium))
-            Text("Create one with `openvmctl create <name>`.").foregroundStyle(.secondary)
+            Text("Create one to get started.").foregroundStyle(.secondary)
+            Button("New VM…", action: newVM).padding(.top, 4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(32)

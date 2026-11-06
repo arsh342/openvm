@@ -19,11 +19,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menu: AppMenu?
     private var library: LibraryWindowController?
     private var statusMenu: StatusMenuController?
+    private var wizard: CreateWizardWindowController?
     private var subscription: AnyCancellable?
     private var observers: [NSObjectProtocol] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        let menu = AppMenu(model: model) { [weak self] in self?.showLibrary() }
+        let menu = AppMenu(
+            model: model, showLibrary: { [weak self] in self?.showLibrary() },
+            newVM: { [weak self] in self?.showWizard() })
         self.menu = menu
         NSApp.mainMenu = menu.build()
         do {
@@ -75,9 +78,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             library
             ?? LibraryWindowController(
                 model: model, open: { [weak self] vm in self?.openWindow(vm) },
-                settings: { [weak self] vm in self?.showSettings(vm) })
+                settings: { [weak self] vm in self?.showSettings(vm) },
+                newVM: { [weak self] in self?.showWizard() })
         library = controller
         NSApp.setActivationPolicy(.regular)  // a window needs the Dock icon back
+        controller.showWindow(nil)
+        NSApp.activate()
+    }
+
+    /// The creation wizard. One at a time: a second request brings the open one forward.
+    private func showWizard() {
+        if let wizard, wizard.window?.isVisible == true {
+            wizard.showWindow(nil)
+            NSApp.activate()
+            return
+        }
+        NSApp.setActivationPolicy(.regular)
+        let controller = CreateWizardWindowController(
+            transport: model.transport, existingNames: model.vms.map(\.name),
+            openWindow: { [weak self] name in Task { await self?.openWindow(for: name) } })
+        wizard = controller
         controller.showWindow(nil)
         NSApp.activate()
     }

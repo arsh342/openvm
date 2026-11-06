@@ -399,6 +399,10 @@ enum GuestBoot {
                 diskURL: diskURL, mediaURL: URL(fileURLWithPath: installMediaPath),
                 vmDir: vmDir, vmUUID: vmUUID, publish: publish)
             try Data("windows\n".utf8).write(to: installRecord, options: .atomic)
+            // The install is done, so the 22 GB of media (if openVM built it) is no longer needed.
+            if removeOwnedMedia(installMediaPath, mediaRoot: mediaFolder) {
+                try? registry.clearInstallMedia(vmUUID)
+            }
             // The installed system boots through the firmware's removable-media
             // path (our chainloader on the new ESP); start from a clean store.
             try? FileManager.default.removeItem(at: variableStoreURL)

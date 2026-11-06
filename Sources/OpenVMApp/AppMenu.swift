@@ -6,10 +6,12 @@ import OpenVMCore
 final class AppMenu: NSObject, NSMenuDelegate {
     private let model: VMListModel
     private let showLibrary: () -> Void
+    private let newVM: () -> Void
 
-    init(model: VMListModel, showLibrary: @escaping () -> Void) {
+    init(model: VMListModel, showLibrary: @escaping () -> Void, newVM: @escaping () -> Void) {
         self.model = model
         self.showLibrary = showLibrary
+        self.newVM = newVM
     }
 
     func build() -> NSMenu {
@@ -32,6 +34,14 @@ final class AppMenu: NSObject, NSMenuDelegate {
             withTitle: "Show All", action: #selector(NSApplication.unhideAllApplications(_:)), keyEquivalent: "")
         app.addItem(.separator())
         app.addItem(withTitle: "Quit openVM", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+
+        let fileItem = NSMenuItem()
+        main.addItem(fileItem)
+        let file = NSMenu(title: "File")
+        fileItem.submenu = file
+        let new = file.addItem(
+            withTitle: "New Virtual Machine…", action: #selector(newVirtualMachine(_:)), keyEquivalent: "n")
+        new.target = self
 
         // Rebuilt each time it opens, from the host's current list.
         let machineItem = NSMenuItem()
@@ -71,6 +81,7 @@ final class AppMenu: NSObject, NSMenuDelegate {
     }
 
     @objc private func openLibrary(_ item: NSMenuItem) { showLibrary() }
+    @objc private func newVirtualMachine(_ item: NSMenuItem) { newVM() }
 
     @objc private func openWindow(_ item: NSMenuItem) {
         guard let uuid = item.representedObject as? String, let vm = model.vm(uuid: uuid) else { return }

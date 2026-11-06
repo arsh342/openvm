@@ -2,13 +2,17 @@
 import Foundation
 import OpenVMCore
 
-final class FakeTransport: HostTransport, @unchecked Sendable {
+nonisolated final class FakeTransport: HostTransport, @unchecked Sendable {
     private let lock = NSLock()
     private var _rows: [CBOR] = []
     private var _failure: Error?
     private var _requests: [(op: String, args: [(key: String, value: CBOR)])] = []
     private var _responses: [String: [(key: String, value: CBOR)]] = [:]
     private var _failures: [String: Error] = [:]
+    private var _handlers: [String: Handler] = [:]
+    private var _counters: [String: Int] = [:]
+
+    typealias Handler = @Sendable ([(key: String, value: CBOR)]) async throws -> [(key: String, value: CBOR)]
 
     var rows: [CBOR] {
         get { lock.withLock { _rows } }
@@ -23,6 +27,22 @@ final class FakeTransport: HostTransport, @unchecked Sendable {
     func respond(_ op: String, with fields: [(key: String, value: CBOR)]) {
         lock.withLock { _responses[op] = fields }
     }
+    /// Runs code for an op, which may wait: how a test makes `start` block until `stop` arrives.
+    func handle(_ op: String, _ handler: @escaping Handler) { lock.withLock { _handlers[op] = handler } }
+
+    /// Answers an op with each response in turn, then the last one for ever (a task being polled).
+    func respond(_ op: String, inSequence responses: [[(key: String, value: CBOR)]]) {
+        handle(op) { [weak self] _ in
+            guard let self else { return [] }
+            let n = self.lock.withLock { () -> Int in
+                let n = self._counters[op, default: 0]
+                self._counters[op] = n + 1
+                return n
+            }
+            return responses[min(n, responses.count - 1)]
+        }
+    }
+
     /// Makes one op fail, and the others not.
     func fail(_ op: String, with error: Error) { lock.withLock { _failures[op] = error } }
 
@@ -41,11 +61,13 @@ final class FakeTransport: HostTransport, @unchecked Sendable {
     }
 
     func send(_ op: String, _ args: [(key: String, value: CBOR)]) async throws -> [(key: String, value: CBOR)] {
-        let (failure, rows, response) = lock.withLock { () -> (Error?, [CBOR], [(key: String, value: CBOR)]?) in
+        let (failure, rows, response, handler) = lock.withLock {
+            () -> (Error?, [CBOR], [(key: String, value: CBOR)]?, Handler?) in
             _requests.append((op, args))
-            return (_failures[op] ?? _failure, _rows, _responses[op])
+            return (_failures[op] ?? _failure, _rows, _responses[op], _handlers[op])
         }
         if let failure { throw failure }
+        if let handler { return try await handler(args) }
         if let response { return response }
         return op == "list" ? [("vms", .array(rows))] : []
     }

@@ -42,3 +42,16 @@ before committing: a baseline of a broken layout passes just as well.
 ## Formatting
 
 `make format` formats Swift with `swift format` and C with `clang-format`, using `.swift-format` and `.clang-format`.
+
+## End-to-end wizard tests
+
+`Tests/OpenVMAppTests/WizardEndToEndTests.swift` runs the creation wizard's model against a real
+`openvmd` on a throwaway home, and checks the cleanup on disk. They are opt-in:
+
+```sh
+OPENVM_E2E=1 make test                        # cancel a Linux install; cancel a Windows media build (about 10 s)
+OPENVM_E2E_FULL=1 OPENVM_E2E=1 make test      # also install Linux from the wizard to the end (about 10 minutes)
+```
+
+They need the Linux files fetched, `make payload` run, and, for the Windows test, the ISO in
+`windowsImage/`. They leave no files, mounts or processes behind.
