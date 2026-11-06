@@ -102,9 +102,21 @@ case "list":
     }
 case "task":
     // Long jobs the host runs, from a fixed list: openvmctl task start fetch-linux
-    if argv.count == 3, argv[1] == "start" {
+    if argv.count >= 3, argv[1] == "start" {
         requestOp = "task-start"
         args.append(("kind", .text(argv[2])))
+        // windows-media takes the ISO to build from and a name for the media: --iso PATH --name NAME
+        var i = 3
+        while i + 1 < argv.count, ["--iso", "--name"].contains(argv[i]) {
+            let value =
+                argv[i] == "--iso" ? URL(fileURLWithPath: argv[i + 1]).standardizedFileURL.path : argv[i + 1]
+            args.append((String(argv[i].dropFirst(2)), .text(value)))
+            i += 2
+        }
+        guard i == argv.count else {
+            print(usage)
+            exit(2)
+        }
     } else if argv.count == 3, ["status", "cancel"].contains(argv[1]) {
         requestOp = "task-\(argv[1])"
         args.append(("taskId", .text(argv[2])))
@@ -112,6 +124,10 @@ case "task":
         print(usage)
         exit(2)
     }
+case "windows-iso" where argv.count == 3 && argv[1] == "check":
+    // Is this ISO something a Windows guest can be built from?
+    requestOp = "windows-iso-check"
+    args.append(("iso", .text(URL(fileURLWithPath: argv[2]).standardizedFileURL.path)))
 case "host-info" where argv.count == 1:
     // What this Mac can give a VM, and what is ready.
     break
@@ -323,7 +339,7 @@ do {
         {
             for row in rows { printRow(row) }
         }
-        if ["host-info", "task-start", "task-status", "task-cancel"].contains(requestOp),
+        if ["host-info", "task-start", "task-status", "task-cancel", "windows-iso-check"].contains(requestOp),
             case .map(let res)? = (entries.first { $0.key == "result" }?.value)
         {
             print(

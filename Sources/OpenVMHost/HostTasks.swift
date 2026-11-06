@@ -11,6 +11,21 @@ nonisolated struct TaskPlan {
     let executable: String
     let arguments: [String]
     let environment: [String: String]
+    /// Where the job writes its result, when it makes a file the client will want.
+    var output: String?
+}
+
+/// What the host knows that a job's command depends on. Only the host's own values go in a
+/// command: of what a client sends, just an ISO path and a name are taken, and both are checked.
+nonisolated struct TaskInputs {
+    var arguments: [String: String] = [:]
+    var home: URL?
+    /// `wimlib-imagex` on this Mac, if there is one.
+    var wimlib: String?
+    /// The program that runs a helper VM job (this host's own executable).
+    var helper: String?
+    /// The helper VM is an Alpine guest: it needs the Linux files and the install overlay.
+    var helperReady = false
 }
 
 nonisolated enum TaskError: Error, CustomStringConvertible {
@@ -18,6 +33,10 @@ nonisolated enum TaskError: Error, CustomStringConvertible {
     case noPayload
     case missing(String)
     case cannotStart(String)
+    case badArgument(String)
+    case noWindowsSupport
+    case needsWimlib
+    case needsLinuxFiles
 
     var description: String {
         switch self {
@@ -26,6 +45,13 @@ nonisolated enum TaskError: Error, CustomStringConvertible {
             return "this build has no guest payload to run it from (build the app with `make app`, or set OPENVM_PAYLOAD)"
         case .missing(let name): return "the guest payload has no \(name)"
         case .cannotStart(let why): return "could not start the task: \(why)"
+        case .badArgument(let why): return why
+        case .noWindowsSupport:
+            return "this build cannot build Windows media: its payload has no Windows part (building that needs zig, clang and lld; see tools/build/mk-payload.sh)"
+        case .needsWimlib:
+            return "building Windows media needs wimlib on this Mac (brew install wimlib), or the Linux guest files, which let openVM use a helper VM instead"
+        case .needsLinuxFiles:
+            return "this Mac has no wimlib, so openVM uses a helper VM, which needs the Linux guest files: fetch them first (task fetch-linux)"
         }
     }
 }
@@ -73,8 +99,44 @@ nonisolated final class HostTasks: @unchecked Sendable {
 
     /// The command for a kind of job, or why it cannot be run. The only inputs are the host's own:
     /// nothing a client sends becomes part of a command.
-    static func plan(kind: String, payload: URL?, support: URL?) -> Result<TaskPlan, TaskError> {
+    static func plan(
+        kind: String, payload: URL?, support: URL?, inputs: TaskInputs = TaskInputs()
+    ) -> Result<TaskPlan, TaskError> {
         switch kind {
+        case "windows-media":
+            guard let payload else { return .failure(.noPayload) }
+            let script = payload.appendingPathComponent("windows/mk-windows-media.sh")
+            guard FileManager.default.fileExists(atPath: script.path) else { return .failure(.noWindowsSupport) }
+            guard let isoPath = inputs.arguments["iso"] else { return .failure(.badArgument("windows-media needs an iso")) }
+            let iso: URL
+            switch validISOPath(isoPath) {
+            case .success(let url): iso = url
+            case .failure(let error): return .failure(.badArgument(error.description))
+            }
+            guard let name = inputs.arguments["name"], VmRegistry.validName(name) else {
+                return .failure(.badArgument("windows-media needs a name of 1 to 64 letters, digits, _ or -"))
+            }
+            guard let home = inputs.home else { return .failure(.badArgument("the host has no home directory")) }
+            // The script deletes its output path first, so the client never chooses it: it is
+            // always <home>/media/<validated name>.raw.
+            let output = home.appendingPathComponent("media/\(name).raw").path
+            var environment = [
+                "OPENVM_PREBUILT": payload.appendingPathComponent("windows/prebuilt").path,
+                "OPENVM_WINDOWS_FILES": payload.appendingPathComponent("windows/scripts").path,
+                "OPENVM_HOME": home.path,
+            ]
+            if let wimlib = inputs.wimlib {
+                environment["OPENVM_WIMLIB"] = wimlib  // the Mac's own copy is faster, so it is preferred
+            } else if let helper = inputs.helper {
+                guard inputs.helperReady else { return .failure(.needsLinuxFiles) }
+                environment["OPENVM_WIM_EXEC"] = helper
+            } else {
+                return .failure(.needsWimlib)
+            }
+            return .success(
+                TaskPlan(
+                    executable: "/bin/sh", arguments: [script.path, iso.path, output], environment: environment,
+                    output: output))
         case "fetch-linux":
             guard let payload else { return .failure(.noPayload) }
             let script = payload.appendingPathComponent("linux/fetch-linux.sh")
@@ -256,11 +318,28 @@ nonisolated let tasks = HostTasks()
 
 nonisolated func taskStartOp(_ r: VmRequest) throws -> Envelope {
     guard case .text(let kind)? = r.arg("kind") else { return r.fail("task-start needs a kind") }
-    switch HostTasks.plan(kind: kind, payload: GuestPayload.root, support: GuestBoot.supportBase()) {
+    var arguments: [String: String] = [:]
+    for key in ["iso", "name"] {
+        if case .text(let value)? = r.arg(key) { arguments[key] = value }
+    }
+    let wimlib = findExecutable(
+        "wimlib-imagex",
+        in: (ProcessInfo.processInfo.environment["PATH"] ?? "").split(separator: ":").map(String.init)
+            + ["/opt/homebrew/bin", "/usr/local/bin"])
+    let inputs = TaskInputs(
+        arguments: arguments, home: home, wimlib: wimlib, helper: Bundle.main.executablePath,
+        helperReady: GuestBoot.supportArtifacts() != nil && GuestPayload.overlay != nil)
+    switch HostTasks.plan(kind: kind, payload: GuestPayload.root, support: GuestBoot.supportBase(), inputs: inputs) {
     case .failure(let error): return r.fail(error.description)
     case .success(let plan):
         do {
-            return r.ok([("taskId", .text(try tasks.start(plan, kind: kind)))])
+            if let output = plan.output {
+                try FileManager.default.createDirectory(
+                    at: URL(fileURLWithPath: output).deletingLastPathComponent(), withIntermediateDirectories: true)
+            }
+            var reply: [(key: String, value: CBOR)] = [("taskId", .text(try tasks.start(plan, kind: kind)))]
+            if let output = plan.output { reply.append(("output", .text(output))) }
+            return r.ok(reply)
         } catch {
             return r.fail("\(error)")
         }

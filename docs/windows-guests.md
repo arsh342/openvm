@@ -198,3 +198,42 @@ succeeds: the guest has to read back a random probe file through the share.
   caused it is a guess.
 * The first boot comes up at 1024x768 (viogpudo's default), not the 1920x1080
   scanout. Later boots keep the last mode.
+
+## Building the install media
+
+`tools/build/mk-windows-media.sh` turns the user's ISO into a raw disk image that boots straight
+into an unattended install: a FAT32 boot volume (the boot chain, the BCD, `boot.wim`) and an exFAT
+data volume (`install.wim`, which is 7.6 GB and cannot live on FAT32). It needs three things the
+app cannot assume a Mac has, and handles each:
+
+* **The UEFI applications and the Windows agent** are built when the payload is built
+  (`tools/build/mk-payload.sh`, which needs clang, lld and zig) and shipped prebuilt
+  (`OPENVM_PREBUILT`). A payload built where those tools are missing has no Windows part, and the
+  task says so.
+* **wimlib** does four things: read the Windows edition and language out of `install.wim`, and add
+  the WinPE payload to `boot.wim`. They are one script, `tools/build/wim-job.sh`, because they
+  depend on each other's results. It runs on the Mac when the Mac has `wimlib-imagex`
+  (`OPENVM_WIMLIB`), and otherwise in a **helper VM**.
+* **The helper VM** is a short-lived Alpine guest (`openvm.job=wim` on its kernel command line).
+  wimlib is GPL, so openVM never ships it: the guest installs it from Alpine's *community*
+  repository (it is not in `main`; 1.14.4, 466 KiB) each time, then runs the job script on two
+  shared folders, the job folder (read-write) and the mounted ISO (read-only), writes `ok` or
+  `error: …` to `status` in the job folder, and powers off. Nothing is installed on the Mac.
+  `openvmd --wim-job <job-dir> <iso-root>` (and the app binary) runs one; it takes no host lock
+  and its own artifact port, so it works beside a running host.
+
+**Measured** with the real Windows 11 ARM64 ISO (26300, en-GB) on an M-series Mac, with the
+download cache warm:
+
+| wimlib from | total time | edition | `boot.wim` |
+|---|---|---|---|
+| the Mac (Homebrew) | 35 s | image 3, en-GB | 642,851,057 bytes |
+| the helper VM | 43 s | image 3, en-GB | 642,851,579 bytes |
+
+The two `boot.wim` files hold the same 63 files under `/openvm`, and `unattend.xml`,
+`image-index.txt` and `winpeshl.ini` are byte-identical; the 522-byte size difference is wimlib's
+own metadata. The helper's job itself takes about 15 seconds; the rest is copying the ISO's files.
+
+**Checking the ISO first.** `windows-iso-check` mounts the ISO and reads file names only, so a
+wrong download (an x64 ISO, a Linux ISO, an ISO with `install.esd`) is refused in about a second,
+with a reason, instead of after the build. The real ISO above is accepted in 1.2 s.

@@ -89,6 +89,7 @@ private nonisolated func run(_ op: String, _ r: VmRequest) -> Envelope {
         case "audio": return try audioOp(r)
         case "display": return try displayOp(r)
         case "host-info": return try hostInfoOp(r)
+        case "windows-iso-check": return try windowsISOCheckOp(r)
         case "task-start": return try taskStartOp(r)
         case "task-status": return try taskStatusOp(r)
         case "task-cancel": return try taskCancelOp(r)

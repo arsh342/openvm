@@ -12,6 +12,8 @@ let usage = """
       openvmctl stop-all
       openvmctl host-info
       openvmctl task start fetch-linux
+      openvmctl task start windows-media --iso <file.iso> --name <name>
+      openvmctl windows-iso check <file.iso>
       openvmctl task status|cancel <task-id>
       openvmctl delete <name|uuid>
       openvmctl suspend <name|uuid>

@@ -249,3 +249,134 @@ nonisolated final class IDCollector: @unchecked Sendable {
         return ids
     }
 }
+
+// MARK: Windows media
+
+extension HostTasksTests {
+    private struct Fixture {
+        let payload: URL, iso: URL, home: URL
+        func cleanup() {
+            for url in [payload, iso.deletingLastPathComponent(), home] { try? FileManager.default.removeItem(at: url) }
+        }
+    }
+
+    private func fixture(withWindows: Bool = true) throws -> Fixture {
+        let fm = FileManager.default
+        let base = fm.temporaryDirectory
+        let payload = base.appendingPathComponent("wp-\(UUID().uuidString)")
+        try fm.createDirectory(at: payload.appendingPathComponent("linux"), withIntermediateDirectories: true)
+        if withWindows {
+            try fm.createDirectory(at: payload.appendingPathComponent("windows/prebuilt"), withIntermediateDirectories: true)
+            try Data("#!/bin/sh\n".utf8).write(to: payload.appendingPathComponent("windows/mk-windows-media.sh"))
+        }
+        let isoDir = base.appendingPathComponent("isos-\(UUID().uuidString)")
+        try fm.createDirectory(at: isoDir, withIntermediateDirectories: true)
+        let iso = isoDir.appendingPathComponent("Win11.iso")
+        try Data("iso".utf8).write(to: iso)
+        let home = base.appendingPathComponent("home-\(UUID().uuidString)")
+        try fm.createDirectory(at: home, withIntermediateDirectories: true)
+        return Fixture(payload: payload, iso: iso, home: home)
+    }
+
+    private func mediaPlan(
+        _ f: Fixture, name: String = "win", iso: String? = nil, wimlib: String? = "/opt/homebrew/bin/wimlib-imagex",
+        helper: String? = nil, helperReady: Bool = false
+    ) -> Result<TaskPlan, TaskError> {
+        HostTasks.plan(
+            kind: "windows-media", payload: f.payload, support: nil,
+            inputs: TaskInputs(
+                arguments: ["iso": iso ?? f.iso.path, "name": name], home: f.home, wimlib: wimlib, helper: helper,
+                helperReady: helperReady))
+    }
+
+    @Test func windowsMediaIsAFixedCommand() throws {
+        let f = try fixture()
+        defer { f.cleanup() }
+        guard case .success(let plan) = mediaPlan(f) else {
+            Issue.record("expected a plan")
+            return
+        }
+        let output = f.home.appendingPathComponent("media/win.raw").path
+        #expect(plan.executable == "/bin/sh")
+        #expect(plan.arguments == [f.payload.appendingPathComponent("windows/mk-windows-media.sh").path, f.iso.path, output])
+        #expect(plan.output == output)
+        #expect(plan.environment["OPENVM_WIMLIB"] == "/opt/homebrew/bin/wimlib-imagex")
+        #expect(plan.environment["OPENVM_WIM_EXEC"] == nil)  // the Mac's own wimlib is faster, so no helper
+        #expect(plan.environment["OPENVM_PREBUILT"] == f.payload.appendingPathComponent("windows/prebuilt").path)
+        #expect(plan.environment["OPENVM_WINDOWS_FILES"] == f.payload.appendingPathComponent("windows/scripts").path)
+        #expect(plan.environment["OPENVM_HOME"] == f.home.path)
+    }
+
+    @Test func withoutWimlibTheHelperIsUsed() throws {
+        let f = try fixture()
+        defer { f.cleanup() }
+        guard case .success(let plan) = mediaPlan(f, wimlib: nil, helper: "/Applications/openvm.app/Contents/MacOS/openvm", helperReady: true) else {
+            Issue.record("expected a plan")
+            return
+        }
+        #expect(plan.environment["OPENVM_WIM_EXEC"] == "/Applications/openvm.app/Contents/MacOS/openvm")
+        #expect(plan.environment["OPENVM_WIMLIB"] == nil)
+    }
+
+    @Test func withoutWimlibOrAHelperItSaysWhat() throws {
+        let f = try fixture()
+        defer { f.cleanup() }
+        guard case .failure(let none) = mediaPlan(f, wimlib: nil, helper: nil) else {
+            Issue.record("expected a refusal")
+            return
+        }
+        #expect(none.description.contains("wimlib"))
+    }
+
+    /// The helper VM is an Alpine guest, so it needs the Linux files and the overlay.
+    @Test func theHelperNeedsTheLinuxFiles() throws {
+        let f = try fixture()
+        defer { f.cleanup() }
+        guard case .failure(let error) = mediaPlan(f, wimlib: nil, helper: "/x/openvm", helperReady: false) else {
+            Issue.record("expected a refusal")
+            return
+        }
+        #expect(error.description.contains("Linux"))
+    }
+
+    @Test func aBadIsoIsRefused() throws {
+        let f = try fixture()
+        defer { f.cleanup() }
+        for iso in ["/etc/passwd", "relative.iso", "/no/such.iso", "/tmp", "", "x.iso; rm -rf /", f.payload.path] {
+            guard case .failure = mediaPlan(f, iso: iso) else {
+                Issue.record("\(iso.debugDescription) was accepted")
+                continue
+            }
+        }
+    }
+
+    /// The media script deletes its output path first, so the client must never choose it.
+    @Test func theOutputIsAlwaysUnderTheMediaFolder() throws {
+        let f = try fixture()
+        defer { f.cleanup() }
+        for name in ["win", "a_b-1", "Windows11"] {
+            guard case .success(let plan) = mediaPlan(f, name: name) else {
+                Issue.record("\(name) was refused")
+                continue
+            }
+            #expect(plan.output?.hasPrefix(f.home.appendingPathComponent("media/").path) == true)
+            #expect(plan.output?.hasSuffix("/\(name).raw") == true)
+        }
+        for name in ["../evil", "a b", "", "x/y", "/etc/passwd", "-rf", "a;b", String(repeating: "a", count: 65), ".."] {
+            guard case .failure = mediaPlan(f, name: name) else {
+                Issue.record("\(name.debugDescription) was accepted as a name")
+                continue
+            }
+        }
+    }
+
+    @Test func aPayloadWithoutWindowsSupportSaysSo() throws {
+        let f = try fixture(withWindows: false)
+        defer { f.cleanup() }
+        guard case .failure(let error) = mediaPlan(f) else {
+            Issue.record("expected a refusal")
+            return
+        }
+        #expect(error.description.contains("Windows"))
+    }
+}

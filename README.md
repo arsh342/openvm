@@ -38,7 +38,7 @@ Guests are Alpine Linux ARM64 with an XFCE desktop, and Windows 11 ARM64.
 
 * An Apple Silicon Mac, on macOS 14 or later
 * Swift 6, from Xcode or the Command Line Tools
-* For Windows guests: your own Windows 11 ARM64 ISO, plus `wimlib` and `zig` from Homebrew
+* For Windows guests: your own Windows 11 ARM64 ISO. Nothing else to install: openVM builds the install media itself, using `wimlib` from Homebrew if the Mac has it, and otherwise a short-lived Alpine helper VM that carries its own copy (it needs the Linux guest files, below). `zig` and `lld` are only needed to build openVM's payload from source
 
 ## Get started
 
@@ -78,11 +78,17 @@ Fetch the Linux files once, then create and start a guest:
 
 ### Create a Windows guest
 
+Check that the ISO is one openVM can use, then build the install media (about a minute, once per ISO). It goes in `$OPENVM_HOME/media`:
+
 ```sh
-tools/build/mk-windows-media.sh <Win11_Arm64.iso> media.raw      # once per ISO
-.build/debug/openvmctl create win --boot-mode windows --install-media media.raw --diskSizeMB 65536
+.build/debug/openvmctl windows-iso check ~/Downloads/Win11_Arm64.iso
+.build/debug/openvmctl task start windows-media --iso ~/Downloads/Win11_Arm64.iso --name win   # prints a task id
+.build/debug/openvmctl task status <task-id>                                                    # until state=done
+.build/debug/openvmctl create win --boot-mode windows --install-media ~/.openvm/media/win.raw --diskSizeMB 65536
 .build/debug/openvmctl start win     # first start installs Windows
 ```
+
+Without `wimlib` on the Mac, fetch the Linux files first (`openvmctl task start fetch-linux`): the media is then built in a helper VM. The media needs about 22 GB of disk while it exists.
 
 The Windows guest has a local account `openvm` with the password `openvm`. Change it if the guest matters to you.
 

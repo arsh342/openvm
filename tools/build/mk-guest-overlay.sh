@@ -40,6 +40,8 @@ DESKTOP
 cat > "$STAGE/etc/local.d/openvm-tools.start" <<'EOF'
 #!/bin/sh
 set -eu
+# A helper-VM boot (openvm.job=wim) runs openvm-job.start instead; this script has no work there.
+case " $(cat "${OPENVM_CMDLINE:-/proc/cmdline}") " in *" openvm.job="*) exit 0 ;; esac
 (
     exec >>/dev/console 2>&1
     echo "openvm-tools: preparing virtio-vsock channel on port 52"
@@ -325,6 +327,52 @@ NETSTART
 exit 0
 EOF
 chmod +x "$STAGE/etc/local.d/openvm-tools.start"
+
+# A boot with openvm.job=wim is a helper VM, not a guest: it runs one script from a shared folder
+# on the host, then powers off. The host reads the result from a status file in that folder.
+# (The agent script above stands down for such a boot.)
+cat > "$STAGE/etc/local.d/openvm-job.start" <<'JOBEOF'
+#!/bin/sh
+cmdline=$(cat "${OPENVM_CMDLINE:-/proc/cmdline}")
+case " $cmdline " in *" openvm.job=wim "*) ;; *) exit 0 ;; esac
+
+mount_dir=${OPENVM_JOB_MOUNT:-/mnt/job}
+log=${OPENVM_JOB_LOG:-/dev/console}
+
+run_job() {
+    exec >>"$log" 2>&1
+    echo "openvm-job: starting"
+    # The host reads the status file; with the folder unmounted there is nowhere to write it,
+    # and the host sees the VM stop with no status.
+    report() {
+        echo "openvm-job: $1"
+        printf 'error: %s\n' "$1" > "$mount_dir/job/status" 2>/dev/null || true
+        sync
+        poweroff -f
+        exit 1
+    }
+    modprobe virtiofs 2>/dev/null || true
+    mkdir -p "$mount_dir"
+    mount -t virtiofs job "$mount_dir" || report "could not mount the job folder"
+    # wimlib is in Alpine's community repository, not main. It is installed in this throwaway
+    # guest each time; nothing GPL is shipped with openVM.
+    base="https://dl-cdn.alpinelinux.org/alpine/v$(cut -d. -f1,2 "${OPENVM_ALPINE_RELEASE:-/etc/alpine-release}")"
+    apk add --no-cache --repository "$base/main" --repository "$base/community" wimlib \
+        || report "could not install wimlib; the Mac needs to be online"
+    sh "$mount_dir/job/job.sh" "$mount_dir/iso" "$mount_dir/job" || report "the job failed"
+    echo ok > "$mount_dir/job/status"
+    sync
+    poweroff -f
+}
+
+# Detached, so OpenRC can finish bringing up the guest; tests run it in the foreground.
+if [ -n "${OPENVM_JOB_FOREGROUND:-}" ]; then
+    run_job
+else
+    run_job &
+fi
+JOBEOF
+chmod +x "$STAGE/etc/local.d/openvm-job.start"
 
 # enable the openrc "local" service so the rc script runs at boot
 ln -fs /etc/init.d/local "$STAGE/etc/runlevels/default/local"

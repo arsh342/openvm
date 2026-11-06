@@ -37,7 +37,7 @@ the daemon replies on the same id.
 | suspend| `id`                                       | pauses the live guest (VZ pause) and records `suspended`; needs this daemon to hold the live guest |
 | resume | `id`                                       | unpauses the suspended live guest and records `running`; needs this daemon to hold the live guest |
 | set    | `id`; `cpus`, `memoryMB`, `tz`, `boot-mode`, `variable-store-path`, `clipboard-sync` (bool) (at least one) | updates the record. `cpus`, `memoryMB`, `boot-mode` and `variable-store-path` need a `stopped` VM; `tz` and `clipboard-sync` may change while it runs. `cpus` is 1 to 32 and no more than the Mac allows, `memoryMB` is 128 to what the Mac allows (see `host-info`); `tz` is an IANA zone name, applied to the guest at the next boot or resume) |
-| task-start | `kind` (`fetch-linux`) | starts one of the host's fixed jobs and answers its `taskId`. The kinds are a closed list: nothing a client sends becomes part of a command. A kind that is already running is not started twice; the running task's id comes back instead, because two fetches write the same files |
+| task-start | `kind` (`fetch-linux`, `windows-media`); for `windows-media` also `iso` (an absolute path to an existing `.iso` file) and `name` (1 to 64 letters, digits, `_` or `-`) | starts one of the host's fixed jobs and answers its `taskId`. The kinds are a closed list: nothing a client sends becomes part of a command. A kind that is already running is not started twice; the running task's id comes back instead, because two fetches write the same files |
 | task-status | `taskId` | answers `state` (`running`, `done`, `failed`, `cancelled`), `progress` (the last line the job wrote, including curl's progress bar) and, for a failure, `error` (how it ended, with the last lines of output). The last 20 finished tasks are kept |
 | task-cancel | `taskId` | stops a running task and everything it started (SIGTERM to its process group, SIGKILL after five seconds); answers `cancelled: false` for one that was not running |
 | host-info | (none) | answers `maxCpus` (at most 32), `maxMemoryMB`, `freeDiskMB` (where VMs live), `linuxReady` (the Linux guest files are fetched) and `hostWimlib` (`wimlib-imagex` is installed), so a client offers only choices that will work. Also `openvmctl host-info` |
@@ -175,3 +175,20 @@ command line, unless `OPENVM_APKOVL_URL` is set, which wins (the smoke serves it
 Without the overlay a Linux guest comes up as stock Alpine, which has no installer and no agent:
 measured, a guest started with no overlay reached `localhost login:` with no `openvm` line in its
 console, and `start` would wait out its 30-minute install timeout.
+
+## Windows media
+
+`task-start` with `kind: windows-media`, `iso` and `name` builds install media from a Windows ISO
+and answers `taskId` and `output`: always `<OPENVM_HOME>/media/<name>.raw`. The client chooses
+the ISO and the name and nothing else, because the media script deletes its output path before it
+starts; the name is validated like a VM name, and the ISO must be an absolute path to an existing
+`.iso` file. Only one `windows-media` task runs at a time.
+
+`windows-iso-check` with `iso` mounts the ISO read-only, reads a few file names, detaches it, and
+answers `usable` (bool) and, when not usable, `problem`, a sentence for a person: not a Windows
+ISO, not ARM64 (an x64 ISO), carries `install.esd` instead of `install.wim`, or has no Windows
+image. It takes a second or two. A path that is not an acceptable ISO file is an error.
+
+The build uses `wimlib-imagex` on the Mac if there is one, because it is faster, and otherwise a
+helper VM (see `docs/windows-guests.md`), which needs the Linux guest files. With neither, the
+task is refused and says which is missing.

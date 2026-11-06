@@ -3,6 +3,9 @@
 import Foundation
 import OpenVMHost
 
+// A helper job (a child of some host) runs and exits instead of hosting.
+OpenVMHost.runJobCommandIfRequested(CommandLine.arguments)
+
 do {
     try OpenVMHost.start()
 } catch {

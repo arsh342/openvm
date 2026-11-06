@@ -44,6 +44,20 @@ DATA_MB=${4:-19456}
 
 [ -f "$ISO" ] || { echo "no such iso: $ISO" >&2; exit 2; }
 
+HERE=$(cd "$(dirname "$0")" && pwd)
+# The Windows scripts, and the job script that does the wimlib steps. A checkout finds both next
+# to this script; the app ships them in its payload and says where (OPENVM_WINDOWS_FILES).
+SCRIPTS=${OPENVM_WINDOWS_FILES:-$HERE/../windows}
+WIM_JOB=${OPENVM_WIM_JOB:-$HERE/wim-job.sh}
+# The UEFI applications and the Windows agent. A checkout builds them (clang, lld and zig); the
+# app ships them prebuilt (OPENVM_PREBUILT: uefi/*.efi and agent/openvm-tools-win.exe).
+if [ -z "${OPENVM_PREBUILT:-}" ]; then
+    sh "$HERE/build-uefi.sh" >/dev/null
+    EFI_DIR=.build/uefi
+else
+    EFI_DIR="$OPENVM_PREBUILT/uefi"
+fi
+
 dev=""
 cleanup() {
     [ -n "${isodev:-}" ] && hdiutil detach "$isodev" -quiet 2>/dev/null || true
@@ -104,9 +118,8 @@ cp "$isomount/efi/boot/bootaa64.efi" "$bootvol/EFI/MICROSOFT/BOOT/BOOTMGFW.EFI"
 # The firmware boots \EFI\BOOT\BOOTAA64.EFI; ours loads the framebuffer driver
 # and then the media's own Boot Manager (EFI/MICROSOFT/BOOT/BOOTMGFW.EFI).
 mkdir -p "$bootvol/EFI/BOOT"
-sh "$(dirname "$0")/build-uefi.sh" >/dev/null
-cp ".build/uefi/openvm-efi.efi" "$bootvol/EFI/BOOT/BOOTAA64.EFI"
-cp ".build/uefi/openvm-framebuffer.efi" "$bootvol/EFI/BOOT/OPENVM-FB.EFI"
+cp "$EFI_DIR/openvm-efi.efi" "$bootvol/EFI/BOOT/BOOTAA64.EFI"
+cp "$EFI_DIR/openvm-framebuffer.efi" "$bootvol/EFI/BOOT/OPENVM-FB.EFI"
 
 # --- data volume: install.wim, which cannot live on FAT32 --------------------
 mkdir -p "$datavol/sources" "$datavol/openvm"
@@ -115,8 +128,20 @@ cp "$isomount/sources/install.wim" "$datavol/sources/install.wim"
 echo "openvm-install-media" > "$datavol/openvm/media.tag"
 
 # --- virtio-win and WinFsp (cached; first download pinned by SHA-256) --------
-command -v wimlib-imagex >/dev/null || { echo "mk-windows-media: needs wimlib-imagex (brew install wimlib)" >&2; exit 1; }
-CACHE="${HOME}/.openvm/cache"
+# The wimlib steps run in a job script, on the Mac if it has wimlib-imagex (OPENVM_WIMLIB names it)
+# or in a helper VM (OPENVM_WIM_EXEC is a program that runs `--wim-job <job-dir> <iso-root>`).
+# The helper is chosen only when asked for: the caller picks the faster Mac copy when there is one.
+if [ -z "${OPENVM_WIM_EXEC:-}" ]; then
+    if [ -n "${OPENVM_WIMLIB:-}" ] && [ -x "$OPENVM_WIMLIB" ]; then
+        WIM_PATH="$(dirname "$OPENVM_WIMLIB"):$PATH"
+    elif command -v wimlib-imagex >/dev/null 2>&1; then
+        WIM_PATH="$PATH"
+    else
+        echo "mk-windows-media: needs wimlib-imagex on this Mac (brew install wimlib), or a helper VM (OPENVM_WIM_EXEC)" >&2
+        exit 1
+    fi
+fi
+CACHE="${OPENVM_HOME:-$HOME/.openvm}/cache"
 VIRTIO_ISO="${OPENVM_VIRTIO_ISO:-$CACHE/virtio-win/virtio-win.iso}"
 VIRTIO_URL="https://fedorapeople.org/groups/virt/virtio-win/direct-downloads/stable-virtio/virtio-win.iso"
 WINFSP_VERSION="2.1.25156"
@@ -143,7 +168,8 @@ fetch_pinned "$WINFSP_MSI" "$WINFSP_URL"
 # input it needs travels inside the RAM disk, so the script depends on the media
 # volume only for install.wim and for recording its result.
 work=$(mktemp -d)
-pe="$work/openvm"
+job="$work/job"
+pe="$job/pe"
 mkdir -p "$pe/drivers" "$pe/efi" "$pe/payload/virtiofs"
 virtio_out=$(hdiutil attach "$VIRTIO_ISO" -nobrowse -readonly | tail -1)
 virtio_dev=$(echo "$virtio_out" | awk '{print $1}')
@@ -169,9 +195,14 @@ hdiutil detach "$virtio_dev" -quiet
 cp "$WINFSP_MSI" "$pe/payload/WinFsp.msi"
 # The guest agent (tools/guest/openvm-tools-win.c), installed as the
 # OpenVMTools service by SetupComplete.cmd.
-sh "$(dirname "$0")/build-windows-agent.sh" "$work/agent" >/dev/null
-cp "$work/agent/openvm-tools-win.exe" "$pe/payload/openvm-tools-win.exe"
-cp "$(dirname "$0")/../windows/printers.ps1" "$pe/payload/printers.ps1"
+if [ -n "${OPENVM_PREBUILT:-}" ]; then
+    agent="$OPENVM_PREBUILT/agent/openvm-tools-win.exe"
+else
+    sh "$HERE/build-windows-agent.sh" "$work/agent" >/dev/null
+    agent="$work/agent/openvm-tools-win.exe"
+fi
+cp "$agent" "$pe/payload/openvm-tools-win.exe"
+cp "$SCRIPTS/printers.ps1" "$pe/payload/printers.ps1"
 # Sound stays off until `openvmctl audio enable`, which installs this test-signed
 # driver (docs/windows-guests.md). The release is a moving prerelease, so the
 # file is pinned here, and a guest without it just cannot turn sound on.
@@ -185,32 +216,34 @@ fi
 if [ -s "$SOUND_ZIP" ] && [ "$(shasum -a 256 "$SOUND_ZIP" | awk '{print $1}')" = "$SOUND_SHA256" ]; then
     mkdir -p "$pe/payload/sound"
     unzip -q -j -o "$SOUND_ZIP" 'DroidVM_Test.cer' 'drivers/viosnd/*' -d "$pe/payload/sound"
-    cp "$(dirname "$0")/../windows/sound.ps1" "$pe/payload/sound/sound.ps1"
+    cp "$SCRIPTS/sound.ps1" "$pe/payload/sound/sound.ps1"
 else
     echo "mk-windows-media: WARNING no pinned sound driver, so this media cannot turn Windows sound on" >&2
 fi
-cp ".build/uefi/openvm-efi.efi" "$pe/efi/BOOTAA64.EFI"
-cp ".build/uefi/openvm-framebuffer.efi" "$pe/efi/OPENVM-FB.EFI"
+cp "$EFI_DIR/openvm-efi.efi" "$pe/efi/BOOTAA64.EFI"
+cp "$EFI_DIR/openvm-framebuffer.efi" "$pe/efi/OPENVM-FB.EFI"
 # cmd wants CRLF; labels and goto misbehave on bare LF.
-sed 's/$/\r/' "$(dirname "$0")/../windows/install.cmd" > "$pe/install.cmd"
-sed 's/$/\r/' "$(dirname "$0")/../windows/SetupComplete.cmd" > "$pe/SetupComplete.cmd"
-image_index=$(wiminfo "$isomount/sources/install.wim" | awk '/^Index:/{i=$2} /^Name: *Windows 11 Pro$/{print i; exit}')
-[ -n "$image_index" ] || { echo "mk-windows-media: install.wim has no 'Windows 11 Pro' image" >&2; exit 1; }
-printf '%s\r\n' "$image_index" > "$pe/image-index.txt"
-image_lang=$(wiminfo "$isomount/sources/install.wim" "$image_index" | awk -F': *' '/^Default Language:/{print $2; exit}')
-[ -n "$image_lang" ] || image_lang=en-US
-sed "s/@LANG@/$image_lang/g" "$(dirname "$0")/../windows/unattend.xml" > "$pe/unattend.xml"
-
-cp "$isomount/sources/boot.wim" "$work/boot.wim"
-chmod u+w "$work/boot.wim"  # the ISO copy is read-only; wimlib must rewrite it
-boot_index=$(wiminfo "$work/boot.wim" | awk -F': *' '/^Boot Index:/{print $2; exit}')
-wimlib-imagex update "$work/boot.wim" "$boot_index" >/dev/null <<WIMCMDS
-add $pe /openvm
-add $(cd "$(dirname "$0")" && pwd)/../windows/winpeshl.ini /Windows/System32/winpeshl.ini
-WIMCMDS
+sed 's/$/\r/' "$SCRIPTS/install.cmd" > "$pe/install.cmd"
+sed 's/$/\r/' "$SCRIPTS/SetupComplete.cmd" > "$pe/SetupComplete.cmd"
+# --- the wimlib steps ---------------------------------------------------------
+# Reading install.wim for the edition and language, and adding the payload to boot.wim, are done by
+# one script (wim-job.sh) that needs wimlib: run here if the Mac has it, otherwise in a helper VM
+# that gets wimlib from Alpine. Its inputs are staged in $job; the ISO is shared read-only.
+cp "$SCRIPTS/unattend.xml" "$job/unattend.xml.in"
+cp "$SCRIPTS/winpeshl.ini" "$job/winpeshl.ini"
+cp "$WIM_JOB" "$job/job.sh"
+if [ -n "${OPENVM_WIM_EXEC:-}" ]; then
+    echo "mk-windows-media: building boot.wim in a helper VM"
+    "$OPENVM_WIM_EXEC" --wim-job "$job" "$isomount" || { echo "mk-windows-media: the helper VM job failed" >&2; exit 1; }
+else
+    echo "mk-windows-media: building boot.wim with wimlib on this Mac"
+    PATH="$WIM_PATH" sh "$job/job.sh" "$isomount" "$job" || { echo "mk-windows-media: the wimlib job failed" >&2; exit 1; }
+fi
+[ -f "$job/boot.wim" ] && [ -f "$job/result" ] || { echo "mk-windows-media: the job left no boot.wim" >&2; exit 1; }
 # The ramdisk image goes beside the BCD that names it: the BCD's device elements
 # are volume-relative, so \boot\boot.sdi and \sources\boot.wim share its volume.
-cp "$work/boot.wim" "$bootvol/sources/boot.wim"
+cp "$job/boot.wim" "$bootvol/sources/boot.wim"
+read -r image_index image_lang < "$job/result"
 rm -rf "$work"
 echo "mk-windows-media: WinPE runs install.cmd (image $image_index, $image_lang)"
 

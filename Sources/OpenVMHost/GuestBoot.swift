@@ -125,18 +125,18 @@ nonisolated enum GuestBootError: Error {
 }
 
 enum GuestBoot {
-    static let markers = ["Welcome to Alpine", "OpenRC"]
+    nonisolated static let markers = ["Welcome to Alpine", "OpenRC"]
 
-    static let cmdline =
+    nonisolated static let cmdline =
         "console=ttyAMA0,115200n8 console=hvc0 ip=dhcp modules=loop,squashfs,sd-mod,usb-storage,ext4 "
         + "alpine_repo=https://dl-cdn.alpinelinux.org/alpine/v3.22/main " + "modloop=\(mirrorModloop)"
 
-    static let mirrorModloop =
+    nonisolated static let mirrorModloop =
         "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/aarch64/netboot/modloop-virt"
 
     /// Netboot installs Alpine on first start. Persistent boots must use the
     /// matching kernel/initramfs pair exported from that installed system.
-    static func effectiveCmdline(
+    nonisolated static func effectiveCmdline(
         rootDevice: String?, installDisk: Bool, vmUUID: String, artifactPort: UInt16,
         artifactToken: String? = nil, modloopPinned: Bool = false,
         environment: [String: String] = ProcessInfo.processInfo.environment, payloadOverlay: Bool = false
