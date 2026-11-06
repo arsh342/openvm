@@ -73,7 +73,9 @@ nonisolated func reapGuest(uuid: String, boot: UUID, reason: StopReason) {
     markStopped(registry, uuid)
     switch reason {
     case .hostRequested: break
-    case .guestStopped: note("openvmd: \(uuid): the guest stopped")
+    case .guestStopped:
+        note("openvmd: \(uuid): the guest stopped")
+        restartIfItMeantTo(uuid: uuid)
     case .error(let message): note("openvmd: \(uuid): the guest stopped with an error: \(message)")
     }
 }
@@ -101,4 +103,19 @@ nonisolated final class GuestDelegate: NSObject, VZVirtualMachineDelegate, @unch
 /// How many of the guests that were live are gone now.
 nonisolated func stoppedCount(before: Set<String>, after: Set<String>) -> Int {
     before.subtracting(after).count
+}
+
+/// A Linux guest that restarted itself is started again, so its window stays open on a running VM.
+/// Only a stop the guest itself asked for and said was a restart; a host stop never gets here.
+nonisolated func restartIfItMeantTo(uuid: String) {
+    guard let record = try? registry.resolve(uuid), (record.bootMode ?? .linux) == .linux else { return }
+    guard stopIntent(consoleTail: consoleTail(for: record.name)).restarts else { return }
+    guard restartBudgets.allow(uuid) else {
+        note("openvmd: \(record.name): restarting again and again; leaving it stopped")
+        return
+    }
+    note("openvmd: \(record.name): the guest restarted; starting it again")
+    DispatchQueue.global().async {
+        _ = vmOp("start", [("id", .text(uuid))], Envelope(type: .vmRequest, correlationId: 0))
+    }
 }

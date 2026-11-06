@@ -265,3 +265,23 @@ write through virtio-fs (the host makes the folder mode 0777), the event fires, 
 arrived byte-identical, 7 s from request to file on the Mac. One earlier run of the same smoke failed
 at the start because `openvmctl` found no daemon socket right after the daemon restart; it passed on
 the next run and the cause is not found.
+
+## A guest that restarts itself
+
+The framework reports a guest's restart as a stop, so without help a VM that restarts (an update,
+`reboot`) would end up Stopped. For Linux guests the host now starts it again, so the window stays on
+a running VM.
+
+* **How it knows.** The kernel's own `reboot: Restarting system` / `Power down` lines never reach the
+  console before the machine is gone (measured: the log ends at OpenRC's "Terminating remaining
+  processes"). So the guest agent, when OpenRC stops it, reads OpenRC's softlevel (`reboot` or
+  `shutdown`) and prints `openvm-tools: going down: <level>` on the console, which the host keeps for
+  each boot. Measured on a real guest: a shutdown prints `going down: shutdown` and is not restarted
+  (`docs/evidence/linux-smoke-restart-2026-11-06.txt`).
+* **Not measured:** the `reboot` value, because nothing in the smoke can make a guest restart itself.
+  To check by hand: run `reboot` inside a Linux guest with its window open; it should come back
+  without anything being pressed.
+* **Never guessed.** A guest that says nothing, or a host-requested stop, is not restarted. At most
+  three automatic restarts in five minutes, so a guest that restarts the moment it boots cannot loop.
+* **Windows is not done.** It has no console to read; the candidates (the service's user-mode-reboot
+  control, event 1074 at pre-shutdown) are untried, and a Windows restart still leaves the VM Stopped.

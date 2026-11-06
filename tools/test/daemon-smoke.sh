@@ -47,7 +47,9 @@ wait_for_daemon() {
   # codesign invalidates the executable page cache. Wait on the actual socket.
   for _ in $(seq 1 50); do
     kill -0 "$PID" 2>/dev/null || return 1
-    [ -S "$OPENVM_HOME/openvmd.sock" ] && return 0
+    # A socket file is not a listening daemon: a killed daemon can leave its file behind, and the next
+    # one unlinks and rebinds it. Ask it something.
+    "$CTL" list >/dev/null 2>&1 && return 0
     sleep 0.1
   done
   return 1
@@ -327,6 +329,9 @@ FAKE
     i=$((i + 1)); [ "$i" -lt 90 ] || fail "the record did not follow the guest's own shutdown"
     sleep 1
   done
+  # The agent says on the console whether the guest was restarting or shutting down; the host reads it.
+  grep -q 'openvm-tools: going down: shutdown' "$HOME_DIR/srv1.console.log" \
+    || fail "the guest did not say it was shutting down: $(tail -5 "$HOME_DIR/srv1.console.log")"
   "$CTL" start srv1 | grep -q "guest booted" || fail "start after a guest-initiated stop failed"
   "$CTL" stop srv1 | grep -q "stopped srv1" || fail "stop after a guest-initiated stop failed"
   echo "smoke: the record followed the guest's own shutdown, and the VM started again"

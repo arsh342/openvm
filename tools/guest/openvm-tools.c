@@ -28,6 +28,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <signal.h>
+#ifndef OPENVM_SOFTLEVEL
+#define OPENVM_SOFTLEVEL "/run/openrc/softlevel"
+#endif
+#ifndef OPENVM_CONSOLE
+#define OPENVM_CONSOLE "/dev/console"
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -291,9 +297,39 @@ static void serve(int fd, uint8_t *ring) {
     }
 }
 
+/* The host cannot tell a guest's restart from its power-off: the framework reports both as a stop, and
+ * the kernel's own words never reach the console before the machine is gone (measured). OpenRC
+ * records which it is doing in its softlevel file; say so on the console, which the host keeps. Only
+ * async-signal-safe calls. */
+static void say_going_down(int sig) {
+    (void)sig;
+    char level[32] = {0};
+    int fd = open(OPENVM_SOFTLEVEL, O_RDONLY);
+    if (fd >= 0) {
+        ssize_t n = read(fd, level, sizeof level - 1);
+        close(fd);
+        if (n < 0)
+            level[0] = 0;
+        for (int i = 0; level[i]; i++)
+            if (level[i] == '\n')
+                level[i] = 0;
+    }
+    int con = open(OPENVM_CONSOLE, O_WRONLY | O_NOCTTY);
+    if (con >= 0) {
+        static const char head[] = "openvm-tools: going down: ";
+        ssize_t ignored = write(con, head, sizeof head - 1);
+        ignored = write(con, level, strlen(level));
+        ignored = write(con, "\n", 1);
+        (void)ignored;
+        close(con);
+    }
+    _exit(0);
+}
+
 int main(void) {
     static uint8_t ring[OVMC_MAX_PAYLOAD]; /* one frame body at a time */
     signal(SIGPIPE, SIG_IGN);              /* a disconnected host must not kill the agent */
+    signal(SIGTERM, say_going_down);
     /* A service inherits whatever PATH its supervisor has; the handlers run
      * admin tools (lpadmin lives in /usr/sbin). */
     setenv("PATH", "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", 1);
