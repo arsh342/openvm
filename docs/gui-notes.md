@@ -252,3 +252,16 @@ To check by hand (the terminal cannot drag): drop one file, a folder, a file wit
 photo from Photos, and a 1 GiB file on each guest; the guest must keep answering while it copies;
 mouse input must still work over the whole screen. Not yet measured: whether the view reports
 drag events while the guest has the pointer captured.
+
+## Sending files from a guest (Linux)
+
+A guest sends files through the VM's `outbox` share (writable, present from boot). `openvm-send`
+(run by the desktop user, from Thunar's "Send to Mac" or `openvmctl drag send`) builds a set under a
+hidden name, writes `.ready` last, and renames it into place; the host reacts to that one event, vets
+the set (`OutboxRules`), moves it to `~/Downloads/openVM/<vm>/` and marks it quarantined.
+
+Measured on a real Linux guest (`docs/evidence/linux-smoke-send-2026-11-06.txt`): the desktop user can
+write through virtio-fs (the host makes the folder mode 0777), the event fires, and a 2 GiB file
+arrived byte-identical, 7 s from request to file on the Mac. One earlier run of the same smoke failed
+at the start because `openvmctl` found no daemon socket right after the daemon restart; it passed on
+the next run and the cause is not found.

@@ -223,6 +223,12 @@ case "drag":
         requestOp = "drag"
         args.append(("id", .text(argv[2])))
         args.append(("op", .text(argv[1])))
+    } else if argv.count == 4, argv[1] == "send" {
+        // Runs the guest's send tool on a path inside the guest; what it sends lands in Downloads.
+        requestOp = "drag"
+        args.append(("id", .text(argv[2])))
+        args.append(("op", .text("send")))
+        args.append(("path", .text(argv[3])))
     } else if argv.count >= 4, argv[1] == "drop" {
         dropCommand = DropCommand(
             vmID: argv[2],

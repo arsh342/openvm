@@ -27,6 +27,7 @@ let usage = """
       openvmctl share remove <name|uuid> <host-dir>
       openvmctl drag enter|leave <name|uuid>
       openvmctl drag drop <name|uuid> <host-path>...
+      openvmctl drag send <name|uuid> <guest-path>
       openvmctl printer list <name|uuid>
       openvmctl printer test <name|uuid> --name <printer>
       openvmctl audio status|test <name|uuid>

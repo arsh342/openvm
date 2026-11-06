@@ -333,6 +333,47 @@ static void drag_status(int fd, uint64_t cid) {
     free(w);
 }
 
+/* Runs the send tool as the desktop user on one guest path, and waits. This is what the file
+ * manager's "Send to Mac" action does, made reachable from the host so a smoke test (and
+ * `openvmctl drag send`) can exercise it. The path is held to the same strict charset as every
+ * other guest path the host names. */
+#ifndef OPENVM_SEND_BIN
+#define OPENVM_SEND_BIN "/usr/local/bin/openvm-send"
+#endif
+static void drag_send(int fd, const uint8_t *body, const struct ovmc_pair *pairs, size_t count,
+                      uint64_t cid) {
+    char path[256];
+    uid_t uid = 0;
+    if (!text_field(body, pairs, count, "path", path, sizeof path) || !valid_guest_path(path)) {
+        drag_response(fd, cid, 0, "send has no usable path");
+        return;
+    }
+    if (!drop_session_user(&uid)) {
+        drag_response(fd, cid, 0, "no user is logged on to the guest desktop");
+        return;
+    }
+    pid_t pid = fork();
+    if (pid < 0) {
+        drag_response(fd, cid, 0, "could not start the send");
+        return;
+    }
+    if (pid == 0) {
+        for (int c = 3; c < 256; c++)
+            close(c);
+        struct passwd *pw = getpwuid(uid);
+        if (pw == NULL || (getuid() != uid && (initgroups(pw->pw_name, pw->pw_gid) != 0 ||
+                                               setgid(pw->pw_gid) != 0 || setuid(uid) != 0)))
+            _exit(126);
+        execl(OPENVM_SEND_BIN, OPENVM_SEND_BIN, path, (char *)NULL);
+        _exit(127);
+    }
+    int status = 0;
+    while (waitpid(pid, &status, 0) < 0 && errno == EINTR) {
+    }
+    int ok = WIFEXITED(status) && WEXITSTATUS(status) == 0;
+    drag_response(fd, cid, ok, ok ? NULL : "the send tool refused or failed");
+}
+
 static void handle_drag(int fd, const uint8_t *body, const struct ovmc_pair *pairs, size_t count,
                         uint64_t cid) {
     char op[16];
@@ -350,7 +391,9 @@ static void handle_drag(int fd, const uint8_t *body, const struct ovmc_pair *pai
         drag_start(fd, body, pairs, count, cid);
     } else if (strcmp(op, "status") == 0) {
         drag_status(fd, cid);
+    } else if (strcmp(op, "send") == 0) {
+        drag_send(fd, body, pairs, count, cid);
     } else {
-        drag_response(fd, cid, 0, "drag op must be enter, leave, drop or status");
+        drag_response(fd, cid, 0, "drag op must be enter, leave, drop, status or send");
     }
 }

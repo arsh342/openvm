@@ -31,6 +31,10 @@ nonisolated func outboxRoot(_ uuid: String, create: Bool) throws -> URL {
 
 /// Where received files go: `~/Downloads/openVM/<vm name>`.
 nonisolated func receivedFolder(forVM name: String) -> URL {
+    // A test host sets this so it never writes into the real Downloads folder.
+    if let override = ProcessInfo.processInfo.environment["OPENVM_RECEIVE_DIR"], !override.isEmpty {
+        return URL(fileURLWithPath: override).appendingPathComponent(name)
+    }
     let downloads = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
         ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads")
     return downloads.appendingPathComponent("openVM").appendingPathComponent(name)
