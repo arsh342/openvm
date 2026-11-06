@@ -15,7 +15,7 @@ Run `make check` before every commit. Run the matching real smoke when a change 
 | --- | --- |
 | `Tests/OpenVMCoreTests` | The codec, registry and feature rules, including the generated Linux installer |
 | `Tests/OpenVMDaemonTests` | Daemon policy: readiness, shutdown, the clock push and host sleep |
-| `tools/test/test-*-agent` | Each Linux agent feature, including hostile input, and the Windows agent's build and codec |
+| `tools/test/test-*-agent` | Each Linux agent feature, including hostile input, the Windows agent's build, codec, and hostile input to its drop parser, and `test-send-agent` for the guest send tool |
 | `tools/test/conformance.sh` | Golden bytes through the mock guest |
 
 Use `make test`, not `swift test`: with only the Command Line Tools installed, `swift test` cannot find the testing macros, and the Makefile names them.
