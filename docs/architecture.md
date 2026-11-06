@@ -48,5 +48,5 @@ A guest is not trusted. Every value from a guest is checked before the host acts
 
 ## Boot
 
-* **Linux:** the kernel boots directly. The first start installs Alpine to the disk from a generated overlay (`tools/build/mk-guest-overlay.sh`), and later starts boot the installed system.
+* **Linux:** the kernel boots directly. The first start installs Alpine to the disk from the install overlay in the guest payload (built by `tools/build/mk-payload.sh`, which runs `tools/build/mk-guest-overlay.sh`), which the host serves to the guest, and later starts boot the installed system.
 * **Windows:** the firmware loads `tools/uefi/openvm-efi.c`, which provides a framebuffer and starts Windows Boot Manager. The first start runs an unattended install from media built by `tools/build/mk-windows-media.sh`.

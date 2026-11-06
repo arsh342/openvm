@@ -42,26 +42,39 @@ Guests are Alpine Linux ARM64 with an XFCE desktop, and Windows 11 ARM64.
 
 ## Get started
 
-Build openVM, and give the daemon its Virtualization entitlement:
+Build openVM, the guest payload (the files a guest is built from), and the daemon's signature, which gives it the Virtualization entitlement:
 
 ```sh
 make check
+make payload
 codesign --force --sign - --entitlements tools/build/vm.entitlements.xml --options runtime .build/debug/openvmd
 ```
 
-Start the daemon, and leave it running:
+Start the daemon, and leave it running. It finds the payload in `.build/payload` when started from this directory, or wherever `OPENVM_PAYLOAD` points:
 
 ```sh
 .build/debug/openvmd
 ```
 
-### Create a Linux guest
+Or build the app, which carries its own payload and hosts the VMs itself (use one or the other, not both):
 
 ```sh
-tools/build/fetch-linux.sh           # once
-.build/debug/openvmctl create lin
-.build/debug/openvmctl start lin     # first start installs Alpine
+make app
+open .build/openvm.app
 ```
+
+### Create a Linux guest
+
+Fetch the Linux files once, then create and start a guest:
+
+```sh
+.build/debug/openvmctl task start fetch-linux        # prints a task id
+.build/debug/openvmctl task status <task-id>         # progress, until state=done
+.build/debug/openvmctl create lin
+.build/debug/openvmctl start lin     # first start installs Alpine, and takes a few minutes
+```
+
+`tools/build/fetch-linux.sh` does the same fetch by hand, but needs a C compiler; the task uses the unpacker shipped in the payload instead.
 
 ### Create a Windows guest
 

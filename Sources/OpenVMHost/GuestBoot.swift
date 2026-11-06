@@ -138,9 +138,10 @@ enum GuestBoot {
     /// matching kernel/initramfs pair exported from that installed system.
     static func effectiveCmdline(
         rootDevice: String?, installDisk: Bool, vmUUID: String, artifactPort: UInt16,
-        artifactToken: String? = nil, modloopPinned: Bool = false
+        artifactToken: String? = nil, modloopPinned: Bool = false,
+        environment: [String: String] = ProcessInfo.processInfo.environment, payloadOverlay: Bool = false
     ) -> String {
-        let url = ProcessInfo.processInfo.environment["OPENVM_APKOVL_URL"] ?? ""
+        let url = environment["OPENVM_APKOVL_URL"] ?? ""
         var result = cmdline
         // Only netboot uses the modloop. The mirror's copy is the fallback for a
         // support directory from before it was pinned, and works only until
@@ -150,7 +151,16 @@ enum GuestBoot {
                 of: mirrorModloop, with: "http://192.168.64.1:\(artifactPort)/\(ArtifactReceiver.modloopName)"
             )
         }
-        if rootDevice == nil, !url.isEmpty { result += " apkovl=\(url)" }
+        // The overlay is what makes a first boot install Alpine and start the agent; without it the
+        // guest is stock Alpine (measured: no installer, no agent). An explicit URL wins, which is
+        // how the smoke serves its own; otherwise the host serves the one shipped in its payload.
+        if rootDevice == nil {
+            if !url.isEmpty {
+                result += " apkovl=\(url)"
+            } else if payloadOverlay {
+                result += " apkovl=http://192.168.64.1:\(artifactPort)/\(GuestPayload.overlayName)"
+            }
+        }
         if let rootDevice {
             result += " root=\(rootDevice) rootfstype=ext4 rw"
         } else if installDisk {
@@ -169,16 +179,19 @@ enum GuestBoot {
         return FileManager.default.fileExists(atPath: file.path) ? file : nil
     }
 
+    /// Where the fetched Linux guest files live: `OPENVM_SUPPORT`, else `~/openvm-support`.
+    nonisolated static func supportBase() -> URL {
+        let env = ProcessInfo.processInfo.environment["OPENVM_SUPPORT"] ?? ""
+        return env.isEmpty
+            ? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("openvm-support")
+            : URL(fileURLWithPath: env)
+    }
+
     /// nil when the alpine support artifacts are absent, so callers may fall
     /// back to a registry-only transition (openvmctl stays usable without the
     /// guest bits installed).
     nonisolated static func supportArtifacts() -> (kernel: URL, initramfs: URL)? {
-        let env = ProcessInfo.processInfo.environment["OPENVM_SUPPORT"] ?? ""
-        let base =
-            env.isEmpty
-            ? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("openvm-support")
-            : URL(fileURLWithPath: env)
-        let dir = base.appendingPathComponent("linux-arm64")
+        let dir = supportBase().appendingPathComponent("linux-arm64")
         let kernel = dir.appendingPathComponent("vmlinuz")
         let initramfs = dir.appendingPathComponent("initrd.gz")
         guard FileManager.default.fileExists(atPath: kernel.path),
@@ -253,7 +266,7 @@ enum GuestBoot {
             installDisk: diskURL != nil && installedRoot == nil,
             vmUUID: vmUUID, artifactPort: artifactPort,
             artifactToken: artifactToken,
-            modloopPinned: modloopPinned)
+            modloopPinned: modloopPinned, payloadOverlay: GuestPayload.overlay != nil)
 
         let console = VZVirtioConsoleDeviceSerialPortConfiguration()
         console.attachment = try VZFileSerialPortAttachment(url: consoleURL, append: false)

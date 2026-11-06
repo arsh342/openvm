@@ -37,6 +37,9 @@ the daemon replies on the same id.
 | suspend| `id`                                       | pauses the live guest (VZ pause) and records `suspended`; needs this daemon to hold the live guest |
 | resume | `id`                                       | unpauses the suspended live guest and records `running`; needs this daemon to hold the live guest |
 | set    | `id`; `cpus`, `memoryMB`, `tz`, `boot-mode`, `variable-store-path`, `clipboard-sync` (bool) (at least one) | updates the record. `cpus`, `memoryMB`, `boot-mode` and `variable-store-path` need a `stopped` VM; `tz` and `clipboard-sync` may change while it runs. `cpus` is 1 to 32 and no more than the Mac allows, `memoryMB` is 128 to what the Mac allows (see `host-info`); `tz` is an IANA zone name, applied to the guest at the next boot or resume) |
+| task-start | `kind` (`fetch-linux`) | starts one of the host's fixed jobs and answers its `taskId`. The kinds are a closed list: nothing a client sends becomes part of a command. A kind that is already running is not started twice; the running task's id comes back instead, because two fetches write the same files |
+| task-status | `taskId` | answers `state` (`running`, `done`, `failed`, `cancelled`), `progress` (the last line the job wrote, including curl's progress bar) and, for a failure, `error` (how it ended, with the last lines of output). The last 20 finished tasks are kept |
+| task-cancel | `taskId` | stops a running task and everything it started (SIGTERM to its process group, SIGKILL after five seconds); answers `cancelled: false` for one that was not running |
 | host-info | (none) | answers `maxCpus` (at most 32), `maxMemoryMB`, `freeDiskMB` (where VMs live), `linuxReady` (the Linux guest files are fetched) and `hostWimlib` (`wimlib-imagex` is installed), so a client offers only choices that will work. Also `openvmctl host-info` |
 | stop-all | (none) | stops every live guest at once, the way quitting the app does, and answers how many it stopped. A guest still booting is cancelled |
 | ping  | `id` (name or uuid)                         | host sends `echoRequest` over the guest's dedicated channel port and waits for the in-guest agent's `echoReply`; needs this daemon to hold the live guest |
@@ -148,3 +151,27 @@ VM records (`docs/vm-records.md`); saved atomically, directory
 created lazily on first write. Missing file = empty list. Real guest boots stream the
 guest console to `<OPENVM_HOME>/<name>.console.log`.
 `OPENVM_HOME` override is what the smoke test uses for a hermetic run.
+
+## Guest payload and the artifact endpoint
+
+The files a guest is built from ship with the app, in `Contents/Resources/guest` (or in a
+directory named by `OPENVM_PAYLOAD`, or `.build/payload` under the current directory for a
+checkout that ran `make payload`; the first that exists wins, and a wrong `OPENVM_PAYLOAD` is an
+error, not a silent fallback):
+
+```
+guest/linux/openvm.apkovl.tar.gz   the install overlay
+guest/linux/fetch-linux.sh         what the fetch-linux task runs
+guest/linux/openvm-zboot           the kernel unpacker, prebuilt, so the Mac needs no C compiler
+```
+
+The host's HTTP endpoint (`OPENVM_ARTIFACT_PORT`, default 8124, guest network only) serves two
+fixed paths to a guest, both to public bytes, so neither needs the upload token:
+`GET /modloop-virt` (the pinned Alpine modules) and `GET /openvm.apkovl.tar.gz` (the overlay from
+the payload). The host chooses the file; nothing a guest sends names one, and every other path is
+a 404. An install boot gets `apkovl=http://192.168.64.1:<port>/openvm.apkovl.tar.gz` on its kernel
+command line, unless `OPENVM_APKOVL_URL` is set, which wins (the smoke serves its own).
+
+Without the overlay a Linux guest comes up as stock Alpine, which has no installer and no agent:
+measured, a guest started with no overlay reached `localhost login:` with no `openvm` line in its
+console, and `start` would wait out its 30-minute install timeout.

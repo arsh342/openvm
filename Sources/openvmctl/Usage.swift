@@ -11,6 +11,8 @@ let usage = """
       openvmctl stop <name|uuid> [--no-wait]
       openvmctl stop-all
       openvmctl host-info
+      openvmctl task start fetch-linux
+      openvmctl task status|cancel <task-id>
       openvmctl delete <name|uuid>
       openvmctl suspend <name|uuid>
       openvmctl resume <name|uuid>

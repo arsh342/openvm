@@ -22,6 +22,9 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/openvm"
 cp "$(dirname "$0")/Info.plist" "$APP/Contents/Info.plist"
 
+# The guest payload goes in before signing: the signature seals the bundle's resources.
+sh "$(dirname "$0")/mk-payload.sh" "$APP/Contents/Resources/guest" >/dev/null
+
 codesign --force --sign "${OPENVM_SIGN_IDENTITY:--}" \
     --entitlements "$(dirname "$0")/vm.entitlements.xml" --options runtime "$APP" >/dev/null 2>&1 \
     || { echo "mk-app: signing failed" >&2; exit 1; }

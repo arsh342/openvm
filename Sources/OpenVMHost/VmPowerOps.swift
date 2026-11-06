@@ -93,7 +93,7 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
     }
     var artifactToken: String?
     // Netboot fetches the pinned modloop from here, with or without a disk.
-    if record.bootMode != .windows, GuestBoot.pinnedModloop() != nil {
+    if record.bootMode != .windows, GuestBoot.pinnedModloop() != nil || GuestPayload.overlay != nil {
         try artifactReceiver.start()
     }
     if let diskPath = record.diskPath, record.bootMode != .windows {

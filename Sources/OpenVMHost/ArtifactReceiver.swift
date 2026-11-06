@@ -11,7 +11,12 @@ import Security
 nonisolated final class ArtifactReceiver: @unchecked Sendable {
     private let registry: VmRegistry
     private let port: UInt16
+    private let allowsPeer: @Sendable ([UInt8]) -> Bool
+    private let overlay: @Sendable () -> URL?
     private let lock = NSLock()
+    /// The port actually listening: differs from `port` only when that is 0 (a test lets the
+    /// system choose).
+    private(set) var boundPort: UInt16 = 0
     private var listener: Int32 = -1
     /// Per-boot upload tokens, keyed by lowercase VM uuid. The receiver must
     /// listen on every interface (the vmnet gateway only exists once the guest
@@ -22,9 +27,21 @@ nonisolated final class ArtifactReceiver: @unchecked Sendable {
     /// The vmnet shared-network subnet the guest uploads from.
     static let guestSubnetPrefix: [UInt8] = [192, 168, 64]
 
-    init(registry: VmRegistry, port: UInt16 = 8124) {
+    init(
+        registry: VmRegistry, port: UInt16 = 8124,
+        allowsPeer: @escaping @Sendable ([UInt8]) -> Bool = ArtifactReceiver.isGuestPeer,
+        overlay: @escaping @Sendable () -> URL? = { GuestPayload.overlay }
+    ) {
         self.registry = registry
         self.port = port
+        self.allowsPeer = allowsPeer
+        self.overlay = overlay
+    }
+
+    /// Whether an address (as four bytes) belongs to the guest network. Defence in depth behind
+    /// the upload token: only a guest may talk to this endpoint.
+    static func isGuestPeer(_ address: [UInt8]) -> Bool {
+        address.count == 4 && Array(address.prefix(3)) == guestSubnetPrefix
     }
 
     /// Issue (or replace) the upload token for one VM's next install boot.
@@ -78,6 +95,12 @@ nonisolated final class ArtifactReceiver: @unchecked Sendable {
             Darwin.close(fd)
             throw error
         }
+        var named = sockaddr_in()
+        var namedLength = socklen_t(MemoryLayout<sockaddr_in>.size)
+        _ = withUnsafeMutablePointer(to: &named) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) { getsockname(fd, $0, &namedLength) }
+        }
+        boundPort = UInt16(bigEndian: named.sin_port)
         listener = fd
         Thread.detachNewThread { [self] in acceptLoop(fd) }
     }
@@ -90,9 +113,8 @@ nonisolated final class ArtifactReceiver: @unchecked Sendable {
                 p.withMemoryRebound(to: sockaddr.self, capacity: 1) { Darwin.accept(fd, $0, &peerLen) }
             }
             guard client >= 0 else { continue }
-            // Defence in depth behind the token: only the guest network may upload.
             let addr = withUnsafeBytes(of: peer.sin_addr.s_addr) { Array($0) }
-            if Array(addr.prefix(3)) == Self.guestSubnetPrefix {
+            if allowsPeer(addr) {
                 handle(client)
             } else {
                 respond(client, status: "403 Forbidden")
@@ -102,9 +124,11 @@ nonisolated final class ArtifactReceiver: @unchecked Sendable {
     }
 
     static let modloopName = "modloop-virt"
+    static let overlayName = GuestPayload.overlayName
 
-    private func serveModloop(_ fd: Int32) {
-        guard let file = GuestBoot.pinnedModloop(),
+    /// Streams one file the host chose (never one the guest named) as a 200, or answers 404.
+    private func serveFile(_ fd: Int32, _ chosen: URL?, label: String) {
+        guard let file = chosen,
             let input = try? FileHandle(forReadingFrom: file),
             let size = (try? FileManager.default.attributesOfItem(atPath: file.path))?[.size] as? NSNumber
         else {
@@ -119,7 +143,7 @@ nonisolated final class ArtifactReceiver: @unchecked Sendable {
         while let chunk = try? input.read(upToCount: 1 << 20), !chunk.isEmpty {
             guard (try? UnixSocket.writeAll(fd: fd, chunk)) != nil else { return }
         }
-        note("openvmd: served the pinned modloop (\(size) bytes)")
+        note("openvmd: served \(label) (\(size) bytes)")
     }
 
     private func handle(_ fd: Int32) {
@@ -137,10 +161,17 @@ nonisolated final class ArtifactReceiver: @unchecked Sendable {
             return
         }
         let fields = firstLine.split(separator: " ")
-        // The one thing served: a fixed path to public Alpine bytes, so no token.
-        if fields.count == 3, fields[0] == "GET", fields[1] == "/" + Self.modloopName {
-            serveModloop(fd)
-            return
+        // Two fixed paths, each to bytes that are public (Alpine's modules, and openVM's own
+        // install overlay), so no token. The host picks the file; nothing the guest sends names one.
+        if fields.count == 3, fields[0] == "GET" {
+            if fields[1] == "/" + Self.modloopName {
+                serveFile(fd, GuestBoot.pinnedModloop(), label: "the pinned modloop")
+                return
+            }
+            if fields[1] == "/" + Self.overlayName {
+                serveFile(fd, overlay(), label: "the install overlay")
+                return
+            }
         }
         guard fields.count == 3, fields[0] == "POST",
             fields[1].hasPrefix("/install/"), fields[2] == "HTTP/1.1"

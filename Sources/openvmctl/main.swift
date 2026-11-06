@@ -100,6 +100,18 @@ case "list":
         print(usage)
         exit(2)
     }
+case "task":
+    // Long jobs the host runs, from a fixed list: openvmctl task start fetch-linux
+    if argv.count == 3, argv[1] == "start" {
+        requestOp = "task-start"
+        args.append(("kind", .text(argv[2])))
+    } else if argv.count == 3, ["status", "cancel"].contains(argv[1]) {
+        requestOp = "task-\(argv[1])"
+        args.append(("taskId", .text(argv[2])))
+    } else {
+        print(usage)
+        exit(2)
+    }
 case "host-info" where argv.count == 1:
     // What this Mac can give a VM, and what is ready.
     break
@@ -311,7 +323,9 @@ do {
         {
             for row in rows { printRow(row) }
         }
-        if requestOp == "host-info", case .map(let res)? = (entries.first { $0.key == "result" }?.value) {
+        if ["host-info", "task-start", "task-status", "task-cancel"].contains(requestOp),
+            case .map(let res)? = (entries.first { $0.key == "result" }?.value)
+        {
             print(
                 res.map { entry -> String in
                     switch entry.value {
