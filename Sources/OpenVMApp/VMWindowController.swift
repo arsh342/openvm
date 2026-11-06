@@ -22,6 +22,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private let drops: DropSession
     private let controls = TitlebarControlsModel()
     private var thumbnailTimer: Timer?
+    private var scrollMonitor: Any?
     private(set) var vm: VmSummary
     private(set) var state: VMWindowState = .stopped
 
@@ -60,6 +61,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         wireDrops()
         wireTitlebar(window)
         startThumbnailTimer()
+        watchScrolling()
         updateMinimumSize()
 
         // The display size is set by the host's display op, not by the view: the guest's
@@ -150,6 +152,17 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
                 guard let self, self.window?.isVisible == true, self.state == .running else { return }
                 self.captureThumbnail()
             }
+        }
+    }
+
+    // MARK: scrolling
+
+    /// A monitor, not an override: it sees the event whichever of the view's parts would take it.
+    private func watchScrolling() {
+        scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+            guard let self, event.window === self.window, self.state.showsScreen, ScrollFlip.isReversed()
+            else { return event }
+            return ScrollFlip.flipped(event) ?? event
         }
     }
 

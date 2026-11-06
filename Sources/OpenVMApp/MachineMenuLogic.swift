@@ -4,7 +4,8 @@ import Foundation
 import OpenVMCore
 
 enum MachineCommand: CaseIterable {
-    case power, restart, pause, fullScreen, retinaBest, retinaScaled, shareFolder, clipboard, outbox, ejectInstaller
+    case power, restart, pause, fullScreen, reverseScrolling, retinaBest, retinaScaled, shareFolder, clipboard
+    case outbox, ejectInstaller
     case settings
 }
 
@@ -36,6 +37,8 @@ enum MachineMenuLogic {
         case .fullScreen:
             return MachineMenuItem(
                 title: fullScreen ? "Exit Full Screen" : "Enter Full Screen", enabled: state.fullScreenEnabled)
+        case .reverseScrolling:
+            return MachineMenuItem(title: defaultTitle(command), enabled: true, checked: ScrollFlip.isReversed())
         // Only openVM's own Linux guest takes a size from these. A Windows guest is held at one width for
         // now (DisplayFit.windowsMode), and a guest from an ISO sizes itself through the framework.
         case .retinaBest:
@@ -80,6 +83,7 @@ enum MachineMenuLogic {
         case .restart: return "Restart"
         case .pause: return "Pause"
         case .fullScreen: return "Enter Full Screen"
+        case .reverseScrolling: return "Reverse Scrolling"
         case .retinaBest: return "Best for Retina Display"
         case .retinaScaled: return "Scaled"
         case .shareFolder: return "Share Folder…"

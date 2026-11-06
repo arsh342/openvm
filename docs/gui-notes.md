@@ -134,7 +134,8 @@ menu-bar icon brings a window back; host sleep with a window open pauses and res
 
 * **View, Actions and Devices** are in the menu bar and, as submenus, under the menu-bar icon. One
   piece of code (`MachineMenus`) feeds both, so they cannot disagree.
-  * View: Enter or Exit Full Screen, and Retina Resolution (Best for Retina Display, or Scaled).
+  * View: Enter or Exit Full Screen, Reverse Scrolling (on by default: scrolling in both guests ran the
+    opposite way to the Mac's), and Retina Resolution (Best for Retina Display, or Scaled).
     Scaled asks for one pixel per point: a larger, softer picture and a much smaller guest screen.
     The choice is kept per VM.
   * Actions: Start or Shut Down (or Cancel Start), Restart, Pause or Resume, and Settings.

@@ -47,6 +47,7 @@ final class MachineMenus: NSObject, NSMenuDelegate {
         let full = add(.fullScreen, to: menu)
         full.keyEquivalent = "f"
         full.keyEquivalentModifierMask = [.command, .control]
+        add(.reverseScrolling, to: menu)
         menu.addItem(.separator())
         let retina = NSMenuItem(title: "Retina Resolution", action: nil, keyEquivalent: "")
         retina.submenu = resolutionMenu()
@@ -203,6 +204,7 @@ final class MachineMenus: NSObject, NSMenuDelegate {
             case .disabled: break
             }
         case .fullScreen: actions.toggleFullScreen(vm)
+        case .reverseScrolling: ScrollFlip.setReversed(!ScrollFlip.isReversed())
         case .retinaBest, .retinaScaled:
             preference.setScaled(command == .retinaScaled, for: vm.uuid)
             actions.displayChanged(vm)
