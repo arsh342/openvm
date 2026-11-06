@@ -1,24 +1,26 @@
-// LibraryWindowController — the window that lists every VM.
+// LibraryWindowController — the window that lists every VM: a Settings-style sidebar and the page
+// for what is chosen.
 import AppKit
 import OpenVMCore
 import SwiftUI
 
 @MainActor
 final class LibraryWindowController: NSWindowController {
+    private let nav = LibraryNav()
+
     init(
         model: VMListModel, open: @escaping (VmSummary) -> Void, settings: @escaping (VmSummary) -> Void,
         newVM: @escaping () -> Void
     ) {
-        let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 900, height: 560),
-            styleMask: [.titled, .closable, .miniaturizable, .resizable],
-            backing: .buffered, defer: false)
-        window.isReleasedWhenClosed = false
-        window.title = "openVM"
-        let frameName = "library-window"
+        let nav = self.nav
+        let window = SidebarWindow.make(
+            size: NSSize(width: 980, height: 600), minSize: NSSize(width: 760, height: 460), title: "openVM",
+            sidebar: LibrarySidebarView(model: model, nav: nav, newVM: newVM),
+            detail: LibraryDetailView(
+                model: model, nav: nav, thumbnails: .shared, open: open, settings: settings, newVM: newVM))
+        let frameName = "library-window-split"
         if !window.setFrameUsingName(frameName) { window.center() }
         window.setFrameAutosaveName(frameName)
-        window.contentView = NSHostingView(rootView: VMListView(model: model, open: open, settings: settings, newVM: newVM))
         super.init(window: window)
     }
 

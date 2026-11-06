@@ -243,3 +243,39 @@ extension SnapshotTests {
         Snapshot.check("wizard-failed", wizardView(model), width: 600, height: 540)
     }
 }
+
+extension SnapshotTests {
+    @Test(.enabled(if: Snapshot.enabled))
+    func librarySidebar() async {
+        let model = await model([
+            FakeTransport.row("ubuntu-lab", state: "running"),
+            FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
+            FakeTransport.row("scratch", state: "stopped"),
+        ])
+        let nav = LibraryNav()
+        nav.selection = .vm("uuid-ubuntu-lab")
+        Snapshot.check("library-sidebar", LibrarySidebarView(model: model, nav: nav, newVM: {}), width: 260, height: 520)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func libraryPageOfOneVm() async {
+        let model = await model([FakeTransport.row("windows-11", state: "suspended", bootMode: "windows", memoryMB: 8192)])
+        let nav = LibraryNav()
+        nav.selection = .vm("uuid-windows-11")
+        Snapshot.check(
+            "library-vm-page",
+            LibraryDetailView(
+                model: model, nav: nav, thumbnails: ThumbnailStore(directory: FileManager.default.temporaryDirectory),
+                open: { _ in }, settings: { _ in }, newVM: {}),
+            width: 700, height: 640)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func wizardSidebarOnTheResourcesStep() async {
+        let wizard = CreateWizardModel(transport: FakeTransport(), existingNames: [], openWindow: { _ in })
+        wizard.os = .linux
+        wizard.next()
+        wizard.next()
+        Snapshot.check("wizard-sidebar", WizardSidebarView(model: wizard), width: 240, height: 360)
+    }
+}

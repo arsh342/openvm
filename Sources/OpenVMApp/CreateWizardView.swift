@@ -18,7 +18,7 @@ struct CreateWizardView: View {
             Divider()
             footer.padding(12)
         }
-        .frame(minWidth: 560, minHeight: 500)
+        .frame(minWidth: 520, minHeight: 500)
     }
 
     @ViewBuilder private var content: some View {

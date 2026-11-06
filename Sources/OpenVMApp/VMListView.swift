@@ -1,6 +1,6 @@
-// VMListView — the library: a card for every VM, with a picture of its screen, its state, and the
-// action you most likely want. The state of each VM comes from the host, so a change made with
-// openvmctl shows up here.
+// VMListView — the "All Virtual Machines" page: a card for every VM, with a picture of its screen, its
+// state, and the action you most likely want. The state of each VM comes from the host, so a change made
+// with openvmctl shows up here.
 import OpenVMCore
 import SwiftUI
 
@@ -28,8 +28,7 @@ struct VMListView: View {
     private let columns = [GridItem(.adaptive(minimum: 230, maximum: 320), spacing: 20, alignment: .top)]
 
     var body: some View {
-        VStack(spacing: 0) {
-            banners
+        Group {
             if model.vms.isEmpty {
                 emptyState
             } else {
@@ -40,34 +39,12 @@ struct VMListView: View {
                         }
                         NewVMCard(action: newVM)
                     }
-                    .padding(24)
+                    .padding(.horizontal, 24).padding(.top, 44).padding(.bottom, 24)
                 }
             }
         }
-        .frame(minWidth: 640, minHeight: 420)
+        .frame(minWidth: 480, minHeight: 360)
         .background(Color(nsColor: .underPageBackgroundColor))
-        .confirmationDialog(
-            model.pendingDelete.map { VMRowLogic.deleteConfirmation(for: $0).title } ?? "", isPresented: isDeleting,
-            titleVisibility: .visible, presenting: model.pendingDelete
-        ) { vm in
-            Button("Delete", role: .destructive) { Task { await model.confirmDelete(vm) } }
-            Button("Cancel", role: .cancel) { model.cancelDelete() }
-        } message: { vm in
-            Text(VMRowLogic.deleteConfirmation(for: vm).message)
-        }
-    }
-
-    private var isDeleting: Binding<Bool> {
-        Binding(get: { model.pendingDelete != nil }, set: { if !$0 { model.cancelDelete() } })
-    }
-
-    @ViewBuilder private var banners: some View {
-        if let problem = model.hostProblem {
-            Banner(text: problem, systemImage: "bolt.horizontal.circle", tint: .red, dismiss: nil)
-        }
-        if let error = model.lastError {
-            Banner(text: error, systemImage: "exclamationmark.triangle", tint: .orange) { model.lastError = nil }
-        }
     }
 
     private var emptyState: some View {
@@ -81,6 +58,7 @@ struct VMListView: View {
         .padding(32)
     }
 
+    /// The card's actions go to the library's owner, which knows how to start, pause or delete.
     private func perform(_ action: VMAction, on vm: VmSummary) {
         switch action {
         case .open: open(vm)
@@ -191,25 +169,6 @@ private struct NewVMCard: View {
         }
         .buttonStyle(.plain)
         .frame(maxWidth: .infinity)
-    }
-}
-
-private struct Banner: View {
-    let text: String
-    let systemImage: String
-    let tint: Color
-    let dismiss: (() -> Void)?
-
-    var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: systemImage).foregroundStyle(tint)
-            Text(text).font(.callout).lineLimit(3)
-            Spacer()
-            if let dismiss { Button("Dismiss", action: dismiss).controlSize(.small) }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .background(tint.opacity(0.12))
     }
 }
 

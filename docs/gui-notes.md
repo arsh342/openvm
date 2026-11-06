@@ -142,14 +142,15 @@ menu-bar icon brings a window back; host sleep with a window open pauses and res
   There are no key equivalents except Settings (Cmd-,) and Full Screen (Ctrl-Cmd-F), so a shortcut
   meant for the guest is never taken for a power command. Share Folder asks for a folder and says the
   guest can read and change what is in it. "Open Virtual Machine" at the bottom lists every VM.
-* **Library**: a grid of cards, one per VM, with a picture of its screen, its state and the action most
+* **Library** (a Settings-style window: a translucent sidebar with search, "All Virtual Machines", each VM with a coloured icon and state dot, and "New Virtual Machine…"; the traffic lights sit on the sidebar). "All Virtual Machines" is a grid of cards, one per VM, with a picture of its screen, its state and the action most
   wanted (Start, Resume or Open) on the card. Click a card to open its window; right-click for Pause,
-  Shut Down, Settings and Delete. A dashed "New VM…" card starts the wizard. The picture is the last
+  Shut Down, Settings and Delete. A dashed "New VM…" card starts the wizard. Choosing a VM in the sidebar shows its page: a picture, its actions as rows, and its details. The picture is the last
   one taken of the guest's screen, kept under `$OPENVM_HOME/thumbs`, so a stopped VM still shows how it
   was left; until there is one the card shows a plain tile with the system's symbol. It is taken when
   the window loses focus or closes, and every 30 seconds while the window is up and the guest runs. A
   blank capture is never kept. *Not yet checked in a real window:* whether the Virtualization view can
   be read this way at all; if it returns black, the cards stay on the plain tile.
+* **Creation window**: the same sidebar style, listing the steps (System, Source, Resources, Summary, Install); done steps get a tick, the current one is highlighted. The Back and Next buttons move between them.
 * **VM window title bar**: dark and slim, with four round buttons at the right (power, pause, full
   screen, settings) that fade back while the pointer is away. They do what the Machine menu items do.
 * **Menu-bar icon**: the app's own icon. Its popover lists every VM with its state, CPUs and memory;
