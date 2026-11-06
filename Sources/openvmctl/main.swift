@@ -39,7 +39,7 @@ case "create":
             args.append((key, .uint(v)))
         } else if key == "boot-mode" {
             let mode = argv[i + 1]
-            guard ["linux", "windows"].contains(mode) else {
+            guard ["linux", "windows", "linux-iso"].contains(mode) else {
                 print(usage)
                 exit(2)
             }
@@ -76,7 +76,7 @@ case "set":
             args.append((key, .text(argv[i + 1])))
         case "boot-mode":
             let mode = argv[i + 1]
-            guard ["linux", "windows"].contains(mode) else {
+            guard ["linux", "windows", "linux-iso"].contains(mode) else {
                 print(usage)
                 exit(2)
             }
@@ -128,6 +128,14 @@ case "windows-iso" where argv.count == 3 && argv[1] == "check":
     // Is this ISO something a Windows guest can be built from?
     requestOp = "windows-iso-check"
     args.append(("iso", .text(URL(fileURLWithPath: argv[2]).standardizedFileURL.path)))
+case "linux-iso" where argv.count == 3 && argv[1] == "check":
+    // Can this ISO start on this Mac?
+    requestOp = "linux-iso-check"
+    args.append(("iso", .text(URL(fileURLWithPath: argv[2]).standardizedFileURL.path)))
+case "eject" where argv.count == 2:
+    // Take the installer ISO out of a stopped VM, so it starts from its disk.
+    requestOp = "eject-installer"
+    args.append(("id", .text(argv[1])))
 case "host-info" where argv.count == 1:
     // What this Mac can give a VM, and what is ready.
     break
@@ -345,7 +353,7 @@ do {
         {
             for row in rows { printRow(row) }
         }
-        if ["host-info", "task-start", "task-status", "task-cancel", "windows-iso-check"].contains(requestOp),
+        if ["host-info", "task-start", "task-status", "task-cancel", "windows-iso-check", "linux-iso-check"].contains(requestOp),
             case .map(let res)? = (entries.first { $0.key == "result" }?.value)
         {
             print(

@@ -3,7 +3,7 @@ import Foundation
 
 let usage = """
     Usage:
-      openvmctl create <name> [--cpus N] [--memoryMB N] [--diskSizeMB N] [--boot-mode linux|windows] [--variable-store-path PATH] [--install-media MEDIA.raw]
+      openvmctl create <name> [--cpus N] [--memoryMB N] [--diskSizeMB N] [--boot-mode linux|windows|linux-iso] [--variable-store-path PATH] [--install-media MEDIA.raw|FILE.iso]
       openvmctl list
       openvmctl info <name|uuid>
       openvmctl start <name|uuid>
@@ -14,6 +14,8 @@ let usage = """
       openvmctl task start fetch-linux
       openvmctl task start windows-media --iso <file.iso> --name <name>
       openvmctl windows-iso check <file.iso>
+      openvmctl linux-iso check <file.iso>
+      openvmctl eject <name|uuid>
       openvmctl task status|cancel <task-id>
       openvmctl delete <name|uuid>
       openvmctl suspend <name|uuid>

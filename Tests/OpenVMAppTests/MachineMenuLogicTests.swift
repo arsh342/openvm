@@ -231,3 +231,32 @@ struct MachineMenusTests {
         #expect(host.arg("set", "outbox") == .bool(false))
     }
 }
+
+struct IsoGuestMenuTests {
+    private func vm(_ state: String, attached: Bool = false) -> VmSummary {
+        var fields: [(key: String, value: CBOR)] = [
+            ("name", .text("w")), ("state", .text(state)), ("uuid", .text("u")), ("bootMode", .text("linux-iso")),
+        ]
+        if attached { fields.append(("installerAttached", .bool(true))) }
+        return VmSummary(row: .map(fields))!
+    }
+
+    @Test func whatNeedsTheAgentIsOff() {
+        for command in [MachineCommand.clipboard, .outbox, .shareFolder, .retinaBest, .retinaScaled] {
+            #expect(!MachineMenuLogic.item(command, for: vm("running")).enabled, "\(command)")
+        }
+        #expect(!MachineMenuLogic.item(.clipboard, for: vm("running")).checked)  // not ticked as if it worked
+    }
+
+    @Test func powerStillWorks() {
+        #expect(MachineMenuLogic.item(.power, for: vm("stopped")).title == "Start")
+        #expect(MachineMenuLogic.item(.pause, for: vm("running")).enabled)
+        #expect(MachineMenuLogic.item(.restart, for: vm("running")).enabled)
+    }
+
+    @Test func theInstallerEjectsFromAStoppedVmOnly() {
+        #expect(MachineMenuLogic.item(.ejectInstaller, for: vm("stopped", attached: true)).enabled)
+        #expect(!MachineMenuLogic.item(.ejectInstaller, for: vm("running", attached: true)).enabled)
+        #expect(!MachineMenuLogic.item(.ejectInstaller, for: vm("stopped")).enabled)
+    }
+}

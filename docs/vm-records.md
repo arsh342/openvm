@@ -22,7 +22,7 @@ per-VM config file yet; the record *is* the config.
   "shares":    [                          // optional shared folders; absent = none
     {"hostPath": "/Users/me/Projects", "guestPath": "/mnt/openvm/Projects"}
   ],
-  "bootMode":  "linux|windows",         // optional; absent = linux
+  "bootMode":  "linux|windows|linux-iso", // optional; absent = linux
   "variableStorePath": "…/nvram.bin",   // optional; Windows EFI variable store
   "installMediaPath":  "…/media.raw",   // optional; Windows install media
   "machineIdentifier": "…",             // optional; Windows, base64, kept for the VM's lifetime

@@ -13,7 +13,7 @@ import OpenVMCore
 
 @MainActor
 final class CreateWizardModel: ObservableObject {
-    enum OS: Equatable { case linux, windows }
+    enum OS: Equatable { case linux, windows, linuxISO }
     enum Page: Equatable { case os, source, resources, account, summary, working, finished, failed(String) }
     enum ISOState: Equatable { case none, checking, usable, problem(String) }
     enum FetchState: Equatable { case idle, running(String), done, failed(String) }
@@ -30,7 +30,14 @@ final class CreateWizardModel: ObservableObject {
 
     @Published private(set) var page: Page = .os
     @Published var os: OS = .linux {
-        didSet { if os != oldValue { applyDefaults() } }
+        didSet {
+            guard os != oldValue else { return }
+            applyDefaults()
+            // An ISO checked for one system says nothing about the other.
+            isoPath = nil
+            iso = .none
+            isoUnchecked = false
+        }
     }
     @Published var name = ""
     @Published var cpus = 4
@@ -43,6 +50,8 @@ final class CreateWizardModel: ObservableObject {
     @Published var autoLogon = true
     @Published private(set) var isoPath: String?
     @Published private(set) var iso: ISOState = .none
+    /// The ISO's boot files could not be read, so it may or may not start. It is still offered.
+    @Published private(set) var isoUnchecked = false
     @Published private(set) var fetch: FetchState = .idle
     @Published private(set) var host: HostInfo?
     @Published private(set) var steps: [Step] = []
@@ -81,8 +90,8 @@ final class CreateWizardModel: ObservableObject {
 
     /// A Linux install needs little, a Windows one a lot: 22 GB for the media while it is built,
     /// and about 20 GB for what is installed.
-    static let minDiskGB: [OS: Int] = [.linux: 4, .windows: 40]
-    static let freeNeededMB: [OS: UInt64] = [.linux: 4 * 1024, .windows: (22 + 20) * 1024]
+    static let minDiskGB: [OS: Int] = [.linux: 4, .windows: 40, .linuxISO: 16]
+    static let freeNeededMB: [OS: UInt64] = [.linux: 4 * 1024, .windows: (22 + 20) * 1024, .linuxISO: 16 * 1024]
 
     static func nameProblem(_ name: String, existing: Set<String>) -> String? {
         if name.isEmpty { return "Give the VM a name." }
@@ -104,7 +113,7 @@ final class CreateWizardModel: ObservableObject {
     }
 
     private func defaultName(for os: OS) -> String {
-        let base = os == .windows ? "windows-11" : "linux"
+        let base = os == .windows ? "windows-11" : (os == .linuxISO ? "linux-vm" : "linux")
         guard existingNames.contains(base) else { return base }
         var n = 2
         while existingNames.contains("\(base)-\(n)") { n += 1 }
@@ -114,7 +123,7 @@ final class CreateWizardModel: ObservableObject {
     private func applyDefaults() {
         cpus = 4
         memoryMB = os == .windows ? 8192 : 4096
-        diskGB = os == .windows ? 64 : 32
+        diskGB = os == .linux ? 32 : 64
         // A name the person typed is theirs; only the one this wizard suggested is replaced.
         if name.isEmpty || name == lastDefaultName {
             name = defaultName(for: os)
@@ -134,9 +143,11 @@ final class CreateWizardModel: ObservableObject {
         isoPath = path
         iso = .checking
         do {
-            let reply = try await transport.send("windows-iso-check", [("iso", .text(path))])
+            let op = os == .linuxISO ? "linux-iso-check" : "windows-iso-check"
+            let reply = try await transport.send(op, [("iso", .text(path))])
             if case .bool(true)? = DaemonClient.field(reply, "usable") {
                 iso = .usable
+                isoUnchecked = DaemonClient.field(reply, "unknown") == .bool(true)
             } else if case .text(let problem)? = DaemonClient.field(reply, "problem") {
                 iso = .problem(problem)
             } else {
@@ -217,6 +228,13 @@ final class CreateWizardModel: ObservableObject {
         case .linux:
             if haveLinuxFiles { return nil }
             return downloadProblem ?? "Download the Linux files to continue."
+        case .linuxISO:
+            switch iso {
+            case .none: return "Choose an ARM64 Linux ISO."
+            case .checking: return "Checking the ISO…"
+            case .problem(let why): return why
+            case .usable: return nil
+            }
         case .windows:
             switch iso {
             case .none: return "Choose your Windows 11 ARM64 ISO."
@@ -260,6 +278,12 @@ final class CreateWizardModel: ObservableObject {
             ]
         case .linux:
             return ["Alpine Linux installs itself on first start, with an XFCE desktop. This takes a few minutes."]
+        case .linuxISO:
+            return [
+                "The VM starts from your ISO, and you finish the distribution's own installer in its window.",
+                "When the installer asks to restart, the VM stops. Press Start. If the installer starts again, use Devices ▸ Eject Installer ISO first.",
+                "Clipboard, file drops and Send to Mac need openVM's guest tools, which these guests do not have yet.",
+            ]
         }
     }
 
@@ -312,7 +336,8 @@ final class CreateWizardModel: ObservableObject {
             + [
                 Step(id: "create", title: "Create the virtual machine", state: .pending),
                 Step(
-                    id: "start", title: os == .windows ? "Install Windows (15 to 30 minutes)" : "Install Linux",
+                    id: "start", title: os == .windows
+                        ? "Install Windows (15 to 30 minutes)" : (os == .linuxISO ? "Start the installer" : "Install Linux"),
                     state: .pending),
             ]
         page = .working
@@ -384,6 +409,10 @@ final class CreateWizardModel: ObservableObject {
         if os == .windows, let media {
             arguments.append(("boot-mode", .text("windows")))
             arguments.append(("install-media", .text(media)))
+        }
+        if os == .linuxISO, let isoPath {
+            arguments.append(("boot-mode", .text("linux-iso")))
+            arguments.append(("install-media", .text(isoPath)))
         }
         _ = try await transport.send("create", arguments)
         createdName = name

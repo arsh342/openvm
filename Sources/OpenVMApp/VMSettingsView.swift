@@ -24,9 +24,12 @@ struct VMSettingsView: View {
             }
             Form {
                 resources
-                timeZone
-                clipboardSection
-                sharedFolders
+                // These work through the guest agent: a guest installed from its own ISO has none.
+                if model.vm.bootMode.hasAgent {
+                    timeZone
+                    clipboardSection
+                    sharedFolders
+                }
                 if model.vm.bootMode == .windows { sound }
             }
             .formStyle(.grouped)

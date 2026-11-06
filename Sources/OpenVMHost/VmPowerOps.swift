@@ -81,7 +81,7 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
         return r.fail("start requires a stopped VM (state=\(record.state.rawValue))")
     }
     // For Windows VMs, we don't need Linux artifacts; the EFI boot loader handles it.
-    if record.bootMode != .windows {
+    if record.usesNetboot {
         guard GuestBoot.supportArtifacts() != nil else {
             // No guest bits: keep the registry-only transition so plain
             // lifecycle use works without artifacts installed.
@@ -93,10 +93,10 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
     }
     var artifactToken: String?
     // Netboot fetches the pinned modloop from here, with or without a disk.
-    if record.bootMode != .windows, GuestBoot.pinnedModloop() != nil || GuestPayload.overlay != nil {
+    if record.usesNetboot, GuestBoot.pinnedModloop() != nil || GuestPayload.overlay != nil {
         try artifactReceiver.start()
     }
-    if let diskPath = record.diskPath, record.bootMode != .windows {
+    if let diskPath = record.diskPath, record.usesNetboot {
         let diskURL = URL(fileURLWithPath: diskPath)
         let installRecord = diskURL.appendingPathExtension("openvm-installed")
         if !FileManager.default.fileExists(atPath: installRecord.path) {
@@ -107,9 +107,9 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
     // Boot first, registry transition second: a failure (or a daemon kill)
     // mid-boot leaves a clean `stopped` record. Other clients do see `stopped`
     // while the boot runs; the row's `activity` ("start") says what is happening.
-    // Windows: one machine identifier for the VM's lifetime.
+    // UEFI guests: one machine identifier for the VM's lifetime.
     var machineIdentifier: Data?
-    if record.bootMode == .windows {
+    if !record.usesNetboot {
         if let stored = record.machineIdentifier, let data = Data(base64Encoded: stored) {
             machineIdentifier = data
         } else if #available(macOS 13.0, *) {
@@ -175,6 +175,9 @@ nonisolated func stopVm(_ r: VmRequest) throws -> Envelope {
             if "\(error)".contains("refused to shut down") { answer = .refused }
             note("openvmd: \(record.name): agent could not start a shutdown: \(error)")
         }
+        // A guest with no agent can only be asked through the framework, and it may well be a real
+        // install flushing its disks: it gets the same time as one that said it was stopping.
+        if !g.hasAgent { answer = .stopping }
         let grace = GuestShutdown.gracePolls(answer)
         let stopWait = BootWaiter()
         Task { @MainActor in

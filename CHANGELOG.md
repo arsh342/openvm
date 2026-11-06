@@ -14,4 +14,5 @@ First public version.
 * The clipboard follows window focus (text only, never anything a password manager marks private)
 * Files sent from a guest to the Mac land in Downloads/openVM, marked as downloaded
 * A Linux guest that restarts itself is started again
+* Any other ARM64 Linux can be installed from its own ISO, with its own installer; these guests have no openVM tools yet
 * The wizard asks for the Windows user name and password, and whether to sign in automatically

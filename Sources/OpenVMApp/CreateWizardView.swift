@@ -43,6 +43,9 @@ struct CreateWizardView: View {
                 .linux, symbol: "terminal", title: "Linux",
                 detail: "Alpine Linux with a desktop. It installs itself in a few minutes, and needs no download from you.")
             choice(
+                .linuxISO, symbol: "opticaldisc", title: "Another Linux, from an ISO",
+                detail: "Ubuntu, Fedora, Debian, Kali, Omarchy or any other ARM64 build. You finish its own installer in the VM's window.")
+            choice(
                 .windows, symbol: "macwindow", title: "Windows 11",
                 detail: "The ARM64 edition, installed from your own ISO from Microsoft. Setup takes about 15 to 30 minutes.")
         }
@@ -74,7 +77,21 @@ struct CreateWizardView: View {
 
     private var sourcePage: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(model.os == .windows ? "Your Windows ISO" : "Linux files").font(.title2.weight(.semibold))
+            Text(model.os == .windows ? "Your Windows ISO" : (model.os == .linuxISO ? "Your Linux ISO" : "Linux files"))
+                .font(.title2.weight(.semibold))
+            if model.os == .linuxISO {
+                Text("Download the ARM64 (aarch64) ISO of the distribution you want, and choose it here. Macs with Apple silicon cannot run Intel and AMD (x86_64) builds.")
+                    .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    Button("Choose ISO…") { chooseISO() }
+                    if model.iso == .checking { ProgressView().controlSize(.small) }
+                }
+                isoStatus
+                if model.iso == .usable, model.isoUnchecked {
+                    Text("openVM could not read this ISO's boot files, so it cannot say whether it will start. You can still try it.")
+                        .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                }
+            }
             if model.os == .windows {
                 Text("openVM ships no Windows. Download Windows 11 (ARM64) from Microsoft and choose the ISO here.")
                     .foregroundStyle(.secondary)
@@ -84,7 +101,7 @@ struct CreateWizardView: View {
                 }
                 isoStatus
             }
-            if model.os == .linux || !(model.host?.hostWimlib ?? false) {
+            if model.os == .linux || (model.os == .windows && !(model.host?.hostWimlib ?? false)) {
                 linuxFiles
             }
         }
@@ -181,11 +198,19 @@ struct CreateWizardView: View {
         .formStyle(.grouped)
     }
 
+    private var systemLabel: String {
+        switch model.os {
+        case .windows: return "Windows 11 (ARM64)"
+        case .linux: return "Alpine Linux"
+        case .linuxISO: return model.isoPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "Linux"
+        }
+    }
+
     private var summaryPage: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Ready to create").font(.title2.weight(.semibold))
             row("Name", model.name)
-            row("System", model.os == .windows ? "Windows 11 (ARM64)" : "Alpine Linux")
+            row("System", systemLabel)
             row("CPUs", "\(model.cpus)")
             row("Memory", memoryLabel(model.memoryMB))
             row("Disk", "\(model.diskGB) GB")
@@ -228,8 +253,14 @@ struct CreateWizardView: View {
     private var finishedPage: some View {
         VStack(alignment: .leading, spacing: 12) {
             Image(systemName: "checkmark.circle.fill").font(.system(size: 44)).foregroundStyle(.green)
-            Text("\(model.name) is ready").font(.title2.weight(.semibold))
-            Text("It is running, and its window is open.").foregroundStyle(.secondary)
+            Text(model.os == .linuxISO ? "\(model.name) is starting its installer" : "\(model.name) is ready")
+                .font(.title2.weight(.semibold))
+            Text(
+                model.os == .linuxISO
+                    ? "Finish the installer in its window. When it asks to restart, the VM stops: press Start."
+                    : "It is running, and its window is open."
+            )
+            .foregroundStyle(.secondary)
         }
     }
 
@@ -302,7 +333,7 @@ struct CreateWizardView: View {
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = false
         if let iso = UTType(filenameExtension: "iso") { panel.allowedContentTypes = [iso] }
-        panel.message = "Choose the Windows 11 ARM64 ISO."
+        panel.message = model.os == .linuxISO ? "Choose an ARM64 Linux ISO." : "Choose the Windows 11 ARM64 ISO."
         panel.prompt = "Choose"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         Task { await model.chooseISO(url.path) }

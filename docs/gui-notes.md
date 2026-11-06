@@ -345,3 +345,30 @@ overridden by a refit (the guest held 1024x590 a minute later).
 in use),  but softer than a Retina display can show,
 and the Retina Resolution menu is off for Windows. `openvmctl display set` is not held, so it can still
 scramble. Retina sizes for Windows need the cause found.
+
+## Another Linux, from an ISO
+
+`--boot-mode linux-iso` (the wizard's "Another Linux, from an ISO") is a plain UEFI machine: firmware, a
+blank virtio disk, and the ISO on a USB stick, with the distribution's own installer in the VM window.
+There is no per-distribution code. Any ARM64 build that boots by UEFI should work.
+
+* **The check.** `linux-iso-check` scans the file for the boot file names, because macOS could not mount
+  the hybrid ISO tried. It refuses an ISO with only x86-64 names, and lets one with neither through with a
+  note that it may or may not start.
+* **No agent.** These guests have no openVM agent, so a boot is done when the firmware has the machine,
+  and every channel op answers "this guest has no openVM tools" at once. The controls that need the agent
+  are off or hidden. Resizing is the framework's own (`automaticallyReconfiguresDisplay`), which depends
+  on the guest's display driver and desktop.
+* **Stopping.** There is no agent to ask, so the guest gets the framework's stop request and 120 seconds.
+  A guest that ignores the request is then forced off.
+* **After the install.** The firmware's variable store is kept, so the installer's boot entry survives. A
+  restart stops the VM (the framework has no reboot), so press Start. Devices ▸ Eject Installer ISO, or
+  `openvmctl eject`, takes the ISO away; the person's file is left where it is, and deleting the VM does
+  not touch it.
+
+**Measured with a real ISO** (`omarchy-4.5.0-aarch64.iso`, a person at the keyboard): the ISO passed the
+check and booted; its installer took keyboard and pointer input; the picture filled the window, correct
+at the view's size. Asked to stop from the host, that guest did not stop within 120 seconds and was forced
+off, so shut these guests down from inside. Alpine's ARM64 and x86_64 virt ISOs were told apart by the
+check, and a cut-off file was refused. Not yet seen on a real guest: starting an installed system from its
+disk after a restart, live resizing, and any distribution other than Omarchy.

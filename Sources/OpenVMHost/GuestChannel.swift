@@ -80,6 +80,7 @@ nonisolated enum GuestChannel {
 
     /// Connects to the guest agent, and closes the connection when `use` returns.
     private static func withConnection<T>(_ g: LiveGuest, _ use: (Int32) throws -> T) throws -> T {
+        guard g.hasAgent else { throw GuestBootError.failure("this guest has no openVM tools") }
         let box = ConnBox()
         Task { @MainActor in
             do {

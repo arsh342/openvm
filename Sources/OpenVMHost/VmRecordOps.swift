@@ -27,6 +27,7 @@ nonisolated func vmRow(_ rec: VmRecord) -> [(key: String, value: CBOR)] {
     }
     row.append(("clipboardSync", .bool(rec.syncsClipboard)))
     row.append(("outbox", .bool(rec.acceptsOutbox)))
+    if rec.bootMode == .linuxISO, rec.installMediaPath != nil { row.append(("installerAttached", .bool(true))) }
     return row
 }
 
@@ -68,7 +69,7 @@ nonisolated func createVm(_ r: VmRequest) throws -> Envelope {
     }
     var bootMode: BootMode = .linux
     if case .text(let mode)? = r.arg("boot-mode") {
-        guard let m = BootMode(rawValue: mode) else { return r.fail("boot-mode must be linux or windows") }
+        guard let m = BootMode(rawValue: mode) else { return r.fail("boot-mode must be linux, windows or linux-iso") }
         bootMode = m
     }
     var variableStorePath: String?
@@ -77,12 +78,13 @@ nonisolated func createVm(_ r: VmRequest) throws -> Envelope {
     }
     var installMediaPath: String?
     if case .text(let path)? = r.arg("install-media") {
-        guard bootMode == .windows else { return r.fail("--install-media applies to --boot-mode windows") }
+        guard bootMode != .linux else { return r.fail("--install-media applies to --boot-mode windows or linux-iso") }
         guard FileManager.default.fileExists(atPath: path) else {
             return r.fail("install media not found: \(path)")
         }
         installMediaPath = URL(fileURLWithPath: path).standardizedFileURL.path
     }
+    if bootMode == .linuxISO, installMediaPath == nil { return r.fail("--boot-mode linux-iso needs --install-media <iso>") }
     guard !((try registry.list()).contains { $0.name == name }) else {
         return r.fail("nameExists")
     }

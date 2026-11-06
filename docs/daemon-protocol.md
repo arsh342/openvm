@@ -51,6 +51,8 @@ the daemon replies on the same id.
 | share-add | `id`; `hostPath` (an existing host directory), `guestPath` (optional; defaults to `/mnt/openvm/<basename>`) | adds the directory to the VM's virtio-fs share set and mounts it in the guest (live VMs), or records it for the next boot |
 | share-remove | `id`, `hostPath` | unmounts the share in the guest and drops the export and the record entry |
 | share-list | `id` | lists the record's shares as `hostPath`/`guestPath` rows |
+| linux-iso-check | `iso` | whether an ISO can start here: `usable`, with `problem` when it cannot and `unknown` when its boot files were not found |
+| eject-installer | `id` | takes a stopped `linux-iso` VM's installer ISO away, so it starts from its disk |
 | drag | `id`, `op` (`enter`, `leave`, `drop`, `status`, `send`); `paths` for `drop`, `path` (a guest path) for `send` | stages host files and has the guest put them on the user's Desktop; `send` runs the guest's send tool as the desktop user, which is what the file manager's "Send to Mac" does. A guest too old to know `send` is told so in plain words |
 | printer | `id`, `op` (`list`, `test`), `name` for `test` | lists the guest's queues, or prints a test page |
 | audio | `id`, `op` (`status`, `test`, `enable`, `disable`); `enable` also needs `testMode: true` | reports or tests guest sound; adds `hostOutputRunning`. `enable` and `disable` are Windows only |

@@ -267,3 +267,18 @@ extension SnapshotTests {
         Snapshot.check("wizard-account", CreateWizardView(model: model, close: {}), width: 600, height: 540)
     }
 }
+
+extension SnapshotTests {
+    @Test(.enabled(if: Snapshot.enabled))
+    func wizardAsksForALinuxIso() async {
+        let host = FakeTransport()
+        host.respond("host-info", with: FakeTransport.hostInfoFields)
+        host.respond("linux-iso-check", with: [("usable", .bool(false)), ("problem", .text(LinuxISOCheck.Verdict.x86Only.problem ?? ""))])
+        let model = CreateWizardModel(transport: host, existingNames: [])
+        await model.load()
+        model.os = .linuxISO
+        model.next()
+        await model.chooseISO("/x/kali-amd64.iso")
+        Snapshot.check("wizard-linux-iso", CreateWizardView(model: model, close: {}), width: 600, height: 540)
+    }
+}

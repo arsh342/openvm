@@ -600,3 +600,76 @@ extension CreateWizardModel {
         accountConfirm = "a good password"
     }
 }
+
+@MainActor
+struct WizardLinuxISOTests {
+    private func wizard(_ reply: [(key: String, value: CBOR)]) async -> (CreateWizardModel, FakeTransport) {
+        let host = FakeTransport()
+        host.respond("host-info", with: FakeTransport.hostInfoFields)
+        host.respond("linux-iso-check", with: reply)
+        let model = CreateWizardModel(transport: host, existingNames: [], pollInterval: .milliseconds(1))
+        await model.load()
+        model.os = .linuxISO
+        return (model, host)
+    }
+
+    @Test func anIsoIsNeededAndNoLinuxFilesAre() async {
+        let (model, host) = await wizard([("usable", .bool(true))])
+        model.next()
+        #expect(model.page == .source)
+        #expect(model.problem?.contains("ISO") == true)
+        await model.chooseISO("/x/omarchy-arm64.iso")
+        #expect(host.arg("linux-iso-check", "iso") == .text("/x/omarchy-arm64.iso"))
+        #expect(model.problem == nil)
+    }
+
+    @Test func anIntelIsoStopsThereWithTheReason() async {
+        let (model, _) = await wizard([("usable", .bool(false)), ("problem", .text("This ISO is for Intel and AMD PCs."))])
+        model.next()
+        await model.chooseISO("/x/kali-amd64.iso")
+        #expect(model.problem?.contains("Intel") == true)
+        model.next()
+        #expect(model.page == .source)
+    }
+
+    @Test func anIsoThatCannotBeReadCanStillBeTried() async {
+        let (model, _) = await wizard([("usable", .bool(true)), ("unknown", .bool(true))])
+        model.next()
+        await model.chooseISO("/x/odd.iso")
+        #expect(model.isoUnchecked)
+        #expect(model.problem == nil)
+    }
+
+    @Test func itHasNoAccountStepAndCreatesFromTheIso() async {
+        let (model, host) = await wizard([("usable", .bool(true))])
+        model.next()
+        await model.chooseISO("/x/fedora-aarch64.iso")
+        model.next()
+        #expect(model.page == .resources)
+        #expect(model.name == "linux-vm")
+        #expect(model.diskGB == 64)
+        model.next()
+        #expect(model.page == .summary)  // the distribution's own installer makes the account
+        await model.create()
+        #expect(model.page == .finished)
+        #expect(host.arg("create", "boot-mode") == .text("linux-iso"))
+        #expect(host.arg("create", "install-media") == .text("/x/fedora-aarch64.iso"))
+        #expect(!host.calls.contains("task-start"))  // nothing to build: the ISO boots as it is
+        #expect(host.calls.contains("start"))
+    }
+
+    @Test func changingTheSystemForgetsTheIso() async {
+        let (model, _) = await wizard([("usable", .bool(true))])
+        model.next()
+        await model.chooseISO("/x/a.iso")
+        model.os = .windows
+        #expect(model.isoPath == nil)
+        #expect(model.iso == .none)
+    }
+
+    @Test func theSummaryExplainsTheInstallerAndTheMissingTools() async {
+        let (model, _) = await wizard([("usable", .bool(true))])
+        #expect(model.summaryNotes.contains { $0.contains("Eject Installer ISO") })
+        #expect(model.summaryNotes.contains { $0.contains("guest tools") })
+    }
+}

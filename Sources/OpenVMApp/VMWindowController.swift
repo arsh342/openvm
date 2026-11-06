@@ -64,7 +64,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
 
         // The display size is set by the host's display op, not by the view: the guest's
         // agent has to adopt a mode, which the view cannot do.
-        machineView.automaticallyReconfiguresDisplay = false
+        // A guest from an ISO has no agent to adopt a mode, so there the framework does it itself.
+        machineView.automaticallyReconfiguresDisplay = !vm.bootMode.hasAgent
         machineView.capturesSystemKeys = false
 
         // Both fill the window, pinned with constraints. The machine view is built for Auto
@@ -97,7 +98,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private func wireDrops() {
         machineView.acceptsDrops = { [weak self] in
             guard let self else { return false }
-            return self.state == .running && !self.drops.isRunning
+            return self.state == .running && self.vm.bootMode.hasAgent && !self.drops.isRunning
         }
         machineView.onFiles = { [weak self] urls, cleanup in
             guard let self else { return }
@@ -221,7 +222,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     func update(_ vm: VmSummary) {
         self.vm = vm
         let before = state
-        clipboard.setEnabled(vm.clipboardSync)
+        clipboard.setEnabled(vm.clipboardSync && vm.bootMode.hasAgent)
         let machine = OpenVMHost.liveMachine(vm.uuid)
         state = VMWindowState.from(vm, hasMachine: machine != nil)
         if state.showsScreen {
@@ -272,6 +273,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     /// last frame, so a window dragged larger never shows a failure.
     private func fitGuestToWindow() {
         guard state == .running, let window else { return }
+        guard vm.bootMode.hasAgent else { return }
         let backing = DisplayPreference().backingScale(for: vm.uuid, actual: window.backingScaleFactor)
         let size = machineView.bounds.size
         let mode =

@@ -63,6 +63,9 @@ final class VMListModel: ObservableObject {
     /// Asks the guest to shut down, and waits for it.
     func stop(_ vm: VmSummary) async { await act("stop", vm) }
 
+    /// Takes the installer ISO out of a stopped VM, so it starts from its disk.
+    func ejectInstaller(_ vm: VmSummary) async { await act("eject-installer", vm) }
+
     /// Shuts the guest down and starts it again. A stop the host refused leaves the VM as it was.
     func restart(_ vm: VmSummary) async {
         await act("stop", vm)

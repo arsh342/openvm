@@ -89,16 +89,19 @@ struct LiveGuest {
     nonisolated var phase: GuestPhase = .booting
     /// The framework holds its delegate weakly, so this is what keeps it alive.
     nonisolated let delegate: GuestDelegate
+    /// False for a guest with no openVM agent: the channel then says so at once, instead of timing out.
+    nonisolated let hasAgent: Bool
 
     /// Wraps a machine and starts listening for its end. Main actor: the delegate is
     /// set on the machine's own queue.
     @MainActor
-    init(vm: VZVirtualMachine, uuid: String) {
+    init(vm: VZVirtualMachine, uuid: String, hasAgent: Bool = true) {
         let boot = UUID()
         let delegate = GuestDelegate(uuid: uuid, boot: boot)
         vm.delegate = delegate
         self.vm = vm
         self.boot = boot
+        self.hasAgent = hasAgent
         self.delegate = delegate
     }
 }
@@ -120,8 +123,15 @@ nonisolated final class BootWaiter: @unchecked Sendable {
     }
 }
 
-nonisolated enum GuestBootError: Error {
+nonisolated enum GuestBootError: Error, CustomStringConvertible {
     case failure(String)
+
+    /// The message itself: this reaches people, through the wizard and the CLI.
+    var description: String {
+        switch self {
+        case .failure(let message): return message
+        }
+    }
 }
 
 enum GuestBoot {
@@ -212,6 +222,13 @@ enum GuestBoot {
         machineIdentifier: Data? = nil,
         publish: @MainActor (LiveGuest?) -> Void = { _ in }
     ) async throws -> LiveGuest {
+        if bootMode == .linuxISO {
+            guard #available(macOS 13.0, *) else { throw GuestBootError.failure("this needs macOS 13 or newer") }
+            return try await GuestLinuxISO.boot(
+                cpus: cpus, memoryMB: memoryMB, consoleURL: consoleURL, diskURL: diskURL, vmUUID: vmUUID,
+                variableStorePath: variableStorePath, shares: shares, installMediaPath: installMediaPath,
+                machineIdentifier: machineIdentifier, publish: publish)
+        }
         if bootMode == .windows {
             if #available(macOS 13.0, *) {
                 return try await bootWindows(

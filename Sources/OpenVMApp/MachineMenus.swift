@@ -78,6 +78,7 @@ final class MachineMenus: NSObject, NSMenuDelegate {
         add(.outbox, to: menu)
         menu.addItem(.separator())
         add(.shareFolder, to: menu)
+        add(.ejectInstaller, to: menu)
         return menu
     }
 
@@ -208,6 +209,7 @@ final class MachineMenus: NSObject, NSMenuDelegate {
         case .shareFolder: actions.shareFolder(vm)
         case .clipboard: await model.setClipboardSync(vm, !vm.clipboardSync)
         case .outbox: await model.setOutbox(vm, !vm.outbox)
+        case .ejectInstaller: await model.ejectInstaller(vm)
         case .settings: actions.showSettings(vm)
         }
     }

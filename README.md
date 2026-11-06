@@ -36,7 +36,7 @@ Built in Swift and C, on Apple's own `Virtualization.framework`.
 | Clock and time zone follow your Mac | Yes | Yes |
 | Safe pause when your Mac sleeps | Yes | Yes |
 
-Guests are Alpine Linux ARM64 with an XFCE desktop, and Windows 11 ARM64.
+Guests are Alpine Linux ARM64 with an XFCE desktop, and Windows 11 ARM64, and these features are for those two. You can also install any other ARM64 Linux from its own ISO (see below).
 
 ## Requirements
 
@@ -97,6 +97,21 @@ Check that the ISO is one openVM can use, then build the install media (about a 
 Without `wimlib` on the Mac, fetch the Linux files first (`openvmctl task start fetch-linux`): the media is then built in a helper VM. The media needs about 22 GB of disk while it exists.
 
 From the wizard you choose the Windows user name and password. Built by hand, the guest has an administrator account `openvm` with the password `openvm`, so change it if the guest matters to you.
+
+### Install another Linux from its ISO
+
+Use **New Virtual Machine ▸ Another Linux, from an ISO** in the app, or:
+
+```sh
+.build/debug/openvmctl linux-iso check ~/Downloads/distro-arm64.iso
+.build/debug/openvmctl create mylinux --boot-mode linux-iso --install-media ~/Downloads/distro-arm64.iso --diskSizeMB 65536
+.build/debug/openvmctl start mylinux       # finish the distribution's own installer in the VM's window
+.build/debug/openvmctl eject mylinux       # with the VM stopped, once it is installed
+```
+
+The ISO must be an ARM64 (aarch64) build that boots by UEFI: Macs with Apple silicon cannot run Intel and AMD builds. Ubuntu, Debian, Fedora and Kali publish these. Official Arch Linux is x86-64 only, and Omarchy is built on it, so only a community ARM64 build of Omarchy can work.
+
+These guests run without openVM's guest tools, so clipboard, drag and drop, Send to Mac, shared-folder mounting, printing and clock sync do not work in them yet. When a guest restarts itself the VM stops; press Start.
 
 ## Using a guest
 

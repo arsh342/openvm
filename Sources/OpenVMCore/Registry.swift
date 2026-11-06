@@ -13,6 +13,12 @@ public nonisolated enum VmState: String, Codable, Sendable {
 /// Boot mode of the VM. Determines which boot loader and device model to use.
 public nonisolated enum BootMode: String, Codable, Sendable {
     case linux, windows
+    /// Any ARM64 Linux, booted by UEFI from its own ISO, with its own installer.
+    case linuxISO = "linux-iso"
+
+    /// Whether the guest runs openVM's agent. A distribution's own install has none, so nothing
+    /// that needs the guest channel (clipboard, drops, sending files, the clock) applies to it.
+    public var hasAgent: Bool { self != .linuxISO }
 }
 
 /// One VM, as stored in vms.json. See docs/vm-records.md.
@@ -36,6 +42,9 @@ public nonisolated struct VmRecord: Codable, Sendable, Equatable {
     /// Whether the clipboard is shared with this VM. A record from before the setting existed
     /// has none, and that means on.
     public var syncsClipboard: Bool { clipboardSync ?? true }
+
+    /// The VM boots openVM's own Alpine netboot path: it needs the Linux files, and the host serves them.
+    public var usesNetboot: Bool { (bootMode ?? .linux) == .linux }
 
     /// Whether files the guest sends are taken to the Mac. Missing means on.
     public var acceptsOutbox: Bool { outbox ?? true }

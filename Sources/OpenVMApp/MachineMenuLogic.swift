@@ -4,7 +4,8 @@ import Foundation
 import OpenVMCore
 
 enum MachineCommand: CaseIterable {
-    case power, restart, pause, fullScreen, retinaBest, retinaScaled, shareFolder, clipboard, outbox, settings
+    case power, restart, pause, fullScreen, retinaBest, retinaScaled, shareFolder, clipboard, outbox, ejectInstaller
+    case settings
 }
 
 struct MachineMenuItem: Equatable {
@@ -35,14 +36,23 @@ enum MachineMenuLogic {
         case .fullScreen:
             return MachineMenuItem(
                 title: fullScreen ? "Exit Full Screen" : "Enter Full Screen", enabled: state.fullScreenEnabled)
-        // A Windows guest is held at one width for now (DisplayFit.windowsMode), so it has no choice to make.
+        // Only openVM's own Linux guest takes a size from these. A Windows guest is held at one width for
+        // now (DisplayFit.windowsMode), and a guest from an ISO sizes itself through the framework.
         case .retinaBest:
-            return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode != .windows, checked: !scaled)
+            return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode == .linux, checked: !scaled)
         case .retinaScaled:
-            return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode != .windows, checked: scaled)
-        case .shareFolder: return MachineMenuItem(title: defaultTitle(command), enabled: true)
-        case .clipboard: return MachineMenuItem(title: defaultTitle(command), enabled: true, checked: vm.clipboardSync)
-        case .outbox: return MachineMenuItem(title: defaultTitle(command), enabled: true, checked: vm.outbox)
+            return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode == .linux, checked: scaled)
+        // These work through the guest agent, so a guest without one has nothing to offer.
+        case .shareFolder: return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode.hasAgent)
+        case .clipboard:
+            return MachineMenuItem(
+                title: defaultTitle(command), enabled: vm.bootMode.hasAgent, checked: vm.bootMode.hasAgent && vm.clipboardSync)
+        case .outbox:
+            return MachineMenuItem(
+                title: defaultTitle(command), enabled: vm.bootMode.hasAgent, checked: vm.bootMode.hasAgent && vm.outbox)
+        case .ejectInstaller:
+            return MachineMenuItem(
+                title: defaultTitle(command), enabled: vm.installerAttached && vm.state == .stopped && vm.activity == nil)
         case .settings: return MachineMenuItem(title: defaultTitle(command), enabled: true)
         }
     }
@@ -75,6 +85,7 @@ enum MachineMenuLogic {
         case .shareFolder: return "Share Folder…"
         case .clipboard: return "Share Clipboard"
         case .outbox: return "Accept Files from the VM"
+        case .ejectInstaller: return "Eject Installer ISO"
         case .settings: return "Settings…"
         }
     }
