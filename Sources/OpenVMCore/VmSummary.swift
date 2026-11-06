@@ -14,6 +14,10 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
     /// The disk's size as the guest sees it.
     public let diskBytes: UInt64?
     public let timezone: String?
+    /// A Windows install is running for this VM. Quitting would stop it.
+    public let installing: Bool
+    /// Files are being copied into this VM. Quitting would cut them off.
+    public let dropping: Bool
 
     /// Rows from an older host lack the newer fields, and still decode.
     public init?(row: CBOR) {
@@ -26,6 +30,10 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
         func text(_ key: String) -> String? {
             if case .text(let value)? = fields.first(where: { $0.key == key })?.value { return value }
             return nil
+        }
+        func flag(_ key: String) -> Bool {
+            if case .bool(let value)? = fields.first(where: { $0.key == key })?.value { return value }
+            return false
         }
         func number(_ key: String) -> UInt64? {
             if case .uint(let value)? = fields.first(where: { $0.key == key })?.value { return value }
@@ -40,5 +48,7 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
         self.memoryMB = Int(number("memoryMB") ?? 0)
         self.diskBytes = number("diskBytes")
         self.timezone = text("timezone")
+        self.installing = flag("installing")
+        self.dropping = flag("dropping")
     }
 }

@@ -68,3 +68,14 @@ import Testing
         #expect(slotDecision(op: "delete", holder: "start") == .busy("start"))
     }
 }
+
+extension GuestLifecycleTests {
+    /// A cancelled boot leaves the table a moment after the stop returns, so the count is
+    /// taken against the final state, not against each pass.
+    @Test func stopAllCountsWhatWasLiveAndIsGone() {
+        #expect(stoppedCount(before: ["a", "b"], after: []) == 2)
+        #expect(stoppedCount(before: ["a", "b"], after: ["b"]) == 1)
+        #expect(stoppedCount(before: [], after: []) == 0)
+        #expect(stoppedCount(before: ["a"], after: ["a"]) == 0)  // one that would not stop is not counted
+    }
+}

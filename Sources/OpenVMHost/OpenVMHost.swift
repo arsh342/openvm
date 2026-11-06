@@ -52,6 +52,42 @@ public nonisolated enum OpenVMHost {
         PrinterBridge(home: home).start()
     }
 
+    /// The blocking core of `stopAll`, also the `stop-all` op. Returns how many guests it stopped.
+    nonisolated static func stopAllBlocking() -> Int {
+        let before = Set(liveVMs.ids())
+        for _ in 0..<5 {
+            let ids = liveVMs.ids()
+            if ids.isEmpty { break }
+            let group = DispatchGroup()
+            for id in ids {
+                group.enter()
+                DispatchQueue.global().async {
+                    _ = vmOp("stop", [("id", .text(id))], Envelope(type: .vmRequest, correlationId: 0))
+                    group.leave()
+                }
+            }
+            group.wait()
+            // A VM busy with another op answers "busy", and a cancelled boot leaves the table a
+            // moment after its stop returns: give them a moment and go round again.
+            if !liveVMs.ids().isEmpty { Thread.sleep(forTimeInterval: 0.5) }
+        }
+        return stoppedCount(before: before, after: Set(liveVMs.ids()))
+    }
+
+    /// Shuts down every guest this host holds, all at once, and returns when they are gone.
+    /// The app calls this when it quits. Each stop is the same op `openvmctl stop` sends: the
+    /// guest is asked to shut down and forced off only if it does not, and a guest still
+    /// booting is cancelled. It runs off the main actor, because a stop waits for the main
+    /// queue and would deadlock there.
+    public static func stopAll() async {
+        await withCheckedContinuation { (done: CheckedContinuation<Void, Never>) in
+            DispatchQueue.global().async {
+                _ = stopAllBlocking()
+                done.resume()
+            }
+        }
+    }
+
     /// The live machine for a VM, for a view to show. Main actor only.
     @MainActor
     public static func liveMachine(_ uuid: String) -> VZVirtualMachine? {

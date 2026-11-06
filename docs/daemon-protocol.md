@@ -37,6 +37,7 @@ the daemon replies on the same id.
 | suspend| `id`                                       | pauses the live guest (VZ pause) and records `suspended`; needs this daemon to hold the live guest |
 | resume | `id`                                       | unpauses the suspended live guest and records `running`; needs this daemon to hold the live guest |
 | set    | `id`; `cpus`, `memoryMB`, `tz`, `boot-mode`, `variable-store-path` (at least one) | updates the record while it is `stopped` (same ranges as `create`; `tz` is an IANA zone name, applied to the guest at the next boot or resume) |
+| stop-all | (none) | stops every live guest at once, the way quitting the app does, and answers how many it stopped. A guest still booting is cancelled |
 | ping  | `id` (name or uuid)                         | host sends `echoRequest` over the guest's dedicated channel port and waits for the in-guest agent's `echoReply`; needs this daemon to hold the live guest |
 | clipboard-write | `id`, `text` (UTF-8 text) | sends host clipboard text to the guest agent |
 | clipboard-read | `id` | reads guest clipboard text from the guest agent |
@@ -51,7 +52,7 @@ the daemon replies on the same id.
 | audio | `id`, `op` (`status`, `test`, `enable`, `disable`) | reports or tests guest sound; adds `hostOutputRunning`. `enable` and `disable` are Windows only |
 | display | `id`; `op` `capture`, or `width`, `height` and optional `scale` (1 to 3) | changes the guest's mode and scale, or saves its screen for `file pull` |
 
-`list` and `info` rows also carry `bootMode`, `timezone` (when set), `diskBytes` (the disk's size as the guest sees it) and `activity` (the op in flight, absent when idle). The ops that change a VM's life (`start`, `stop`, `suspend`, `resume`, `delete`, `set`) hold its slot while they run: a second one answers `<name> is busy: <op>`. A `stop` is let through a `start`, because it is how a boot is cancelled.
+`list` and `info` rows also carry `bootMode`, `timezone` (when set), `diskBytes` (the disk's size as the guest sees it), `activity` (the op in flight, absent when idle), `installing` (a Windows install is running) and `dropping` (files are being copied in); the last two are absent unless true. The ops that change a VM's life (`start`, `stop`, `suspend`, `resume`, `delete`, `set`) hold its slot while they run: a second one answers `<name> is busy: <op>`. A `stop` is let through a `start`, because it is how a boot is cancelled.
 
 Name rule: 1–64 chars of `[A-Za-z0-9_-]`, first char alphanumeric (so CLI flags never
 collide). Record ids are `UUID().uuidString` values, generated at create time.

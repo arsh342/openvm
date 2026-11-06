@@ -27,6 +27,13 @@ nonisolated final class LiveVMs: @unchecked Sendable {
         vms[id] = g
     }
 
+    /// Every VM this host holds a live guest for.
+    func ids() -> [String] {
+        lock.lock()
+        defer { lock.unlock() }
+        return Array(vms.keys)
+    }
+
     func peek(_ id: String) -> LiveGuest? {
         lock.lock()
         defer { lock.unlock() }
@@ -429,6 +436,8 @@ enum GuestBoot {
         guard FileManager.default.fileExists(atPath: mediaURL.path) else {
             throw GuestBootError.failure("install media not found: \(mediaURL.path)")
         }
+        installs.begin(vmUUID)
+        defer { installs.end(vmUUID) }
         let installStore = vmDir.appendingPathComponent("nvram-install.bin")
         try? FileManager.default.removeItem(at: installStore)
         defer { try? FileManager.default.removeItem(at: installStore) }

@@ -21,6 +21,10 @@ nonisolated func vmRow(_ rec: VmRecord) -> [(key: String, value: CBOR)] {
     row.append(("bootMode", .text((rec.bootMode ?? .linux).rawValue)))
     if let tz = rec.timezone { row.append(("timezone", .text(tz))) }
     if let busy = activity.current(rec.uuid) { row.append(("activity", .text(busy))) }
+    if installs.contains(rec.uuid) { row.append(("installing", .bool(true))) }
+    if let live = liveVMs.peek(rec.uuid), activeDrops.get(live.boot) != nil {
+        row.append(("dropping", .bool(true)))
+    }
     return row
 }
 

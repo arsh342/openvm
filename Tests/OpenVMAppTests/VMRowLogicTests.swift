@@ -66,3 +66,21 @@ struct VMRowLogicTests {
         #expect(!VMRowLogic.deleteConfirmation(for: vm("lab", diskBytes: nil)).message.contains("("))
     }
 }
+
+extension VMRowLogicTests {
+    /// The menu-bar popover shows one button per VM: the thing a person most likely wants.
+    @Test func eachVmHasOneObviousAction() {
+        #expect(VMRowLogic.primaryAction(for: vm(state: "stopped")) == .start)
+        #expect(VMRowLogic.primaryAction(for: vm(state: "running")) == .open)
+        #expect(VMRowLogic.primaryAction(for: vm(state: "suspended")) == .resume)
+        #expect(VMRowLogic.primaryAction(for: vm(state: "stopped", activity: "start")) == .open)
+        #expect(VMRowLogic.primaryAction(for: vm(state: "running", activity: "stop")) == .open)
+    }
+
+    /// Delete is never the obvious action, however the list is arranged.
+    @Test func theObviousActionIsNeverDelete() {
+        for state in ["stopped", "running", "suspended"] {
+            #expect(VMRowLogic.primaryAction(for: vm(state: state)) != .delete)
+        }
+    }
+}

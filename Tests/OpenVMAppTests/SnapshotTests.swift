@@ -81,7 +81,7 @@ enum Snapshot {
 
 @MainActor
 struct SnapshotTests {
-    private func model(_ rows: [CBOR]) async -> VMListModel {
+    func model(_ rows: [CBOR]) async -> VMListModel {
         let host = FakeTransport()
         host.rows = rows
         let model = VMListModel(transport: host)
@@ -113,5 +113,20 @@ struct SnapshotTests {
         await model.refresh()
         model.lastError = "scratch is busy: start"
         Snapshot.check("list-action-error", VMListView(model: model, open: { _ in }), width: 820, height: 300)
+    }
+}
+
+extension SnapshotTests {
+    @Test(.enabled(if: Snapshot.enabled))
+    func popoverWithMixedStates() async {
+        let model = await model([
+            FakeTransport.row("ubuntu-lab", state: "running"),
+            FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
+            FakeTransport.row("scratch", state: "stopped"),
+            FakeTransport.row("fresh", state: "stopped", activity: "start"),
+        ])
+        Snapshot.check(
+            "popover-mixed-states", StatusPopoverView(model: model, act: { _, _ in }, showLibrary: {}, quit: {}),
+            width: 340, height: 330)
     }
 }

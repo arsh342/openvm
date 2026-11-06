@@ -94,6 +94,9 @@ case "list":
         print(usage)
         exit(2)
     }
+case "stop-all" where argv.count == 1:
+    // Shut down every running guest, as quitting the app does.
+    break
 case "stop" where argv.count == 3 && argv[2] == "--no-wait":
     // Ask the guest to stop and return at once; the VM's record follows it.
     args.append(("id", .text(argv[1])))

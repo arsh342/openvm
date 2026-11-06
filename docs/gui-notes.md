@@ -106,3 +106,27 @@ and a full-screen window (1470 x 923 points) gave a guest of 2936 x 1846 pixels.
 * **Measured.** A Unix socket path is limited to about 104 characters on macOS. A home
   directory with a longer path makes the host fail to start with "socket path too long", and the
   app shows that in its startup alert.
+
+## The menu-bar icon, the Dock icon and quitting
+
+* The menu-bar icon opens a popover with every VM and one button each (Start, Open or
+  Resume), a way back to the library, and Quit. It is how a running VM stays reachable with
+  every window closed.
+* **Closing a window never stops a VM.** With a window open the app is an ordinary Dock app.
+  With none open and a guest running, the Dock icon goes and the app lives in the menu bar;
+  opening any window brings the icon back.
+* **Quitting stops every guest**, so it asks first and names what would be lost: the running
+  guests (a paused one counts, because it is held in memory, not saved), a Windows install in
+  progress (it starts over), and files still being copied in. Confirming asks every guest to
+  shut down at once, forcing off only those that do not, before the app exits. With nothing
+  running, it quits at once.
+* `openvmctl stop-all` does the same shutdown from the command line.
+* **Measured** on a real Linux guest in its booting state: `stop-all` cancelled the boot, the
+  waiting `start` reported "cancelled", the VM returned to stopped with no activity, and it
+  could be started and cancelled again.
+
+To check by hand (the terminal cannot press these): the popover opens from the icon and each
+button does what it says; Cmd+Q with a guest running shows the dialog, Cancel keeps
+everything, and Shut Down and Quit shuts a guest down cleanly (on Windows, no Kernel-Power 41
+afterwards); closing the last window with a guest running removes the Dock icon, and the
+menu-bar icon brings a window back; host sleep with a window open pauses and resumes.

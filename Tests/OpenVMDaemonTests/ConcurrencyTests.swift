@@ -23,6 +23,18 @@ struct ConcurrencyTests {
         #expect(table.begin("b", "start"))
     }
 
+    @Test func installAndDropFlagsAppearInRows() {
+        let record = VmRecord(
+            uuid: "uuid-flags-row", name: "flags", state: .stopped, cpus: 2, memoryMB: 1024,
+            diskPath: nil, timezone: nil, shares: nil, bootMode: .windows,
+            variableStorePath: nil, installMediaPath: nil, machineIdentifier: nil,
+            createdAt: "2026-11-06T00:00:00Z")
+        #expect(!vmRow(record).contains { $0.key == "installing" })
+        installs.begin(record.uuid)
+        defer { installs.end(record.uuid) }
+        #expect(vmRow(record).contains { $0.key == "installing" && $0.value == .bool(true) })
+    }
+
     @Test func activityAppearsInRows() {
         let record = VmRecord(
             uuid: "uuid-activity-row", name: "row", state: .stopped, cpus: 2, memoryMB: 1024,
@@ -97,5 +109,18 @@ extension ConcurrencyTests {
         close(pair[0])  // gone before the reply is written
         proceed.signal()
         #expect(served.wait(timeout: .now() + 3) == .success)
+    }
+}
+
+extension ConcurrencyTests {
+    /// `stop-all` with nothing live is not an error: it is what quitting an idle app does.
+    @Test func stopAllWithNothingLiveSucceeds() {
+        let reply = vmOp("stop-all", [], Envelope(type: .vmRequest, correlationId: 5))
+        guard case .map(let body) = reply.body else {
+            Issue.record("reply was not a map")
+            return
+        }
+        #expect(body.contains { $0.key == "status" && $0.value == .text("ok") })
+        #expect(reply.correlationId == 5)
     }
 }

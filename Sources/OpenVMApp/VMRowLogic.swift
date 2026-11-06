@@ -20,6 +20,16 @@ enum VMRowLogic {
         }
     }
 
+    /// The one action the menu-bar popover offers for a VM.
+    static func primaryAction(for vm: VmSummary) -> VMAction {
+        if vm.activity != nil { return .open }
+        switch vm.state {
+        case .stopped: return .start
+        case .suspended: return .resume
+        case .running, .starting, .stopping: return .open
+        }
+    }
+
     static func statusText(for vm: VmSummary) -> String {
         if let activity = vm.activity { return VMWindowState.label(for: activity) }
         switch vm.state {

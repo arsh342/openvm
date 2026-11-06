@@ -114,3 +114,17 @@ import Testing
         #expect(VmSummary(row: .map([("name", .text("x")), ("state", .text("sleeping")), ("uuid", .text("u"))])) == nil)
     }
 }
+
+extension VmSummaryTests {
+    @Test func installingAndDroppingDefaultToFalseAndDecodeWhenSent() {
+        let base: [(key: String, value: CBOR)] = [
+            ("name", .text("w")), ("state", .text("stopped")), ("uuid", .text("u")),
+        ]
+        let old = VmSummary(row: .map(base))
+        #expect(old?.installing == false)  // an older host sends neither field
+        #expect(old?.dropping == false)
+        let busy = VmSummary(row: .map(base + [("installing", .bool(true)), ("dropping", .bool(true))]))
+        #expect(busy?.installing == true)
+        #expect(busy?.dropping == true)
+    }
+}

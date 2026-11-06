@@ -96,3 +96,8 @@ nonisolated final class GuestDelegate: NSObject, VZVirtualMachineDelegate, @unch
         reapGuest(uuid: uuid, boot: boot, reason: .error("\(error)"))
     }
 }
+
+/// How many of the guests that were live are gone now.
+nonisolated func stoppedCount(before: Set<String>, after: Set<String>) -> Int {
+    before.subtracting(after).count
+}
