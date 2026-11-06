@@ -109,9 +109,8 @@ and a full-screen window (1470 x 923 points) gave a guest of 2936 x 1846 pixels.
 
 ## The menu-bar icon, the Dock icon and quitting
 
-* The menu-bar icon opens a popover with every VM and one button each (Start, Open or
-  Resume), a way back to the library, and Quit. It is how a running VM stays reachable with
-  every window closed.
+* The menu-bar icon opens a menu with every VM and the commands for the current one, a way back
+  to the library, and Quit. It is how a running VM stays reachable with every window closed.
 * **Closing a window never stops a VM.** With a window open the app is an ordinary Dock app.
   With none open and a guest running, the Dock icon goes and the app lives in the menu bar;
   opening any window brings the icon back.
@@ -125,23 +124,31 @@ and a full-screen window (1470 x 923 points) gave a guest of 2936 x 1846 pixels.
   waiting `start` reported "cancelled", the VM returned to stopped with no activity, and it
   could be started and cancelled again.
 
-To check by hand (the terminal cannot press these): the popover opens from the icon and each
-button does what it says; Cmd+Q with a guest running shows the dialog, Cancel keeps
+To check by hand (the terminal cannot press these): the menu opens from the icon and each
+item does what it says; Cmd+Q with a guest running shows the dialog, Cancel keeps
 everything, and Shut Down and Quit shuts a guest down cleanly (on Windows, no Kernel-Power 41
 afterwards); closing the last window with a guest running removes the Dock icon, and the
 menu-bar icon brings a window back; host sleep with a window open pauses and resumes.
 
-## The Machine menu, the library and settings
+## The menus, the library and settings
 
-* **Machine menu** (the menu bar, acting on the VM whose window is in front): Start or Shut Down,
-  Pause or Resume, Enter Full Screen, Share Folder, Share Clipboard (ticked when on) and Settings.
-  These used to be a toolbar across the top of the window; the window is now just the guest's screen.
-  The items have no target, so AppKit sends them to the front VM window and switches them off when no
-  VM window is in front. Which are live follows the VM's state: a stopped VM can only start, a booting
-  one can only be cancelled, and while the host is busy with a VM the power and pause items are off.
-  There are no key equivalents except Settings (Cmd-,) and Full Screen (Ctrl-Cmd-F), so a shortcut
-  meant for the guest is never taken for a power command. Share Folder asks for a folder and says the
-  guest can read and change what is in it. "Open Virtual Machine" at the bottom lists every VM.
+* **View, Actions and Devices** are in the menu bar and, as submenus, under the menu-bar icon. One
+  piece of code (`MachineMenus`) feeds both, so they cannot disagree.
+  * View: Enter or Exit Full Screen, and Retina Resolution (Best for Retina Display, or Scaled).
+    Scaled asks for one pixel per point: a larger, softer picture and a much smaller guest screen.
+    The choice is kept per VM.
+  * Actions: Start or Shut Down (or Cancel Start), Restart, Pause or Resume, and Settings.
+  * Devices: Share Clipboard and Accept Files from the VM (ticked when on), and Share Folder.
+  * They act on the **current VM**: the one last in front or last chosen under the icon, else a live
+    one, else the first. That is what lets them work with the app in the background.
+  * Which are live follows the VM's state: a stopped VM can only start, a booting one can only be
+    cancelled, and while the host is busy with a VM the power and pause items are off.
+  * The only shortcuts are Settings (Cmd-,) and Full Screen (Ctrl-Cmd-F), so a shortcut meant for the
+    guest is never taken for a power command. There is no Edit menu for the same reason: Cmd-C and
+    Cmd-V must reach the guest, and whether a menu would take them first has not been measured.
+  * Only commands that work are listed. There is no screenshot, snapshot or force-stop command yet.
+  * Share Folder asks for a folder and says the guest can read and change what is in it.
+  * File ▸ Open Virtual Machine lists every VM.
 * **Library** (a Settings-style window: a translucent sidebar with search, "All Virtual Machines", each VM with a coloured icon and state dot, and "New Virtual Machine…"; the traffic lights sit on the sidebar). "All Virtual Machines" is a grid of cards, one per VM, with a picture of its screen, its state and the action most
   wanted (Start, Resume or Open) on the card. Click a card to open its window; right-click for Pause,
   Shut Down, Settings and Delete. A dashed "New VM…" card starts the wizard. Choosing a VM in the sidebar shows its page: a picture, its actions as rows, and its details. The picture is the last
@@ -152,11 +159,11 @@ menu-bar icon brings a window back; host sleep with a window open pauses and res
   be read this way at all; if it returns black, the cards stay on the plain tile.
 * **Creation window**: the same sidebar style, listing the steps (System, Source, Resources, Summary, Install); done steps get a tick, the current one is highlighted. The Back and Next buttons move between them.
 * **VM window title bar**: dark and slim, with four round buttons at the right (power, pause, full
-  screen, settings) that fade back while the pointer is away. They do what the Machine menu items do.
-* **Menu-bar icon**: the app's own icon. Its popover lists every VM with its state, CPUs and memory;
-  the chevron opens a VM's settings (system, CPUs, memory, time zone, and switches for the clipboard
-  and for files the VM sends) and a Settings… button.
-* **Settings** (Machine menu, or the library, which is the only way to reach a stopped VM's): CPUs and memory, time zone, shared folders, and for Windows, sound.
+  screen, settings) that fade back while the pointer is away. They do what the Actions and View menu items do.
+* **Menu-bar icon**: a computer symbol, which follows the menu bar's light or dark look. Its menu lists every VM with the current one ticked, the
+  current VM's state and size on a line of its own, then View, Actions, Devices and Settings, then
+  Show Library, New Virtual Machine, About and Quit. Choosing a VM makes it current and opens it.
+* **Settings** (the Actions menu, or the library, which is the only way to reach a stopped VM's): CPUs and memory, time zone, shared folders, and for Windows, sound.
   * CPUs and memory are read when the VM starts, so a running VM shows them greyed out with the
     reason. The choices come from `host-info`, so only what this Mac can give a VM is offered
     (CPUs 1 to 32 at most, memory up to what the framework allows).
@@ -167,12 +174,12 @@ menu-bar icon brings a window back; host sleep with a window open pauses and res
     `testMode: true`, so no other client can switch it on silently either.
 * **The clipboard toggle is not here yet.** The per-VM setting exists on the host
   (`set --clipboard-sync on|off`, and every row carries it), but nothing reads it until the
-  clipboard sync itself lands, so there was no control for it until it landed (it is in the Machine menu and settings now).
+  clipboard sync itself lands, so there was no control for it until it landed (it is in the Devices menu and settings now).
 * **Measured.** `host-info` first reported 64 CPUs (the framework's limit) while `set` rejects
   more than 32, so the settings would have offered choices the host refuses. The two now share
   one ceiling, with a test.
 
-To check by hand: the Machine menu items enable and disable as the VM starts, pauses and stops;
+To check by hand: the menu items enable and disable as the VM starts, pauses and stops;
 Share Folder, Settings and the Windows sound consent dialog behave as described; changing the
 memory of a stopped VM takes effect at its next start.
 
@@ -240,7 +247,7 @@ guest costs nothing, and neither guest agent needed a change. The decisions are 
   frame (a larger text would work on Linux and fail on Windows). The subtitle says when it is skipped.
 * **A guest with no desktop yet** (just booted) refuses the write; that is not an error to show. The
   next focus tries again.
-* **Per VM.** The Machine menu's Share Clipboard and Settings ▸ Clipboard turn it off or on, also while the
+* **Per VM.** Devices ▸ Share Clipboard and Settings ▸ Clipboard turn it off or on, also while the
   VM runs. The setting is the record's `clipboardSync`; a record without it means on.
 * **Logged:** each transfer's size and direction on the app's stderr. The text itself never is.
 
@@ -302,3 +309,19 @@ a running VM.
   three automatic restarts in five minutes, so a guest that restarts the moment it boots cannot loop.
 * **Windows is not done.** It has no console to read; the candidates (the service's user-mode-reboot
   control, event 1074 at pre-shutdown) are untried, and a Windows restart still leaves the VM Stopped.
+
+## Known fault: a Windows guest's picture scrambles in its window
+
+Open, and not yet explained. The window shows the right colours with the rows smeared sideways, and
+only the parts of the screen that change are redrawn, so it spreads as the pointer moves. It starts
+when the guest's display driver takes over from the firmware (the logo and "Please wait" are fine).
+
+* Windows itself is fine: a capture taken inside the guest at the same moment was a clean desktop at
+  2496x1496, while the window showed a 4:3 picture.
+* After `openvmctl display set <vm> --width 1024 --height 768 --scale 1` the window was clean (seen
+  once, by hand). So the view works at the driver's default size.
+* The guest accepts every size tried from 1280x720 to 2496x1496, so a refused mode is not the cause.
+  Which of them the window draws correctly has not been established.
+* Turning off the 5120x2880 registration in `SetupComplete.cmd` did not stop it, on a VM created after
+  that build. Whether the line was really off inside that guest was not confirmed from its log.
+* The app asks for a new size by itself when a guest comes up, so this needs no resizing by anyone.

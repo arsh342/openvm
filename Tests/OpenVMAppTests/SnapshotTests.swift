@@ -117,36 +117,6 @@ struct SnapshotTests {
 }
 
 extension SnapshotTests {
-    @Test(.enabled(if: Snapshot.enabled))
-    func popoverWithASettingsPanelOpen() async {
-        let model = await model([
-            FakeTransport.row("ubuntu-lab", state: "running", cpus: 4, memoryMB: 8192, timezone: "Europe/Berlin", clipboardSync: true, outbox: false),
-            FakeTransport.row("scratch", state: "stopped"),
-        ])
-        let state = PopoverState()
-        state.toggle("uuid-ubuntu-lab")
-        Snapshot.check(
-            "popover-settings-open", StatusPopoverView(model: model, state: state, act: { _, _ in }, showLibrary: {}, quit: {}),
-            width: 340, height: 420)
-    }
-}
-
-extension SnapshotTests {
-    @Test(.enabled(if: Snapshot.enabled))
-    func popoverWithMixedStates() async {
-        let model = await model([
-            FakeTransport.row("ubuntu-lab", state: "running"),
-            FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
-            FakeTransport.row("scratch", state: "stopped"),
-            FakeTransport.row("fresh", state: "stopped", activity: "start"),
-        ])
-        Snapshot.check(
-            "popover-mixed-states", StatusPopoverView(model: model, act: { _, _ in }, showLibrary: {}, quit: {}),
-            width: 340, height: 330)
-    }
-}
-
-extension SnapshotTests {
     private func settingsModel(_ vm: VmSummary, shares: Bool = false) async -> VMSettingsModel {
         let host = FakeTransport()
         host.respond("host-info", with: FakeTransport.hostInfoFields)

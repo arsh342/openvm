@@ -63,6 +63,13 @@ final class VMListModel: ObservableObject {
     /// Asks the guest to shut down, and waits for it.
     func stop(_ vm: VmSummary) async { await act("stop", vm) }
 
+    /// Shuts the guest down and starts it again. A stop the host refused leaves the VM as it was.
+    func restart(_ vm: VmSummary) async {
+        await act("stop", vm)
+        guard lastError == nil else { return }
+        await act("start", vm)
+    }
+
     /// Turns acceptance of files a VM sends on or off. It may change while the VM runs.
     func setOutbox(_ vm: VmSummary, _ on: Bool) async {
         do {

@@ -7,6 +7,10 @@ import OpenVMHost
 final class WindowRegistry {
     static let shared = WindowRegistry()
     private var controllers: [String: VMWindowController] = [:]
+    /// The VM last in front, or last chosen from the menu-bar icon: what the menus act on.
+    var lastUsed: String?
+
+    func controller(for uuid: String) -> VMWindowController? { controllers[uuid] }
 
     /// Opens (or brings forward) the window for a VM.
     func show(_ vm: VmSummary, model: VMListModel) {

@@ -145,14 +145,23 @@ struct VMListOutboxTests {
     }
 }
 
+
 @MainActor
-struct PopoverStateTests {
-    @Test func rowsOpenAndCloseIndependently() {
-        let state = PopoverState()
-        state.toggle("a")
-        state.toggle("b")
-        #expect(state.expanded == ["a", "b"])
-        state.toggle("a")
-        #expect(state.expanded == ["b"])
+struct VMRestartTests {
+    @Test func restartStopsThenStarts() async {
+        let host = FakeTransport()
+        host.rows = [FakeTransport.row("w", state: "stopped")]  // what the host says after the stop
+        let model = VMListModel(transport: host)
+        await model.restart(FakeTransport.summary(state: "running"))
+        #expect(host.calls.filter { $0 != "list" } == ["stop", "start"])
+    }
+
+    @Test func aRefusedStopDoesNotStartAgain() async {
+        let host = FakeTransport()
+        host.fail("stop", with: HostError.remote("w is busy: suspend"))
+        let model = VMListModel(transport: host)
+        await model.restart(FakeTransport.summary(state: "running"))
+        #expect(!host.calls.contains("start"))
+        #expect(model.lastError != nil)
     }
 }

@@ -69,6 +69,16 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# Attaches an image read-only and out of the Finder's sight, and prints the attach table. macOS 27
+# deprecates hdiutil, and warns on every attach; older systems have no `diskutil image`.
+attach_readonly() {
+    if diskutil image attach --help >/dev/null 2>&1; then
+        diskutil image attach --readOnly --nobrowse "$1"
+    else
+        hdiutil attach "$1" -nobrowse -readonly
+    fi
+}
+
 mount_point() {
     diskutil info "$1" | sed -n 's/^ *Mount Point: *//p' | head -1
 }
@@ -103,7 +113,7 @@ fi
 
 # The ISO's own layout: efi/ holds the boot managers, boot/ the setup files,
 # sources/boot.wim the WinPE image the boot manager loads.
-isoout=$(hdiutil attach "$ISO" -nobrowse -readonly | tail -1)
+isoout=$(attach_readonly "$ISO" | tail -1)
 isodev=$(echo "$isoout" | awk '{print $1}')
 isomount=$(echo "$isoout" | awk -F'\t' '{print $NF}')  # tab-separated: the mount point may contain spaces
 [ -d "$isomount" ] || { echo "could not mount $ISO" >&2; exit 1; }
@@ -175,7 +185,7 @@ work=$(mktemp -d)
 job="$work/job"
 pe="$job/pe"
 mkdir -p "$pe/drivers" "$pe/efi" "$pe/payload/virtiofs"
-virtio_out=$(hdiutil attach "$VIRTIO_ISO" -nobrowse -readonly | tail -1)
+virtio_out=$(attach_readonly "$VIRTIO_ISO" | tail -1)
 virtio_dev=$(echo "$virtio_out" | awk '{print $1}')
 virtio_mount=$(echo "$virtio_out" | awk -F'\t' '{print $NF}')
 # OPENVM_WIN_DRIVERS overrides the set (viostor is required: without it the

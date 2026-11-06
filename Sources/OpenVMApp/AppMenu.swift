@@ -1,15 +1,19 @@
-// AppMenu — the menu bar every Mac app has, plus the Machine menu that opens a VM's window.
+// AppMenu — the menu bar: what every Mac app has, plus View, Actions and Devices for the current VM.
 import AppKit
 import OpenVMCore
 
 @MainActor
 final class AppMenu: NSObject, NSMenuDelegate {
     private let model: VMListModel
+    private let machine: MachineMenus
     private let showLibrary: () -> Void
     private let newVM: () -> Void
 
-    init(model: VMListModel, showLibrary: @escaping () -> Void, newVM: @escaping () -> Void) {
+    init(
+        model: VMListModel, machine: MachineMenus, showLibrary: @escaping () -> Void, newVM: @escaping () -> Void
+    ) {
         self.model = model
+        self.machine = machine
         self.showLibrary = showLibrary
         self.newVM = newVM
     }
@@ -42,30 +46,18 @@ final class AppMenu: NSObject, NSMenuDelegate {
         let new = file.addItem(
             withTitle: "New Virtual Machine…", action: #selector(newVirtualMachine(_:)), keyEquivalent: "n")
         new.target = self
-
-        // Commands for the VM whose window is in front. They have no target: AppKit sends them down
-        // the responder chain to that window, and switches them off when no VM window is in front.
-        let machineItem = NSMenuItem()
-        main.addItem(machineItem)
-        let machine = NSMenu(title: "Machine")
-        machineItem.submenu = machine
-        machine.addItem(command("Shut Down", #selector(VMWindowController.machinePower(_:))))
-        machine.addItem(command("Pause", #selector(VMWindowController.machinePause(_:))))
-        machine.addItem(.separator())
-        let full = command("Enter Full Screen", #selector(VMWindowController.machineFullScreen(_:)), key: "f")
-        full.keyEquivalentModifierMask = [.command, .control]
-        machine.addItem(full)
-        machine.addItem(command("Share Folder…", #selector(VMWindowController.machineShareFolder(_:))))
-        machine.addItem(command("Share Clipboard", #selector(VMWindowController.machineClipboard(_:))))
-        machine.addItem(.separator())
-        machine.addItem(command("Settings…", #selector(VMWindowController.machineSettings(_:)), key: ","))
-        machine.addItem(.separator())
         // The list of VMs is rebuilt each time it opens, from the host's current list.
         let openItem = NSMenuItem(title: "Open Virtual Machine", action: nil, keyEquivalent: "")
         let openMenu = NSMenu(title: "Open Virtual Machine")
         openMenu.delegate = self
         openItem.submenu = openMenu
-        machine.addItem(openItem)
+        file.addItem(openItem)
+
+        for submenu in [machine.viewMenu(), machine.actionsMenu(settingsKey: ","), machine.devicesMenu()] {
+            let item = NSMenuItem()
+            item.submenu = submenu
+            main.addItem(item)
+        }
 
         let windowItem = NSMenuItem()
         main.addItem(windowItem)
@@ -82,13 +74,6 @@ final class AppMenu: NSObject, NSMenuDelegate {
         return main
     }
 
-    /// A menu item with no target, so the responder chain decides who answers it.
-    private func command(_ title: String, _ action: Selector, key: String = "") -> NSMenuItem {
-        let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
-        item.target = nil
-        return item
-    }
-
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
         guard !model.vms.isEmpty else {
@@ -97,8 +82,7 @@ final class AppMenu: NSObject, NSMenuDelegate {
             return
         }
         for vm in model.vms {
-            let item = menu.addItem(
-                withTitle: vm.name, action: #selector(openWindow(_:)), keyEquivalent: "")
+            let item = menu.addItem(withTitle: vm.name, action: #selector(openWindow(_:)), keyEquivalent: "")
             item.target = self
             item.representedObject = vm.uuid
         }

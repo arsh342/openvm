@@ -11,7 +11,7 @@ import SwiftUI
 import Virtualization
 
 @MainActor
-final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItemValidation {
+final class VMWindowController: NSWindowController, NSWindowDelegate {
     private let machineView = DropMachineView()
     private let cover = VMStatusView()
     /// The same model the list and the menus use, so every button acts the way theirs do.
@@ -167,11 +167,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItem
         window.addTitlebarAccessoryViewController(accessory)
     }
 
-    // MARK: the Machine menu
-    //
-    // What used to be buttons across the top of the window are commands in the menu bar, acting on
-    // whichever VM window is in front. The menu items have no target, so AppKit finds this controller
-    // through the key window; when no VM window is in front they are off.
+    // MARK: commands, from the title bar and the menus
 
     @objc func machinePower(_ sender: Any?) {
         switch VMToolbarLogic.state(for: vm).power {
@@ -192,7 +188,6 @@ final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItem
 
     @objc func machineFullScreen(_ sender: Any?) { window?.toggleFullScreen(nil) }
     @objc func machineShareFolder(_ sender: Any?) { shareFolder() }
-    @objc func machineClipboard(_ sender: Any?) { Task { await model.setClipboardSync(vm, !vm.clipboardSync) } }
     @objc func machineSettings(_ sender: Any?) { showSettings(vm) }
 
     /// Shares one folder with the guest. The guest can change what is in it, so the panel
@@ -277,7 +272,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItem
     /// last frame, so a window dragged larger never shows a failure.
     private func fitGuestToWindow() {
         guard state == .running, let window else { return }
-        let mode = DisplayFit.mode(pointSize: machineView.bounds.size, backingScale: window.backingScaleFactor)
+        let backing = DisplayPreference().backingScale(for: vm.uuid, actual: window.backingScaleFactor)
+        let mode = DisplayFit.mode(pointSize: machineView.bounds.size, backingScale: backing)
         Task { await resizer.request(mode) }
     }
 
@@ -306,6 +302,11 @@ final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItem
         return false
     }
 
+    /// The person chose another resolution: ask for it now.
+    func refit() { fitGuestToWindow() }
+
+    var isFullScreen: Bool { window?.styleMask.contains(.fullScreen) == true }
+
     func windowDidResize(_ notification: Notification) {
         fitGuestToWindow()
     }
@@ -315,27 +316,11 @@ final class VMWindowController: NSWindowController, NSWindowDelegate, NSMenuItem
         fitGuestToWindow()
     }
 
-    func validateMenuItem(_ item: NSMenuItem) -> Bool {
-        let command: MachineCommand
-        switch item.action {
-        case #selector(machinePower(_:)): command = .power
-        case #selector(machinePause(_:)): command = .pause
-        case #selector(machineFullScreen(_:)): command = .fullScreen
-        case #selector(machineShareFolder(_:)): command = .shareFolder
-        case #selector(machineClipboard(_:)): command = .clipboard
-        case #selector(machineSettings(_:)): command = .settings
-        default: return true
-        }
-        let state = MachineMenuLogic.item(command, for: vm)
-        item.title = state.title
-        item.state = state.checked ? .on : .off
-        return state.enabled
-    }
-
     // MARK: clipboard follows focus
 
     /// Only a running guest has an agent to talk to; a booting or paused one is skipped.
     func windowDidBecomeKey(_ notification: Notification) {
+        WindowRegistry.shared.lastUsed = vm.uuid
         guard state == .running else { return }
         Task { await clipboard.focusGained() }
     }

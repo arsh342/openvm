@@ -19,13 +19,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menu: AppMenu?
     private var library: LibraryWindowController?
     private var statusMenu: StatusMenuController?
+    private var machine: MachineMenus?
     private var wizard: CreateWizardWindowController?
     private var subscription: AnyCancellable?
     private var observers: [NSObjectProtocol] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        let machine = makeMachineMenus()
+        self.machine = machine
         let menu = AppMenu(
-            model: model, showLibrary: { [weak self] in self?.showLibrary() },
+            model: model, machine: machine, showLibrary: { [weak self] in self?.showLibrary() },
             newVM: { [weak self] in self?.showWizard() })
         self.menu = menu
         NSApp.mainMenu = menu.build()
@@ -118,22 +121,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: the menu-bar icon
 
     private func installStatusMenu() {
-        statusMenu = StatusMenuController(
-            model: model,
-            act: { [weak self] action, vm in self?.perform(action, on: vm) },
-            showLibrary: { [weak self] in self?.showLibrary() },
-            quit: { NSApp.terminate(nil) })
+        if let machine { statusMenu = StatusMenuController(menus: machine) }
     }
 
-    private func perform(_ action: VMAction, on vm: VmSummary) {
-        switch action {
-        case .start:
-            Task { await model.start(vm) }
-            openWindow(vm)
-        case .resume: Task { await model.resume(vm) }
-        case .open: openWindow(vm)
-        case .pause, .stop, .settings, .delete: break  // the popover offers only the obvious action
-        }
+    private func makeMachineMenus() -> MachineMenus {
+        MachineMenus(
+            model: model,
+            actions: MachineMenuActions(
+                openWindow: { [weak self] vm in self?.openWindow(vm) },
+                showSettings: { [weak self] vm in self?.showSettings(vm) },
+                showLibrary: { [weak self] in self?.showLibrary() },
+                newVM: { [weak self] in self?.showWizard() },
+                toggleFullScreen: { [weak self] vm in
+                    self?.openWindow(vm)
+                    WindowRegistry.shared.controller(for: vm.uuid)?.machineFullScreen(nil)
+                },
+                shareFolder: { [weak self] vm in
+                    self?.openWindow(vm)
+                    WindowRegistry.shared.controller(for: vm.uuid)?.machineShareFolder(nil)
+                },
+                displayChanged: { vm in WindowRegistry.shared.controller(for: vm.uuid)?.refit() },
+                isFullScreen: { uuid in WindowRegistry.shared.controller(for: uuid)?.isFullScreen ?? false },
+                lastUsed: { WindowRegistry.shared.lastUsed },
+                use: { uuid in WindowRegistry.shared.lastUsed = uuid }))
     }
 
     // MARK: the Dock icon
