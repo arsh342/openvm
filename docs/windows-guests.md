@@ -237,3 +237,16 @@ own metadata. The helper's job itself takes about 15 seconds; the rest is copyin
 **Checking the ISO first.** `windows-iso-check` mounts the ISO and reads file names only, so a
 wrong download (an x64 ISO, a Linux ISO, an ISO with `install.esd`) is refused in about a second,
 with a reason, instead of after the build. The real ISO above is accepted in 1.2 s.
+
+## Sending files to the Mac
+
+`openvm-tools-win.exe --send <path>...` (the "Send to Mac" entry in the SendTo menu, added to the
+default profile by `SetupComplete.cmd`) copies files and folders into `Z:\outbox`, the same way the
+Linux tool does: built under a hidden name, `.ready` written last, renamed into place. A link
+(reparse point) anywhere stops the send. The copy uses the same read-retry loop as a drop, because of
+the viofs read faults noted above.
+
+Measured on a real Windows guest (`docs/evidence/windows-smoke-send-2026-11-06.txt`): a 2 GiB file went
+Desktop to Mac byte-identical in 12 s, and the received file carried the quarantine mark. Not yet
+measured: a 12 x 200 MB tree, and the SendTo menu itself by hand (the smoke starts the helper through
+the agent, not through Explorer).

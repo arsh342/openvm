@@ -66,6 +66,18 @@ private nonisolated func dragOpUnchecked(_ r: VmRequest) throws -> Envelope {
         result = try startDrop(record, g, paths: paths)
     case .text("status")?:
         result = try dropStatus(record, g)
+    case .text("send")?:
+        let reply = try GuestChannel.drag(g, body: r.bodyForGuest)
+        guard case .map(let fields) = reply else { return r.fail("guest drag reply was not a map") }
+        guard record.bootMode == .windows else { result = fields; break }
+        // The Windows helper runs in the background, like a drop; follow it to the end.
+        var last = fields
+        for _ in 0..<600 {
+            Thread.sleep(forTimeInterval: 1)
+            last = try dropStatus(record, g)
+            if let status = DragDrop.status(.map(last)), status.done { break }
+        }
+        result = last
     default:
         let body = r.bodyForGuest
         let reply = try GuestChannel.drag(g, body: body)

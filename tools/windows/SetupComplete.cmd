@@ -33,6 +33,10 @@ sc description OpenVMTools "Clipboard, time, shared folders and file transfer wi
 sc failure OpenVMTools reset= 86400 actions= restart/5000/restart/5000/restart/30000 >> %LOG% 2>&1
 echo openvm-setupcomplete: services installed %DATE% %TIME% >> %LOG%
 echo ok> C:\openvm\setupcomplete.ok
+rem "Send to Mac" in every user's SendTo menu (new profiles are copied from the default one).
+set SENDTO=C:\Users\Default\AppData\Roaming\Microsoft\Windows\SendTo
+mkdir "%SENDTO%" >> %LOG% 2>&1
+> "%SENDTO%\Send to Mac.cmd" echo @"C:\openvm\openvm-tools-win.exe" --send %%*
 rem C:\openvm holds what the SYSTEM agent runs, so ordinary users get read only.
 rem The spool is the exception: the spooler writes print jobs as the user. This
 rem comes last and logs elsewhere: changing the ACL under an open log broke

@@ -196,6 +196,51 @@ static void drag_status(SOCKET fd, uint64_t cid) {
 }
 #endif
 
+#ifdef OPENVM_REAL_WIN32
+/* Runs the send helper as the console user on one guest path, in the background like a drop, and
+ * answers through the same `status`. This is what the SendTo menu does, made reachable from the host
+ * so a smoke test (and `openvmctl drag send`) can exercise it. The path is held to a strict charset:
+ * it is put inside a command line. */
+static void send_start(SOCKET fd, const uint8_t *body, const struct ovmc_pair *pairs, size_t count,
+                       uint64_t cid) {
+    if (g_drop.running) {
+        drag_reply(fd, cid, 0, "a drop is already running");
+        return;
+    }
+    const struct ovmc_pair *pp = ovmc_find(body, pairs, count, "path");
+    const uint8_t *path = NULL;
+    size_t len = 0;
+    if (pp == NULL || !ovmc_text_span(body + pp->v0, pp->v1 - pp->v0, &path, &len) || len < 3 ||
+        len > 200) {
+        drag_reply(fd, cid, 0, "send has no usable path");
+        return;
+    }
+    WCHAR mode[260] = L"--send-quiet \"";
+    size_t m = 14;
+    for (size_t i = 0; i < len; i++) {
+        uint8_t c = path[i];
+        int ok = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+                 c == ' ' || c == '.' || c == '_' || c == '-' || c == '\\' || c == ':';
+        if (!ok || (c == '.' && i + 1 < len && path[i + 1] == '.')) {
+            drag_reply(fd, cid, 0, "send has no usable path");
+            return;
+        }
+        mode[m++] = (WCHAR)c;
+    }
+    mode[m++] = L'"';
+    mode[m] = 0;
+    g_helper_error = NULL;
+    if (!start_in_user_session(mode, &g_drop.child)) {
+        drag_reply(fd, cid, 0, g_helper_error ? g_helper_error : "could not start the send");
+        return;
+    }
+    g_drop.running = 1;
+    g_drop.got = 0;
+    agent_log("send started");
+    drag_reply(fd, cid, 1, NULL);
+}
+#endif
+
 static void handle_drag(SOCKET fd, const uint8_t *body, const struct ovmc_pair *pairs, size_t count,
                         uint64_t cid) {
     const struct ovmc_pair *op = ovmc_find(body, pairs, count, "op");
@@ -221,8 +266,10 @@ static void handle_drag(SOCKET fd, const uint8_t *body, const struct ovmc_pair *
         drag_start(fd, body, pairs, count, cid);
     } else if (oplen == 6 && ovmc_memcmp(optext, "status", 6) == 0) {
         drag_status(fd, cid);
+    } else if (oplen == 4 && ovmc_memcmp(optext, "send", 4) == 0) {
+        send_start(fd, body, pairs, count, cid);
 #endif
     } else {
-        drag_reply(fd, cid, 0, "drag op must be enter, leave, drop or status");
+        drag_reply(fd, cid, 0, "drag op must be enter, leave, drop, status or send");
     }
 }

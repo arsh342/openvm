@@ -20,6 +20,7 @@ DAEMON=.build/debug/openvmd
 CTL=.build/debug/openvmctl
 HOME_DIR=$(mktemp -d /tmp/openvm-winsmoke.XXXXXX)
 export OPENVM_HOME="$HOME_DIR"
+export OPENVM_RECEIVE_DIR="$HOME_DIR/received"
 SAVED_CLIPBOARD=$(pbpaste)
 VM=win
 PID=""
@@ -235,6 +236,20 @@ wait "$big_drop" || fail "large drop failed: $(cat "$HOME_DIR/big-drop.out")"
 grep -q 'dropped big.bin (2147483648 bytes)' "$HOME_DIR/big-drop.out" || fail "large drop lost bytes"
 [ "$i" -ge 5 ] || fail "the large drop was too quick to prove anything ($i pings)"
 echo "smoke: files dropped onto the guest desktop ($i pings answered during a 2 GiB drop)"
+
+# --- send to the Mac ---------------------------------------------------------
+# The files the drops put on the Desktop go back through the outbox: a small one, then 2 GiB.
+recv="$HOME_DIR/received/$VM"
+"$CTL" drag send "$VM" "C:\Users\openvm\Desktop\note.txt" >/dev/null || fail "the guest refused to send a file"
+retry 30 test -f "$recv/note.txt" || fail "a sent file did not reach the Mac"
+cmp -s "$recv/note.txt" "$HOME_DIR/dropped/note.txt" || fail "the sent file differs"
+xattr "$recv/note.txt" | grep -q com.apple.quarantine || fail "a received file was not quarantined"
+sent_at=$(date +%s)
+"$CTL" drag send "$VM" "C:\Users\openvm\Desktop\big.bin" >/dev/null || fail "the guest refused to send 2 GiB"
+retry 60 test -f "$recv/big.bin" || fail "the 2 GiB file did not reach the Mac"
+cmp -s "$recv/big.bin" "$HOME_DIR/dropped/big.bin" || fail "the 2 GiB file differs after the round trip"
+[ -z "$(ls -A "$HOME_DIR/outbox/"* 2>/dev/null)" ] || fail "the outbox was not emptied"
+echo "smoke: files sent from the guest to the Mac (2 GiB round trip in $(( $(date +%s) - sent_at )) s)"
 
 # --- suspend -----------------------------------------------------------------
 # The scale must be applied again after a resume; the agent's log counts each time.
