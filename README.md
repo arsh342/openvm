@@ -8,7 +8,7 @@ Built in Swift and C, on Apple's own `Virtualization.framework`.
 
 ![Windows 11 running in openVM at Retina scale](docs/images/hidpi-windows-2x.png)
 
-> **Early release.** openVM is command-line only today. The VM window is the next big step, so for now you control guests with `openvmctl` and cannot use a guest's desktop directly.
+> **Early release.** openVM now has a window for each VM, a library, a setup wizard and a menu-bar icon, and everything still works from `openvmctl` too. Several parts have been tested by script but not yet by hand in the app; the list is in [docs/manual-checks.md](docs/manual-checks.md).
 
 ## Why openVM
 
@@ -25,7 +25,11 @@ Built in Swift and C, on Apple's own `Virtualization.framework`.
 | Clipboard | Yes | Yes |
 | File transfer | Yes | Yes |
 | Shared folders | Yes | Yes |
+| A window for each VM, with keyboard and mouse | Yes | Yes |
+| Clipboard follows focus (text; passwords are never shared) | Yes | Yes |
 | Drag files into a guest | Yes | Yes |
+| Send files from a guest to your Mac | Yes | Yes |
+| A guest that restarts itself is started again | Yes | Not yet |
 | Print to your Mac's printers | Yes | Yes |
 | Resize the display, 1x to 3x scale | Yes | Yes |
 | Sound through your Mac | Yes | Opt-in, see below |
@@ -56,12 +60,14 @@ Start the daemon, and leave it running. It finds the payload in `.build/payload`
 .build/debug/openvmd
 ```
 
-Or build the app, which carries its own payload and hosts the VMs itself (use one or the other, not both):
+Or build the app, which carries its own payload, hosts the VMs itself, and shows each one in a window (use one or the other, not both):
 
 ```sh
 make app
 open .build/openvm.app
 ```
+
+The app's wizard creates Linux and Windows guests for you: it fetches what Linux needs, checks and converts your Windows ISO, and installs. The commands below do the same by hand.
 
 ### Create a Linux guest
 
@@ -116,9 +122,8 @@ Run `openvmctl` with no arguments to see every command.
 
 ## Roadmap
 
-* A VM window with keyboard and mouse
-* Dragging files out of a guest
-* Restarting a VM after a reboot from inside the guest
+* Dragging files out of a guest, straight from its window (files can be sent with "Send to Mac" today)
+* Restarting a Windows VM after a reboot from inside the guest
 * Microphone
 * Windows sound without Test Mode
 
@@ -135,7 +140,9 @@ See [docs/testing.md](docs/testing.md) for what each one covers.
 ```
 Sources/OpenVMCore/       wire protocol, VM registry, shared rules
 Sources/OpenVMWindows/    the Windows VM configuration
-Sources/openvmd/          the daemon: VM lifecycle and host-side features
+Sources/OpenVMHost/       the host library: VM lifecycle and host-side features
+Sources/OpenVMApp/        the app: VM windows, library, wizard, menu bar
+Sources/openvmd/          a headless host, for scripts and the smokes
 Sources/openvmctl/        the command-line client
 Sources/openvm-mockguest/ a guest stand-in for tests
 Tests/                    Swift tests

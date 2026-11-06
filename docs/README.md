@@ -8,3 +8,5 @@
 | [VM records](vm-records.md) | The `vms.json` schema, and the Virtualization.framework APIs in use |
 | [Windows guests](windows-guests.md) | What Windows guests depend on, and known faults |
 | [Testing](testing.md) | Every test suite, what it proves, and how to run it |
+| [App notes](gui-notes.md) | How the app's windows, clipboard, file transfer and restarts behave, with what was measured |
+| [Manual checks](manual-checks.md) | What needs a person at the Mac, as a checklist |

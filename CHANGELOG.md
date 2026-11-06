@@ -10,3 +10,7 @@ First public version.
 * Dynamic resolution and 1x to 3x scale
 * Sound out, with Windows as an opt-in
 * Clock and time zone sync, and pausing guests when the Mac sleeps
+* The openVM app: a window for each VM with keyboard, mouse and live resizing, a VM library, a creation wizard, a menu-bar icon and per-VM settings
+* The clipboard follows window focus (text only, never anything a password manager marks private)
+* Files sent from a guest to the Mac land in Downloads/openVM, marked as downloaded
+* A Linux guest that restarts itself is started again
