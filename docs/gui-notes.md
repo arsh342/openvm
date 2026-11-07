@@ -331,15 +331,27 @@ Those patterns are what reading each row at 1024 pixels gives when the rows are 
 itself is right: a capture inside the guest at 2496x1496 was a clean desktop while its window was
 scrambled. The guest accepts every size tried. Turning off the 5120x2880 registration did not stop it.
 
-**Not known:** why the row stays at 1024, which is the driver's default mode. The driver creates a new
-resource for each mode, so a stale resource on the Mac side, or one the driver keeps, are candidates.
-One capture at 1024x768 was scrambled, right after a run at another size; the guest may already have
-been at that size, so nothing repainted.
+**The likely cause, read from the `viogpudo` source.** On a mode change it calls
+`DestroyFrameBufferObj(FALSE, FALSE)`, which unrefs the resource that is still on the scanout and does not
+clear the scanout. It then recreates the resource at once with the same id (the id goes through a FIFO free
+list with nothing else in it), and it only logs a failed command. So if the Mac's GPU keeps a resource that
+is on the scanout, the create fails and later transfers land in the first resource, which is 1024 wide
+(`CreateResource` even carries a `FIXME`). That the create fails is inferred: the reply was never seen. A
+patched driver would prove it: passing TRUE there clears the scanout first.
 
-**Boot size.** With 2048x1280 set, the guest was restarted. The app's fit then took it to 1024x643 and
-the picture was clean, so the row did not follow the size set before the restart. This does not settle
-it: what size the driver really started at was not seen, and a second try at 2048 after the boot was
-overridden by a refit (the guest held 1024x590 a minute later).
+**Tried, and did not help:**
+
+* Turning off the 5120x2880 registration.
+* Turning off the second display (below): 1280 still smeared, and larger sizes gave no capture at all.
+* Restarting the device: `pnputil /restart-device` restarted all of Windows on this guest.
+* Booting into a large size: with 2496x1496 set, Windows came back at 1024x768, with the app's fit off, and
+  again with the host reporting 2496x1496 as the scanout. The driver hard-codes 1024x768 as its preferred mode.
+
+**The second display.** Windows also shows an invisible display: Microsoft Basic Display Driver at
+1920x1080, over the boot framebuffer `openvm-framebuffer.efi` makes in reserved RAM. The likely reason is
+that the memory belongs to no PCI device, so Windows has nothing to hand over to `viogpudo`. Windows can
+move to it: a window dragged off the right edge is lost. Settings ▸ Display ▸ Show only on 2 hides it, and
+that survives a restart. It is not the cause of the scramble.
 
 **Stopgap.** The app holds a Windows guest at 1024 pixels wide, with the height following the window
 (`DisplayFit.windowsMode`), so the picture stays correct (measured: three clean captures at 1024x643, 1024x590 and 1024x640, across a restart and
