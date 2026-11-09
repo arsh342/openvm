@@ -7,7 +7,7 @@ First public version.
 * Linux (Alpine ARM64, XFCE) and Windows 11 ARM64 guests, installed automatically
 * Clipboard, file transfer, shared folders and drag and drop into a guest
 * Printing to the Mac's printers
-* Dynamic resolution and 1x to 3x scale
+* Dynamic resolution and 1x to 3x scale (a Windows guest stays at 1024 pixels wide in its window for now)
 * Sound out, with Windows as an opt-in
 * Clock and time zone sync, and pausing guests when the Mac sleeps
 * The openVM app: a window for each VM with keyboard, mouse and live resizing, a VM library, a creation wizard, a menu-bar icon and per-VM settings

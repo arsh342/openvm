@@ -12,7 +12,7 @@ A failure goes back as a bug with the step that showed it.
 - [ ] **Shortcuts.** Cmd+C, V, Q, W, Tab in a windowed guest and in full screen. Cmd+Q must not quit
       the app silently while a guest has focus.
 - [ ] **Pointer.** Clicks land where the pointer is, on a Retina display; drag, scroll, right-click.
-- [ ] **Scrolling.** Scrolling in a guest runs the same way as on the Mac, on a trackpad and a mouse. View ▸ Reverse Scrolling switches it.
+- [ ] **Scrolling.** Scrolling in a guest runs the same way as on the Mac, on a trackpad and a mouse. View ▸ Reverse Scrolling is meant to switch it (known not to work on a trackpad, see `docs/gui-notes.md`).
 - [ ] **Idle.** Leave the window open and idle for 12 minutes, then type. The guest must answer
       (Windows Modern Standby idles at 5.5 minutes).
 - [ ] **Resize.** Drag the window edge slowly and quickly; the guest desktop follows without a

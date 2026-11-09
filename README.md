@@ -6,7 +6,7 @@ openVM is a free, open-source virtual machine manager for Apple Silicon. Your gu
 
 Built in Swift and C, on Apple's own `Virtualization.framework`.
 
-![Windows 11 running in openVM at Retina scale](docs/images/hidpi-windows-2x.png)
+![Windows 11 running in openVM](docs/images/hidpi-windows-2x.png)
 
 > **Early release.** openVM now has a window for each VM, a library, a setup wizard and a menu-bar icon, and everything still works from `openvmctl` too. Several parts have been tested by script but not yet by hand in the app; the list is in [docs/manual-checks.md](docs/manual-checks.md).
 
@@ -15,7 +15,7 @@ Built in Swift and C, on Apple's own `Virtualization.framework`.
 * **Built on Apple's hypervisor.** ARM guests run directly on your Mac's CPU, with no translation layer.
 * **Deep integration.** The connection between macOS and the guest is the product, not an add-on.
 * **Automatic installs.** Linux installs itself on first start, and Windows installs unattended from your own ISO.
-* **Retina ready.** Guest desktops scale to 2x and 3x, at your Mac's native resolution.
+* **Retina ready on Linux.** A Linux guest's desktop scales to 2x and 3x, at your Mac's native resolution. A Windows guest is held at 1024 pixels wide in its window for now.
 * **Free and open.** Apache 2.0 licensed, with no account and no subscription.
 
 ## Features
@@ -131,6 +131,9 @@ Run `openvmctl` with no arguments to see every command.
 ## Before you rely on it
 
 * **A Windows guest runs at 1024 pixels wide in its window for now.** Any other width scrambles the picture, so the app holds that width and scales it up, which looks softer than your display can show. See [docs/gui-notes.md](docs/gui-notes.md).
+* **Scrolling in a guest can run the opposite way to your Mac on a trackpad.** View ▸ Reverse Scrolling is meant to switch it, but it has no effect on a trackpad yet.
+* **Windows shows an extra, invisible display on new installs.** A window dragged off the right edge can get lost there. In Windows, Settings ▸ System ▸ Display ▸ Show only on 2 hides it, and that survives a restart.
+* **Restarting Windows from the Start menu stops the VM.** Press Start in openVM to bring it back.
 * **Building Windows media may need a newer macOS than the app does.** The media script uses `diskutil image`, which older releases of macOS do not have. It has only been run on macOS 27.
 * **Windows sound needs Test Mode.** Windows guests are silent by default, because no Microsoft-signed driver exists for Apple's virtual sound device. `openvmctl audio enable <vm> --test-mode` installs a third-party test-signed driver, then you restart the VM. Test Mode weakens driver signature checks, trusts a third party's certificate in the guest, and shows a desktop watermark. `openvmctl audio disable <vm>` and a restart undo it.
 * **Windows guests use a private Apple API.** They need `_setPerformanceMonitoringUnitEmulationEnabled:`, which Apple could remove in any macOS release. It also keeps openVM off the Mac App Store. Linux guests do not use it.

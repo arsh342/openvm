@@ -134,7 +134,7 @@ menu-bar icon brings a window back; host sleep with a window open pauses and res
 
 * **View, Actions and Devices** are in the menu bar and, as submenus, under the menu-bar icon. One
   piece of code (`MachineMenus`) feeds both, so they cannot disagree.
-  * View: Enter or Exit Full Screen, Reverse Scrolling (on by default: scrolling in both guests ran the
+  * View: Enter or Exit Full Screen, Reverse Scrolling (no effect on a trackpad yet, see "Known fault: Reverse Scrolling"; on by default: scrolling in both guests ran the
     opposite way to the Mac's), and Retina Resolution (Best for Retina Display, or Scaled).
     Scaled asks for one pixel per point: a larger, softer picture and a much smaller guest screen.
     The choice is kept per VM.
@@ -310,6 +310,23 @@ a running VM.
   three automatic restarts in five minutes, so a guest that restarts the moment it boots cannot loop.
 * **Windows is not done.** It has no console to read; the candidates (the service's user-mode-reboot
   control, event 1074 at pre-shutdown) are untried, and a Windows restart still leaves the VM Stopped.
+
+## Where M4 stands (2026-11-09)
+
+The build work is finished. M4 is not accepted yet: the checks in `docs/manual-checks.md` and the clean-account
+acceptance run still need a person. Four bugs are known and open:
+
+1. Reverse Scrolling has no effect on a trackpad (below).
+2. A Windows guest is held at 1024 pixels wide, because other widths scramble (below).
+3. Restarting Windows from inside the guest stops the VM (`docs/windows-guests.md`).
+4. New Windows installs have an invisible second display (below). Hiding it by hand works; nothing does it automatically.
+
+## Known fault: Reverse Scrolling has no effect on a trackpad
+
+Reported on a Windows guest (2026-11-08): with View ▸ Reverse Scrolling on, the guest scrolls against the fingers, and
+turning it off changes nothing. A mouse wheel and a Linux guest have not been rechecked. The switch flips the scroll
+fields of the event in a local monitor. A made-up event flipped that way does read as reversed through `NSEvent`, and
+`VZVirtualMachineView` implements `scrollWheel:` itself, so what differs about a real trackpad event is not known yet.
 
 ## Dragging out of a guest: moved to later
 
