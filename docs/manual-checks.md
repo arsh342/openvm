@@ -42,7 +42,6 @@ A failure goes back as a bug with the step that showed it.
 - [ ] **A 12 x 200 MB tree** from Windows: bytes match on the Mac (compare with `cmp` or `shasum`).
 - [ ] **Outbox off.** Settings, turn off "Accept files this VM sends to the Mac": a send is not
       taken.
-- [ ] **Drag out** (the Task 16 spike): see `docs/gui-notes.md`; not built.
 
 ## Restart
 

@@ -311,6 +311,13 @@ a running VM.
 * **Windows is not done.** It has no console to read; the candidates (the service's user-mode-reboot
   control, event 1074 at pre-shutdown) are untried, and a Windows restart still leaves the VM Stopped.
 
+## Dragging out of a guest: moved to later
+
+Not built, and no experiment was run (decided 2026-11-09). "Send to Mac" already takes files and folders out, and
+dragging out would need new code in both agents and an invisible drop target in the guest, a design known to steal
+focus and swallow input. Two limits stay: files land in `~/Downloads/openVM/<vm>/` and not where a person would have
+dropped them, and a guest installed from its own ISO has no agent, so it has no Send to Mac.
+
 ## Known fault: a Windows guest's picture scrambles in its window
 
 The window shows the right colours with the rows misplaced, and only the parts of the screen that change
