@@ -10,7 +10,8 @@ The daemon answers `hello` and `echo`, the VM lifecycle, and the operations a ru
 ## Transport
 
 Socket path: `$OPENVM_HOME/openvmd.sock` (env override; default `~/.openvm/openvmd.sock`).
-The daemon listens, serves **one connection at a time**; access control is the filesystem's
+The daemon listens and serves **every connection on its own thread**, so a long boot does
+not stop another client; access control is the filesystem's
 (per-user directory, so another user cannot reach the socket). Frames: see guest-protocol.md §Frame
 (magic `OVMC`, u16 version, u16 type, u16 flags, u32 payload length). 1 MiB payload cap.
 
@@ -31,11 +32,16 @@ the daemon replies on the same id.
 | list  | (none)                                      | read-only scan of the registry      |
 | info  | `id` (name or uuid)                         | read-only scan of one registry record (same row shape as `list`) |
 | start | `id` (name or uuid)                         | attaches the VM raw disk as virtio-blk and boots Alpine netboot if artifacts exist, else registry-only; `stopped → running` |
-| stop  | `id`                                        | stops the live guest if one is running; `running → stopped` |
+| stop  | `id`; `wait` (bool, default true) | stops the live guest if one is running; `running → stopped`. A guest still booting is cancelled instead (the `start` then fails with `cancelled`). `wait: false` returns once the guest has been asked to stop and the record follows it (`openvmctl stop <vm> --no-wait`) |
 | delete| `id`                                        | sweeps the raw disk (+ sidecars) and removes the record; requires `stopped` |
 | suspend| `id`                                       | pauses the live guest (VZ pause) and records `suspended`; needs this daemon to hold the live guest |
 | resume | `id`                                       | unpauses the suspended live guest and records `running`; needs this daemon to hold the live guest |
-| set    | `id`; `cpus`, `memoryMB`, `tz`, `boot-mode`, `variable-store-path` (at least one) | updates the record while it is `stopped` (same ranges as `create`; `tz` is an IANA zone name, applied to the guest at the next boot or resume) |
+| set    | `id`; `cpus`, `memoryMB`, `tz`, `boot-mode`, `variable-store-path`, `clipboard-sync` (bool), `outbox` (bool) (at least one) | updates the record. `cpus`, `memoryMB`, `boot-mode` and `variable-store-path` need a `stopped` VM; `tz`, `clipboard-sync` and `outbox` may change while it runs. `cpus` is 1 to 32 and no more than the Mac allows, `memoryMB` is 128 to what the Mac allows (see `host-info`); `tz` is an IANA zone name, applied to the guest at the next boot or resume) |
+| task-start | `kind` (`fetch-linux`, `windows-media`); for `windows-media` also `iso` (an absolute path to an existing `.iso` file) and `name` (1 to 64 letters, digits, `_` or `-`) | starts one of the host's fixed jobs and answers its `taskId`. The kinds are a closed list: nothing a client sends becomes part of a command. A kind that is already running is not started twice; the running task's id comes back instead, because two fetches write the same files |
+| task-status | `taskId` | answers `state` (`running`, `done`, `failed`, `cancelled`), `progress` (the last line the job wrote, including curl's progress bar) and, for a failure, `error` (how it ended, with the last lines of output). The last 20 finished tasks are kept |
+| task-cancel | `taskId` | stops a running task and everything it started (SIGTERM to its process group, SIGKILL after five seconds); answers `cancelled: false` for one that was not running |
+| host-info | (none) | answers `maxCpus` (at most 32), `maxMemoryMB`, `freeDiskMB` (where VMs live), `linuxReady` (the Linux guest files are fetched) and `hostWimlib` (`wimlib-imagex` is installed), so a client offers only choices that will work. Also `openvmctl host-info` |
+| stop-all | (none) | stops every live guest at once, the way quitting the app does, and answers how many it stopped. A guest still booting is cancelled |
 | ping  | `id` (name or uuid)                         | host sends `echoRequest` over the guest's dedicated channel port and waits for the in-guest agent's `echoReply`; needs this daemon to hold the live guest |
 | clipboard-write | `id`, `text` (UTF-8 text) | sends host clipboard text to the guest agent |
 | clipboard-read | `id` | reads guest clipboard text from the guest agent |
@@ -45,10 +51,14 @@ the daemon replies on the same id.
 | share-add | `id`; `hostPath` (an existing host directory), `guestPath` (optional; defaults to `/mnt/openvm/<basename>`) | adds the directory to the VM's virtio-fs share set and mounts it in the guest (live VMs), or records it for the next boot |
 | share-remove | `id`, `hostPath` | unmounts the share in the guest and drops the export and the record entry |
 | share-list | `id` | lists the record's shares as `hostPath`/`guestPath` rows |
-| drag | `id`, `op` (`enter`, `leave`, `drop`, `status`); `paths` for `drop` | stages host files and has the guest put them on the user's Desktop |
+| linux-iso-check | `iso` | whether an ISO can start here: `usable`, with `problem` when it cannot and `unknown` when its boot files were not found |
+| eject-installer | `id` | takes a stopped `linux-iso` VM's installer ISO away, so it starts from its disk |
+| drag | `id`, `op` (`enter`, `leave`, `drop`, `status`, `send`); `paths` for `drop`, `path` (a guest path) for `send` | stages host files and has the guest put them on the user's Desktop; `send` runs the guest's send tool as the desktop user, which is what the file manager's "Send to Mac" does. A guest too old to know `send` is told so in plain words |
 | printer | `id`, `op` (`list`, `test`), `name` for `test` | lists the guest's queues, or prints a test page |
-| audio | `id`, `op` (`status`, `test`, `enable`, `disable`) | reports or tests guest sound; adds `hostOutputRunning`. `enable` and `disable` are Windows only |
+| audio | `id`, `op` (`status`, `test`, `enable`, `disable`); `enable` also needs `testMode: true` | reports or tests guest sound; adds `hostOutputRunning`. `enable` and `disable` are Windows only |
 | display | `id`; `op` `capture`, or `width`, `height` and optional `scale` (1 to 3) | changes the guest's mode and scale, or saves its screen for `file pull` |
+
+`list` and `info` rows also carry `bootMode`, `timezone` (when set), `diskBytes` (the disk's size as the guest sees it), `activity` (the op in flight, absent when idle), `installing` (a Windows install is running), `dropping` (files are being copied in) `clipboardSync` (the per-VM clipboard policy, true unless turned off) and `outbox` (whether files the guest sends are taken, true unless turned off); `installing` and `dropping` are absent unless true. The host refuses `audio enable` unless the request carries `testMode: true`, because Windows sound turns on Test Mode, which weakens driver signature checks; `openvmctl audio enable --test-mode` is how a person says so, and the app asks first. The ops that change a VM's life (`start`, `stop`, `suspend`, `resume`, `delete`, `set`) hold its slot while they run: a second one answers `<name> is busy: <op>`. A `stop` is let through a `start`, because it is how a boot is cancelled.
 
 Name rule: 1–64 chars of `[A-Za-z0-9_-]`, first char alphanumeric (so CLI flags never
 collide). Record ids are `UUID().uuidString` values, generated at create time.
@@ -69,8 +79,8 @@ required. Guest console output remains available in `<OPENVM_HOME>/<name>.consol
 
 `suspend` pauses the live guest (Virtualization.framework pause) and moves the record to the
 `suspended` state; `resume` unpauses it (`suspended` → `running`). Both require this daemon to
-hold the live guest: a daemon restart orphans the paused guest (it dies with the process), after
-which `stop` is the only way out of the `suspended` state. A paused guest answers no guest-channel
+hold the live guest. A host restart orphans the guest (it dies with the process), and the next
+host start records every `running` or `suspended` VM it finds as `stopped`. A paused guest answers no guest-channel
 traffic (ping, clipboard, file). The guest flushes before it is paused, and a resume pushes the clock again, re-mounts the shares and re-applies the display mode and scale.
 
 ## Replies: `vmReply` (type 7)
@@ -109,6 +119,14 @@ is a proven round trip. Shares of a stopped VM are mounted at the next boot, and
 re-bound after a resume. Share changes are refused while a drop is running, because
 replacing the share set breaks reads in flight.
 
+## Guests that stop on their own
+
+The host listens for the framework's end-of-guest report, so a guest that shuts itself down (the
+Start menu, `poweroff`, a crash) is recorded as `stopped` without any command, and its drops and
+display mode are cleared. A report counts only for the boot it came from. A VM is visible to the
+host from the moment it starts to boot, including the Windows install: until its agent answers,
+channel operations refuse it with "still booting", and a window can already show its screen.
+
 ## Host sleep
 
 The daemon watches the host's power notifications. Before the host sleeps it
@@ -135,3 +153,44 @@ VM records (`docs/vm-records.md`); saved atomically, directory
 created lazily on first write. Missing file = empty list. Real guest boots stream the
 guest console to `<OPENVM_HOME>/<name>.console.log`.
 `OPENVM_HOME` override is what the smoke test uses for a hermetic run.
+
+## Guest payload and the artifact endpoint
+
+The files a guest is built from ship with the app, in `Contents/Resources/guest` (or in a
+directory named by `OPENVM_PAYLOAD`, or `.build/payload` under the current directory for a
+checkout that ran `make payload`; the first that exists wins, and a wrong `OPENVM_PAYLOAD` is an
+error, not a silent fallback):
+
+```
+guest/linux/openvm.apkovl.tar.gz   the install overlay
+guest/linux/fetch-linux.sh         what the fetch-linux task runs
+guest/linux/openvm-zboot           the kernel unpacker, prebuilt, so the Mac needs no C compiler
+```
+
+The host's HTTP endpoint (`OPENVM_ARTIFACT_PORT`, default 8124, guest network only) serves two
+fixed paths to a guest, both to public bytes, so neither needs the upload token:
+`GET /modloop-virt` (the pinned Alpine modules) and `GET /openvm.apkovl.tar.gz` (the overlay from
+the payload). The host chooses the file; nothing a guest sends names one, and every other path is
+a 404. An install boot gets `apkovl=http://192.168.64.1:<port>/openvm.apkovl.tar.gz` on its kernel
+command line, unless `OPENVM_APKOVL_URL` is set, which wins (the smoke serves its own).
+
+Without the overlay a Linux guest comes up as stock Alpine, which has no installer and no agent:
+measured, a guest started with no overlay reached `localhost login:` with no `openvm` line in its
+console, and `start` would wait out its 30-minute install timeout.
+
+## Windows media
+
+`task-start` with `kind: windows-media`, `iso` and `name` builds install media from a Windows ISO
+and answers `taskId` and `output`: always `<OPENVM_HOME>/media/<name>.raw`. The client chooses
+the ISO and the name and nothing else, because the media script deletes its output path before it
+starts; the name is validated like a VM name, and the ISO must be an absolute path to an existing
+`.iso` file. Only one `windows-media` task runs at a time.
+
+`windows-iso-check` with `iso` mounts the ISO read-only, reads a few file names, detaches it, and
+answers `usable` (bool) and, when not usable, `problem`, a sentence for a person: not a Windows
+ISO, not ARM64 (an x64 ISO), carries `install.esd` instead of `install.wim`, or has no Windows
+image. It takes a second or two. A path that is not an acceptable ISO file is an error.
+
+The build uses `wimlib-imagex` on the Mac if there is one, because it is faster, and otherwise a
+helper VM (see `docs/windows-guests.md`), which needs the Linux guest files. With neither, the
+task is refused and says which is missing.

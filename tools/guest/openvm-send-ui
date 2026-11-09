@@ -1,0 +1,5 @@
+#!/bin/sh
+# Called by the file manager's "Send to Mac" action with the chosen paths. Shows the reason when the
+# send is refused, since the file manager would otherwise swallow it.
+out=$(/usr/local/bin/openvm-send "$@" 2>&1) && exit 0
+exec xfce4-terminal --hold --title "Send to Mac" -x sh -c 'printf "%s\n" "$1"' sh "$out"

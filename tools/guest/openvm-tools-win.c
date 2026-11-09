@@ -216,6 +216,7 @@ static void agent_log(const char *fmt, ...);
 #include "windows/helper-clipboard.c"
 #include "windows/helper-printing.c"
 #include "windows/helper-drop.c"
+#include "windows/helper-send.c"
 #include "windows/helper-display.c"
 #endif
 
@@ -223,6 +224,15 @@ int main(int argc, char **argv) {
 #ifdef OPENVM_REAL_WIN32
     if (argc == 3 && ovmc_strcmp(argv[1], "--drop") == 0)
         return helper_drop(argv[2]);
+    if (argc >= 3 && (ovmc_strcmp(argv[1], "--send") == 0 || ovmc_strcmp(argv[1], "--send-quiet") == 0)) {
+        /* Wide arguments: a name outside the ANSI code page would not survive argv. */
+        int wide_count = 0;
+        WCHAR **wide = CommandLineToArgvW(GetCommandLineW(), &wide_count);
+        if (wide == NULL || wide_count < 3)
+            return 1;
+        g_send_quiet = ovmc_strcmp(argv[1], "--send-quiet") == 0;
+        return helper_send(wide_count - 2, wide + 2);
+    }
     if (argc == 5 && ovmc_strcmp(argv[1], "--display") == 0) {
         /* The scale is read from the monitor, which only tells an aware process. */
         SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);

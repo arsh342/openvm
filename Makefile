@@ -31,7 +31,7 @@ else
 TEST_FLAGS := -Xswiftc -load-plugin-library -Xswiftc $(PLUGIN)
 endif
 
-.PHONY: all build test guest-tests format check windows-smoke clean
+.PHONY: all build test guest-tests format check app run-app payload windows-smoke clean
 
 all: check
 
@@ -51,6 +51,7 @@ guest-tests:
 	sh tools/test/test-timesync-agent.sh
 	sh tools/test/test-printer-agent.sh
 	sh tools/test/test-drag-agent.sh
+	sh tools/test/test-send-agent.sh
 	sh tools/test/test-audio-agent.sh
 	sh tools/test/conformance.sh
 
@@ -61,6 +62,18 @@ format:
 
 ## Everything that can be checked on this machine without booting a guest.
 check: build test guest-tests
+
+## The guest payload in .build/payload: what a checkout's openvmd serves to guests it installs.
+payload:
+	sh tools/build/mk-payload.sh .build/payload
+
+## The app bundle, .build/openvm.app (ad-hoc signed; set OPENVM_SIGN_IDENTITY to sign for real).
+app:
+	sh tools/build/mk-app.sh
+
+## Build the app and open it.
+run-app: app
+	open .build/openvm.app
 
 ## A real Windows guest, about 30 minutes: make windows-smoke ISO=<windows-iso>
 windows-smoke: build

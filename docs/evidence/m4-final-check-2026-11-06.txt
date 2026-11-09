@@ -1,0 +1,2469 @@
+swift build
+Building for debugging...
+[1 / 19] OpenVMHost
+[3 / 21] OpenVMCore
+[14 / 33] OpenVMWindows
+[17 / 33] OpenVMCore
+[23 / 40] OpenVMCore
+[28 / 39] OpenVMWindows
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-mockguest-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-mockguest-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[38 / 50] openvmctl-product
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmctl-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmctl-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[41 / 52] openvmctl-product
+[46 / 54] openvm-product
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/ShareOps.swift:116:9: [1;33mwarning: [1;39mresult of 'try?' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m114 |[0;0m     guard let shares = record.shares, !shares.isEmpty else { return }
+[0;36m115 |[0;0m     for share in shares {
+[0;36m116 |[0;0m         [4;39mtry? mountShare(record, share, probe: false, allShares: shares)[0;0m
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mresult of 'try?' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m117 |[0;0m     }
+[0;36m118 |[0;0m }
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[46 / 54] OpenVMHost
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostTasks.swift:180:9: [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m178 |[0;0m         // Close-on-exec, so a child spawned for some other task (or anything else in this process)
+[0;36m179 |[0;0m         // never inherits these ends: the reader's end-of-file waits for every copy of the write end.
+[0;36m180 |[0;0m         fcntl(fds[0], F_SETFD, FD_CLOEXEC)
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m181 |[0;0m         fcntl(fds[1], F_SETFD, FD_CLOEXEC)
+[0;36m182 |[0;0m 
+
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostTasks.swift:181:9: [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m179 |[0;0m         // never inherits these ends: the reader's end-of-file waits for every copy of the write end.
+[0;36m180 |[0;0m         fcntl(fds[0], F_SETFD, FD_CLOEXEC)
+[0;36m181 |[0;0m         fcntl(fds[1], F_SETFD, FD_CLOEXEC)
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m182 |[0;0m 
+[0;36m183 |[0;0m         var actions: posix_spawn_file_actions_t? = nil
+
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostTasks.swift:234:50: [1;33mwarning: [1;39mcapture of 'job' with non-Sendable type 'HostTasks.Job' in a '@Sendable' closure[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/sendable-closure-captures\SendableClosureCaptures]8;;\]
+ [0;36m67 |[0;0m     }
+ [0;36m68 |[0;0m 
+ [0;36m69 |[0;0m     private final class Job {
+    [0;36m|[0;0m                         `- [1;39mnote: [1;39mclass 'Job' does not conform to the 'Sendable' protocol[0;0m
+ [0;36m70 |[0;0m         let pid: pid_t
+ [0;36m71 |[0;0m         var state = State.running
+    [0;36m:[0;0m
+[0;36m232 |[0;0m         lock.unlock()
+[0;36m233 |[0;0m         let reading = fds[0]
+[0;36m234 |[0;0m         Thread.detachNewThread { [self] in watch(job, id: id, output: reading) }
+    [0;36m|[0;0m                                                  `- [1;33mwarning: [1;39mcapture of 'job' with non-Sendable type 'HostTasks.Job' in a '@Sendable' closure[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/sendable-closure-captures\SendableClosureCaptures]8;;\]
+[0;36m235 |[0;0m         return id
+[0;36m236 |[0;0m     }
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[#SendableClosureCaptures]: <https://docs.swift.org/compiler/documentation/diagnostics/sendable-closure-captures>
+[47 / 54] openvmd-product
+[59 / 65] openvm-product
+[61 / 64] openvm-product
+[63 / 66] openvm-product
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmd-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmd-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[64 / 66] openvmd-product
+[64 / 66] openvm-product
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[66 / 66] openvm-product
+Build complete! (2.99 sec)
+swift test -Xswiftc -load-plugin-library -Xswiftc /Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing/libTestingMacros.dylib
+Building for debugging...
+[Using on-disk description]
+[3 / 30] OpenVMCore
+[14 / 42] OpenVMWindows
+[19 / 44] OpenVMWindows
+[23 / 49] OpenVMCore
+[24 / 49] openvmctl-product
+[37 / 59] OpenVMHost
+[43 / 57] openvm-product
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/ShareOps.swift:116:9: [1;33mwarning: [1;39mresult of 'try?' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m114 |[0;0m     guard let shares = record.shares, !shares.isEmpty else { return }
+[0;36m115 |[0;0m     for share in shares {
+[0;36m116 |[0;0m         [4;39mtry? mountShare(record, share, probe: false, allShares: shares)[0;0m
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mresult of 'try?' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m117 |[0;0m     }
+[0;36m118 |[0;0m }
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[44 / 57] OpenVMHost
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostTasks.swift:180:9: [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m178 |[0;0m         // Close-on-exec, so a child spawned for some other task (or anything else in this process)
+[0;36m179 |[0;0m         // never inherits these ends: the reader's end-of-file waits for every copy of the write end.
+[0;36m180 |[0;0m         fcntl(fds[0], F_SETFD, FD_CLOEXEC)
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m181 |[0;0m         fcntl(fds[1], F_SETFD, FD_CLOEXEC)
+[0;36m182 |[0;0m 
+
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostTasks.swift:181:9: [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m179 |[0;0m         // never inherits these ends: the reader's end-of-file waits for every copy of the write end.
+[0;36m180 |[0;0m         fcntl(fds[0], F_SETFD, FD_CLOEXEC)
+[0;36m181 |[0;0m         fcntl(fds[1], F_SETFD, FD_CLOEXEC)
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m182 |[0;0m 
+[0;36m183 |[0;0m         var actions: posix_spawn_file_actions_t? = nil
+
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostTasks.swift:234:50: [1;33mwarning: [1;39mcapture of 'job' with non-Sendable type 'HostTasks.Job' in a '@Sendable' closure[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/sendable-closure-captures\SendableClosureCaptures]8;;\]
+ [0;36m67 |[0;0m     }
+ [0;36m68 |[0;0m 
+ [0;36m69 |[0;0m     private final class Job {
+    [0;36m|[0;0m                         `- [1;39mnote: [1;39mclass 'Job' does not conform to the 'Sendable' protocol[0;0m
+ [0;36m70 |[0;0m         let pid: pid_t
+ [0;36m71 |[0;0m         var state = State.running
+    [0;36m:[0;0m
+[0;36m232 |[0;0m         lock.unlock()
+[0;36m233 |[0;0m         let reading = fds[0]
+[0;36m234 |[0;0m         Thread.detachNewThread { [self] in watch(job, id: id, output: reading) }
+    [0;36m|[0;0m                                                  `- [1;33mwarning: [1;39mcapture of 'job' with non-Sendable type 'HostTasks.Job' in a '@Sendable' closure[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/sendable-closure-captures\SendableClosureCaptures]8;;\]
+[0;36m235 |[0;0m         return id
+[0;36m236 |[0;0m     }
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[#SendableClosureCaptures]: <https://docs.swift.org/compiler/documentation/diagnostics/sendable-closure-captures>
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-mockguest-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-mockguest-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmctl-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmctl-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[46 / 58] openvmctl-product
+[56 / 71] openvm-product
+[59 / 71] OpenVMHost
+[62 / 70] openvm-product
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmd-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmd-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[63 / 72] openvmd-product
+[64 / 72] openvm-product
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[66 / 72] openvm-product
+Build complete! (2.78 sec)
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite ConcurrencyTests started.
+◇ Suite GuestCmdlineTests started.
+◇ Suite SharedFoldersTests started.
+◇ Suite OwnedMediaTests started.
+◇ Suite OldToolsTests started.
+◇ Suite GuestPayloadTests started.
+◇ Suite GuestReadinessTests started.
+◇ Suite OutboxIntakeTests started.
+◇ Suite HostLockTests started.
+◇ Suite GuestTimesyncTests started.
+◇ Suite GuestWindowsTests started.
+◇ Suite GuestShutdownTests started.
+◇ Suite HostSleepTests started.
+◇ Suite GuestLifecycleTests started.
+◇ Suite StopIntentTests started.
+◇ Suite WindowsISOTests started.
+◇ Suite GuestSuspendTests started.
+◇ Suite HostInfoTests started.
+◇ Suite ArtifactReceiverTests started.
+◇ Suite GuestOverlayCmdlineTests started.
+◇ Suite HostTasksTests started.
+◇ Suite WimHelperVMTests started.
+◇ Suite OutboxWatcherTests started.
+◇ Test activityAppearsInRows() started.
+◇ Test replyToAClosedClientDoesNotKillTheHost() started.
+◇ Test "share names are stable, distinct per path, and what the guest agent accepts" started.
+◇ Test stopAllWithNothingLiveSucceeds() started.
+◇ Test listAnswersWhileAnotherConnectionIsBusy() started.
+◇ Test secondStartIsRefusedAsBusy() started.
+◇ Test withoutAPinnedCopyTheMirrorIsTheFallback() started.
+◇ Test "the device tag is valid and the share set carries every configured folder" started.
+◇ Test differentVmsDoNotShareASlot() started.
+◇ Test aMissingFileIsNotAnError() started.
+◇ Test aLinkOutIsNotFollowed() started.
+◇ Test aBundleCarriesItsPayloadInResources() started.
+◇ Test otherFailuresAreLeftAlone() started.
+◇ Test netbootUsesThePinnedModloop() started.
+◇ Test aPathThatIsNotADirectoryIsNotAPayload() started.
+◇ Test aPathThatClimbsOutIsKept() started.
+◇ Test ownedMediaIsRemoved() started.
+◇ Test oldAgentReportsNeedsUpdate() started.
+◇ Test matchingGuestReplyConfirmsReadiness() started.
+◇ Test aFileOutsideTheMediaFolderIsKept() started.
+◇ Test "a VM with no shares still gets the device, so shares can be added live" started.
+◇ Test theEnvironmentOverridesEveryOtherPlace() started.
+◇ Test theOverlayIsOnlyOfferedWhenItIsThere() started.
+◇ Test wrongMessageTypeDoesNotConfirmReadiness() started.
+◇ Test aDirectoryIsNeverRemoved() started.
+◇ Test aSetWithoutItsReadyMarkIsLeftAlone() started.
+◇ Test aRejectedSetIsDeletedAndReported() started.
+◇ Test differentHomesDoNotCollide() started.
+◇ Test hiddenEntriesAreNotTakenAsSets() started.
+◇ Test receivedFilesCarryTheQuarantineMark() started.
+◇ Test aNameAlreadyThereIsNotOverwritten() started.
+◇ Test silenceTimesOut() started.
+◇ Test aCompleteSetMovesToTheDestinationAndTheOutboxIsEmptied() started.
+◇ Test installAndDropFlagsAppearInRows() started.
+◇ Test persistentBootsAreUnchanged() started.
+◇ Test anAgentClockAckCompletesTheSync() started.
+◇ Test "the Windows configuration carries the devices the guest agent needs" started.
+◇ Test secondHostIsRefusedAndNamesTheHolder() started.
+◇ Test anAgentErrorReplyFailsTheSync() started.
+◇ Test aWrongReplyTypeIsIgnoredUntilTimeout() started.
+◇ Test "enabling PMU emulation actually sets the flag (read back through the getter)" started.
+◇ Test unrelatedReplyDoesNotConfirmReadiness() started.
+◇ Test graceExpiryForcesStop() started.
+◇ Test aSymlinkIsRejectedEvenInsideAFolder() started.
+◇ Test lockIsReleasedWithItsHolder() started.
+◇ Test "the private fine-grained-traps switch exists on the generic platform class" started.
+◇ Test "a guest the user suspended is left alone" started.
+◇ Test "the Windows configuration boots an EFI disk with a display and a NIC" started.
+◇ Test "fine-grained traps default to on, so a run is never silently different" started.
+◇ Test forcedStopFailurePropagates() started.
+◇ Test "enabling PMU emulation is harmless on a fresh platform config" started.
+◇ Test theLastWordWins() started.
+◇ Test alreadyStoppedDoesNotRequestShutdown() started.
+◇ Test gracefulRequestFailureStillForcesStop() started.
+◇ Test onlyARealIsoFileIsAccepted() started.
+◇ Test anArm64WindowsIsoIsUsable() started.
+◇ Test theAgentsGoingDownLineIsRead() started.
+◇ Test anX64IsoIsRefusedWithItsReason() started.
+◇ Test gracefulCompletionAvoidsForcedStop() started.
+◇ Test restartsAreRationed() started.
+◇ Test forcedStopMustConfirmStoppedState() started.
+◇ Test "the private PMU switch exists on the generic platform class" started.
+◇ Test aBlockingExchangeLeavesTheMainActorFree() started.
+◇ Test linuxRestartLineMeansRestart() started.
+◇ Test anIsoWithoutAWindowsImageIsRefused() started.
+◇ Test noOverlayIsNotFoundNotACrash() started.
+◇ Test linuxPowerDownMeansPowerOff() started.
+◇ Test silenceIsUnknownAndUnknownNeverRestarts() started.
+◇ Test listingNamesTheFilesTheVerdictNeeds() started.
+◇ Test aRealIsoPathIsAccepted() started.
+◇ Test theIsoIsDetachedAfterwards() started.
+◇ Test aMissingDirectoryIsSimplyAbsent() started.
+◇ Test "the host sleep takes the running guests with a live channel" started.
+◇ Test theOpAnswersForAGoodAndABadIso() started.
+◇ Test "a guest that is still booting answers no channel operation" started.
+◇ Test "a stop report from an old boot cannot end a newer boot of the same VM" started.
+◇ Test consentIsCheckedBeforeTheGuestIsLookedUp() started.
+◇ Test "a stop is let through a start, because it is how a boot is cancelled" started.
+◇ Test onlyGetServesFiles() started.
+◇ Test "the host power watcher registers" started.
+◇ Test stopAllCountsWhatWasLiveAndIsGone() started.
+◇ Test "a running guest without a live channel is left alone" started.
+◇ Test onlyTheGuestSubnetIsAGuestPeer() started.
+◇ Test enablingWindowsSoundNeedsExplicitConsent() started.
+◇ Test "after a host restart, records that claim a live guest are stopped" started.
+◇ Test valuesAboveHostLimitsAreRefused() started.
+◇ Test "a guest that stops itself is recorded as stopped, once, and a second report is harmless" started.
+◇ Test hostInfoReportsLimits() started.
+◇ Test anAgentErrorReplyFailsTheHandshake() started.
+◇ Test findExecutableFindsOnlyExecutableFiles() started.
+◇ Test aWrongReplyTypeIsIgnoredUntilTimeout() started.
+◇ Test noPayloadMeansNoOverlayArgument() started.
+◇ Test servesTheOverlayToTheGuestNetwork() started.
+◇ Test aBuildWithoutAPayloadSaysSo() started.
+◇ Test envOverlayWins() started.
+◇ Test installBootGetsTheServedOverlay() started.
+◇ Test aPeerOutsideTheGuestNetworkIsRefused() started.
+◇ Test withoutWimlibTheHelperIsUsed() started.
+◇ Test jobBootCarriesTheJobArg() started.
+◇ Test persistentBootHasNoOverlay() started.
+◇ Test noStatusIsNotSuccess() started.
+◇ Test onlyExactNamesAreServed() started.
+◇ Test aJobThatReportedOkSucceeds() started.
+◇ Test failedTaskKeepsItsError() started.
+◇ Test aQuiesceAckCompletesTheHandshake() started.
+◇ Test anythingElseInTheStatusFileIsNotSuccess() started.
+◇ Test theGuestMemoryIsEnoughForWimlibAndItsFiles() started.
+◇ Test withoutWimlibOrAHelperItSaysWhat() started.
+◇ Test silenceTimesOut() started.
+◇ Test aJobThatReportedAnErrorFails() started.
+◇ Test fetchLinuxIsAFixedCommand() started.
+◇ Test carriageReturnsAlsoEndAProgressLine() started.
+◇ Test aFinishedKindCanBeStartedAgain() started.
+◇ Test taskReportsLastLineAndExit() started.
+◇ Test aJobGetsDefaultSignalsEvenWhenTheHostIgnoresSigpipe() started.
+◇ Test theHelperNeedsTheLinuxFiles() started.
+◇ Test aPayloadWithoutWindowsSupportSaysSo() started.
+◇ Test startingARunningKindAgainReturnsTheRunningTask() started.
+◇ Test windowsMediaIsAFixedCommand() started.
+◇ Test aTaskThatCannotStartSaysSo() started.
+◇ Test theScriptsCacheDoesNotFollowAThrowawayHome() started.
+◇ Test cancellingAFinishedTaskDoesNothing() started.
+◇ Test cancelEndsTheProcessGroup() started.
+◇ Test aStoppedWatcherSeesNothing() started.
+◇ Test aSetRenamedIntoPlaceIsTakenWithoutPolling() started.
+◇ Test aCancelledTaskRemovesItsOutput() started.
+◇ Test aVeryLongLineIsCutDown() started.
+◇ Test aSlowTaskDoesNotHoldAQuickOnesOutputOpen() started.
+◇ Test simultaneousStartsOfOneKindMakeOneTask() started.
+◇ Test finishedTasksAreNotKeptForever() started.
+◇ Test theOutputIsAlwaysUnderTheMediaFolder() started.
+◇ Test theMediaTaskNamesItsDownloadCache() started.
+◇ Test aKindOutsideTheListIsRefused() started.
+◇ Test aBadIsoIsRefused() started.
+◇ Test aFinishedTaskKeepsItsOutput() started.
+◇ Test aFailedTaskRemovesItsOutput() started.
+◇ Test differentKindsRunSideBySide() started.
+◇ Test unknownTaskIsAnError() started.
+openvmd: served the install overlay (13 bytes)
+✔ Test onlyARealIsoFileIsAccepted() passed after 0.030 seconds.
+✔ Test aFileOutsideTheMediaFolderIsKept() passed after 0.031 seconds.
+✔ Test aPathThatClimbsOutIsKept() passed after 0.031 seconds.
+✔ Test aMissingFileIsNotAnError() passed after 0.031 seconds.
+✔ Test noOverlayIsNotFoundNotACrash() passed after 0.030 seconds.
+✔ Test aDirectoryIsNeverRemoved() passed after 0.031 seconds.
+✔ Test ownedMediaIsRemoved() passed after 0.031 seconds.
+✔ Test aMissingDirectoryIsSimplyAbsent() passed after 0.031 seconds.
+✔ Test aLinkOutIsNotFollowed() passed after 0.031 seconds.
+✔ Test onlyTheGuestSubnetIsAGuestPeer() passed after 0.031 seconds.
+✔ Test aBuildWithoutAPayloadSaysSo() passed after 0.031 seconds.
+✔ Test onlyGetServesFiles() passed after 0.031 seconds.
+✔ Test listingNamesTheFilesTheVerdictNeeds() passed after 0.031 seconds.
+✔ Test aPeerOutsideTheGuestNetworkIsRefused() passed after 0.031 seconds.
+✔ Test servesTheOverlayToTheGuestNetwork() passed after 0.031 seconds.
+✔ Test fetchLinuxIsAFixedCommand() passed after 0.031 seconds.
+✔ Test onlyExactNamesAreServed() passed after 0.031 seconds.
+✔ Test aTaskThatCannotStartSaysSo() passed after 0.031 seconds.
+✔ Test carriageReturnsAlsoEndAProgressLine() passed after 0.031 seconds.
+✔ Test taskReportsLastLineAndExit() passed after 0.031 seconds.
+✔ Test failedTaskKeepsItsError() passed after 0.031 seconds.
+✔ Test graceExpiryForcesStop() passed after 0.031 seconds.
+✔ Test alreadyStoppedDoesNotRequestShutdown() passed after 0.031 seconds.
+✔ Test gracefulCompletionAvoidsForcedStop() passed after 0.031 seconds.
+✔ Test gracefulRequestFailureStillForcesStop() passed after 0.031 seconds.
+✔ Test cancellingAFinishedTaskDoesNothing() passed after 0.031 seconds.
+✔ Test unknownTaskIsAnError() passed after 0.028 seconds.
+✔ Test aKindOutsideTheListIsRefused() passed after 0.028 seconds.
+✔ Test aRealIsoPathIsAccepted() passed after 0.031 seconds.
+✔ Suite ArtifactReceiverTests passed after 0.032 seconds.
+✔ Suite OwnedMediaTests passed after 0.032 seconds.
+✔ Test aVeryLongLineIsCutDown() passed after 0.052 seconds.
+✔ Test forcedStopFailurePropagates() passed after 0.056 seconds.
+✔ Test forcedStopMustConfirmStoppedState() passed after 0.056 seconds.
+✔ Suite GuestShutdownTests passed after 0.056 seconds.
+openvm: vm: received 1 item(s) from the guest
+✔ Test activityAppearsInRows() passed after 0.094 seconds.
+✔ Test replyToAClosedClientDoesNotKillTheHost() passed after 0.094 seconds.
+✔ Test "share names are stable, distinct per path, and what the guest agent accepts" passed after 0.095 seconds.
+✔ Test stopAllWithNothingLiveSucceeds() passed after 0.095 seconds.
+✔ Test secondStartIsRefusedAsBusy() passed after 0.095 seconds.
+✔ Test listAnswersWhileAnotherConnectionIsBusy() passed after 0.095 seconds.
+✔ Test "the device tag is valid and the share set carries every configured folder" passed after 0.095 seconds.
+✔ Test differentVmsDoNotShareASlot() passed after 0.095 seconds.
+✔ Test aBundleCarriesItsPayloadInResources() passed after 0.096 seconds.
+✔ Test withoutAPinnedCopyTheMirrorIsTheFallback() passed after 0.097 seconds.
+✔ Test netbootUsesThePinnedModloop() passed after 0.097 seconds.
+✔ Test oldAgentReportsNeedsUpdate() passed after 0.097 seconds.
+✔ Test aPathThatIsNotADirectoryIsNotAPayload() passed after 0.097 seconds.
+✔ Test otherFailuresAreLeftAlone() passed after 0.097 seconds.
+✔ Suite OldToolsTests passed after 0.097 seconds.
+✔ Test matchingGuestReplyConfirmsReadiness() passed after 0.122 seconds.
+✔ Test theEnvironmentOverridesEveryOtherPlace() passed after 0.122 seconds.
+✔ Test "a VM with no shares still gets the device, so shares can be added live" passed after 0.122 seconds.
+✔ Test theOverlayIsOnlyOfferedWhenItIsThere() passed after 0.122 seconds.
+✔ Suite GuestPayloadTests passed after 0.123 seconds.
+✔ Suite SharedFoldersTests passed after 0.123 seconds.
+✔ Test aSetWithoutItsReadyMarkIsLeftAlone() passed after 0.147 seconds.
+✔ Test wrongMessageTypeDoesNotConfirmReadiness() passed after 0.147 seconds.
+✔ Test aRejectedSetIsDeletedAndReported() passed after 0.147 seconds.
+✔ Test differentHomesDoNotCollide() passed after 0.147 seconds.
+✔ Test hiddenEntriesAreNotTakenAsSets() passed after 0.151 seconds.
+✔ Test aNameAlreadyThereIsNotOverwritten() passed after 0.151 seconds.
+✔ Test receivedFilesCarryTheQuarantineMark() passed after 0.151 seconds.
+✔ Test aCompleteSetMovesToTheDestinationAndTheOutboxIsEmptied() passed after 0.151 seconds.
+✔ Test silenceTimesOut() passed after 0.151 seconds.
+✔ Test installAndDropFlagsAppearInRows() passed after 0.151 seconds.
+✔ Suite ConcurrencyTests passed after 0.151 seconds.
+✔ Test anAgentClockAckCompletesTheSync() passed after 0.151 seconds.
+✔ Test "the Windows configuration carries the devices the guest agent needs" passed after 0.151 seconds.
+✔ Test persistentBootsAreUnchanged() passed after 0.151 seconds.
+✔ Test secondHostIsRefusedAndNamesTheHolder() passed after 0.151 seconds.
+✔ Test anAgentErrorReplyFailsTheSync() passed after 0.151 seconds.
+✔ Test "enabling PMU emulation actually sets the flag (read back through the getter)" passed after 0.151 seconds.
+✔ Suite GuestCmdlineTests passed after 0.152 seconds.
+✔ Test lockIsReleasedWithItsHolder() passed after 0.222 seconds.
+✔ Test aWrongReplyTypeIsIgnoredUntilTimeout() passed after 0.222 seconds.
+✔ Test "the private fine-grained-traps switch exists on the generic platform class" passed after 0.222 seconds.
+✔ Test unrelatedReplyDoesNotConfirmReadiness() passed after 0.222 seconds.
+✔ Test "a guest the user suspended is left alone" passed after 0.222 seconds.
+✔ Test "the Windows configuration boots an EFI disk with a display and a NIC" passed after 0.222 seconds.
+✔ Test aSymlinkIsRejectedEvenInsideAFolder() passed after 0.222 seconds.
+✔ Test "fine-grained traps default to on, so a run is never silently different" passed after 0.222 seconds.
+✔ Test theLastWordWins() passed after 0.222 seconds.
+✔ Test "enabling PMU emulation is harmless on a fresh platform config" passed after 0.222 seconds.
+✔ Test theAgentsGoingDownLineIsRead() passed after 0.222 seconds.
+✔ Test restartsAreRationed() passed after 0.222 seconds.
+✔ Test "the private PMU switch exists on the generic platform class" passed after 0.222 seconds.
+✔ Test linuxRestartLineMeansRestart() passed after 0.222 seconds.
+✔ Test linuxPowerDownMeansPowerOff() passed after 0.222 seconds.
+✔ Test silenceIsUnknownAndUnknownNeverRestarts() passed after 0.222 seconds.
+✔ Suite HostLockTests passed after 0.223 seconds.
+✔ Suite GuestWindowsTests passed after 0.223 seconds.
+✔ Suite GuestReadinessTests passed after 0.223 seconds.
+✔ Suite OutboxIntakeTests passed after 0.223 seconds.
+✔ Suite StopIntentTests passed after 0.223 seconds.
+✔ Test "the host sleep takes the running guests with a live channel" passed after 0.222 seconds.
+✔ Test "a guest that is still booting answers no channel operation" passed after 0.222 seconds.
+✔ Test "a stop report from an old boot cannot end a newer boot of the same VM" passed after 0.222 seconds.
+✔ Test consentIsCheckedBeforeTheGuestIsLookedUp() passed after 0.222 seconds.
+✔ Test "the host power watcher registers" passed after 0.227 seconds.
+✔ Test stopAllCountsWhatWasLiveAndIsGone() passed after 0.227 seconds.
+✔ Test "a stop is let through a start, because it is how a boot is cancelled" passed after 0.227 seconds.
+✔ Test "a running guest without a live channel is left alone" passed after 0.227 seconds.
+✔ Test enablingWindowsSoundNeedsExplicitConsent() passed after 0.227 seconds.
+✔ Test "after a host restart, records that claim a live guest are stopped" passed after 0.227 seconds.
+✔ Test valuesAboveHostLimitsAreRefused() passed after 0.227 seconds.
+✔ Test "a guest that stops itself is recorded as stopped, once, and a second report is harmless" passed after 0.227 seconds.
+✔ Suite HostSleepTests passed after 0.228 seconds.
+✔ Suite GuestLifecycleTests passed after 0.228 seconds.
+✔ Test hostInfoReportsLimits() passed after 0.227 seconds.
+✔ Test aSetRenamedIntoPlaceIsTakenWithoutPolling() passed after 0.227 seconds.
+✔ Test anAgentErrorReplyFailsTheHandshake() passed after 0.227 seconds.
+✔ Test findExecutableFindsOnlyExecutableFiles() passed after 0.227 seconds.
+✔ Test aWrongReplyTypeIsIgnoredUntilTimeout() passed after 0.227 seconds.
+✔ Test noPayloadMeansNoOverlayArgument() passed after 0.227 seconds.
+✔ Suite HostInfoTests passed after 0.228 seconds.
+✔ Test installBootGetsTheServedOverlay() passed after 0.278 seconds.
+✔ Test withoutWimlibTheHelperIsUsed() passed after 0.278 seconds.
+✔ Test persistentBootHasNoOverlay() passed after 0.278 seconds.
+✔ Test jobBootCarriesTheJobArg() passed after 0.278 seconds.
+✔ Test envOverlayWins() passed after 0.279 seconds.
+✔ Test noStatusIsNotSuccess() passed after 0.278 seconds.
+✔ Test aQuiesceAckCompletesTheHandshake() passed after 0.278 seconds.
+✔ Test theGuestMemoryIsEnoughForWimlibAndItsFiles() passed after 0.278 seconds.
+✔ Test anythingElseInTheStatusFileIsNotSuccess() passed after 0.278 seconds.
+✔ Test withoutWimlibOrAHelperItSaysWhat() passed after 0.278 seconds.
+✔ Test aJobThatReportedOkSucceeds() passed after 0.278 seconds.
+✔ Test aJobThatReportedAnErrorFails() passed after 0.279 seconds.
+✔ Test silenceTimesOut() passed after 0.279 seconds.
+✔ Suite GuestOverlayCmdlineTests passed after 0.279 seconds.
+✔ Suite WimHelperVMTests passed after 0.279 seconds.
+✔ Suite GuestSuspendTests passed after 0.279 seconds.
+✔ Test aFinishedKindCanBeStartedAgain() passed after 0.279 seconds.
+✔ Test aJobGetsDefaultSignalsEvenWhenTheHostIgnoresSigpipe() passed after 0.279 seconds.
+✔ Test theHelperNeedsTheLinuxFiles() passed after 0.279 seconds.
+✔ Test aPayloadWithoutWindowsSupportSaysSo() passed after 0.279 seconds.
+✔ Test startingARunningKindAgainReturnsTheRunningTask() passed after 0.279 seconds.
+✔ Test windowsMediaIsAFixedCommand() passed after 0.279 seconds.
+✔ Test theScriptsCacheDoesNotFollowAThrowawayHome() passed after 0.279 seconds.
+✔ Test aCancelledTaskRemovesItsOutput() passed after 0.278 seconds.
+✔ Test aSlowTaskDoesNotHoldAQuickOnesOutputOpen() passed after 0.278 seconds.
+✔ Test simultaneousStartsOfOneKindMakeOneTask() passed after 0.277 seconds.
+✔ Test theOutputIsAlwaysUnderTheMediaFolder() passed after 0.275 seconds.
+✔ Test theMediaTaskNamesItsDownloadCache() passed after 0.275 seconds.
+✔ Test aBadIsoIsRefused() passed after 0.275 seconds.
+✔ Test aFinishedTaskKeepsItsOutput() passed after 0.275 seconds.
+✔ Test aFailedTaskRemovesItsOutput() passed after 0.275 seconds.
+✔ Test differentKindsRunSideBySide() passed after 0.275 seconds.
+✔ Test cancelEndsTheProcessGroup() passed after 0.401 seconds.
+✔ Test anX64IsoIsRefusedWithItsReason() passed after 0.425 seconds.
+✔ Test aBlockingExchangeLeavesTheMainActorFree() passed after 0.431 seconds.
+✔ Suite GuestTimesyncTests passed after 0.432 seconds.
+✔ Test aStoppedWatcherSeesNothing() passed after 0.492 seconds.
+✔ Suite OutboxWatcherTests passed after 0.493 seconds.
+✔ Test anIsoWithoutAWindowsImageIsRefused() passed after 0.611 seconds.
+✔ Test anArm64WindowsIsoIsUsable() passed after 0.624 seconds.
+✔ Test theOpAnswersForAGoodAndABadIso() passed after 0.629 seconds.
+✔ Test theIsoIsDetachedAfterwards() passed after 0.636 seconds.
+✔ Suite WindowsISOTests passed after 0.637 seconds.
+✔ Test finishedTasksAreNotKeptForever() passed after 0.759 seconds.
+✔ Suite HostTasksTests passed after 0.763 seconds.
+✔ Test run with 138 tests in 23 suites passed after 0.764 seconds.
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite ClipboardPolicyTests started.
+◇ Suite OutboxRulesTests started.
+◇ Suite DaemonClientTests started.
+◇ Suite PrintingTests started.
+◇ Suite DisplayFitTests started.
+◇ Suite RegistryTests started.
+◇ Suite DragDropTests started.
+◇ Suite GuestAudioTests started.
+◇ Suite VmSummaryTests started.
+◇ Suite WindowsMediaCheckTests started.
+◇ Suite CBORTests started.
+◇ Suite GuestOverlayTests started.
+◇ Suite FrameTests started.
+◇ Suite HostInfoDecodingTests started.
+◇ Suite EnvelopeTests started.
+◇ Suite HelperJobOverlayTests started.
+◇ Test anUnchangedGuestClipboardLeavesTheMacAlone() started.
+◇ Test unchangedPasteboardIsNotPushed() started.
+◇ Suite DisplayTests started.
+◇ Test emptyGuestClipboardLeavesTheMacAlone() started.
+◇ Test unicodeNamesAreComposed() started.
+◇ Test aPasteboardWithNoTextIsNotPushed() started.
+◇ Test goodTreePasses() started.
+◇ Test guestTextComesBackToTheMac() started.
+◇ Test theSameGuestTextIsNotPulledTwice() started.
+◇ Test manifestListingMissingFileIsRejected() started.
+◇ Test disabledSyncDoesNothing() started.
+◇ Test symlinkInOutboxIsRejected() started.
+◇ Test emptyDuplicateAndTooManyAreRejected() started.
+◇ Test aFailedPushIsTriedAgainOnTheNextFocus() started.
+◇ Test overQuotaIsRejected() started.
+◇ Test fifoIsRejected() started.
+◇ Test pdfMagic() started.
+◇ Test concealedItemsAreNotPushed() started.
+◇ Test guestTextThatIsTooLargeIsNotPulled() started.
+◇ Test unsafeDestinationsAreSkipped() started.
+◇ Test replySplitAcrossReadsDecodes() started.
+◇ Test aSuccessfulPushClearsAnEarlierSkip() started.
+◇ Test errorReplyThrowsItsMessage() started.
+◇ Test traversalNameIsRejected() started.
+◇ Test pulledTextIsNotPushedBack() started.
+◇ Test destinationsAreOnePerLineSortedAndUnique() started.
+◇ Test noJobsKeyIsNoJobs() started.
+◇ Test aPendingSyncIsAskedAgain() started.
+◇ Test oversizedTextIsSkipped() started.
+◇ Test oddBackingScalesStayInRange() started.
+◇ Test sendRunsOffTheMainThread() started.
+◇ Test defaultDestination() started.
+◇ Test hugeWindowClampsToMaximum() started.
+◇ Test missingHostIsReportedNotCrashed() started.
+◇ Test correlationMismatchIsAnError() started.
+◇ Test nonsenseSizesAreClampedNotCrashed() started.
+◇ Test refusals() started.
+◇ Test scaleOneOnPlainDisplay() started.
+◇ Test jobsParseAndHostilePathsAreDropped() started.
+◇ Test deleteRemovesRecordAndPersists() started.
+◇ Test onlyAScaleRefusalStepsDown() started.
+◇ Test retinaWindowMapsToPixels() started.
+◇ Test widthIsAMultipleOfEightSoTheGuestCanHoldIt() started.
+◇ Test nameCollisionRejected() started.
+◇ Test stopAcceptsSuspendedRecord() started.
+◇ Test statusParses() started.
+◇ Test scalesStepDown() started.
+◇ Test roundingNeverGoesBelowTheMinimum() started.
+◇ Test resumeTransitions() started.
+◇ Test escapingNamesAreRefused() started.
+◇ Test tinyWindowClampsToMinimum() started.
+◇ Test ordinaryNamesPass() started.
+◇ Test twoItemsCannotShareAName() started.
+◇ Test namesArriveComposed() started.
+◇ Test setRejectedWhileNotStopped() started.
+◇ Test sharesWorkWhileTheVMRuns() started.
+◇ Test suspendTransitions() started.
+◇ Test windowsReportsAStateAndNoRunningFlag() started.
+◇ Test arm64IsoPasses() started.
+◇ Test statusParses() started.
+◇ Test itemNamesComeFromTheLastComponent() started.
+◇ Test resourcesStillNeedAStoppedVm() started.
+◇ Test createPersistsAndLists() started.
+◇ Test esdOnlyIsoIsReported() started.
+◇ Test everyOperationAcceptsAUUIDInAnyCase() started.
+◇ Test trailingGarbageAndEnd() started.
+◇ Test aGuestWithNoCardSaysSo() started.
+◇ Test caseDoesNotMatter() started.
+◇ Test resolveMissingThrowsNotFound() started.
+◇ Test addSharePersists() started.
+◇ Test rowsMissingRequiredFieldsAreRejected() started.
+◇ Test everyProblemHasWordsForAPerson() started.
+◇ Test shareOnUnknownVMThrowsNotFound() started.
+◇ Test textBytesArrayMapGolden() started.
+◇ Test roundTrips() started.
+◇ Test summaryDecodesRowsWithAndWithoutNewFields() started.
+◇ Test anIsoWithNoInstallImageIsReported() started.
+◇ Test installingAndDroppingDefaultToFalseAndDecodeWhenSent() started.
+◇ Test negativeInts() started.
+◇ Test oversizeEnvelopeThrowsInsteadOfTrapping() started.
+◇ Test deepNestingIsRefusedNotRecursedInto() started.
+◇ Test randomIsoIsRefused() started.
+◇ Test recordsWithoutSharesStillDecode() started.
+◇ Test uintGolden() started.
+◇ Test outboxDefaultsToOnAndDecodesWhenSent() started.
+◇ Test clipboardSyncAndTimezoneChangeWhileRunning() started.
+◇ Test hostileLengthIsRejectedWithoutAllocation() started.
+◇ Test badMapKeyAndUTF8() started.
+◇ Test defaults() started.
+◇ Test setAppliesAndPersists() started.
+◇ Test removeShareDropsOnlyThatShare() started.
+◇ Test recordsWithoutClipboardSyncDecodeAsOn() started.
+◇ Test clipboardSyncDefaultsToOnAndDecodesWhenSent() started.
+◇ Test outboxSwitchChangesWhileRunningAndMissingMeansOn() started.
+◇ Test listOnMissingFileIsEmpty() started.
+◇ Test roundTrip() started.
+◇ Test aReplyMissingTheLimitsIsRejected() started.
+◇ Test resolveByNameAndUUID() started.
+◇ Test generatedScriptsHaveValidShellSyntax() started.
+◇ Test concurrentCreatesKeepEveryRecord() started.
+◇ Test x64IsoIsRefused() started.
+◇ Test badTransitionsRejected() started.
+◇ Test deleteRejectedWhileNotStopped() started.
+◇ Test oversizeLength() started.
+◇ Test correlationIdTravelsInsideBody() started.
+◇ Test recordsWithoutTimezoneStillDecode() started.
+◇ Test concurrentTransitionsOfDifferentVmsAreAllKept() started.
+◇ Test goldenHelloFrame() started.
+◇ Test errorClearsBufferAndDecoderStaysUsable() started.
+◇ Test installMediaCanBeForgotten() started.
+◇ Test timesyncMessageIDsAreAppendOnly() started.
+◇ Test setLeavesUntouchedFieldsAlone() started.
+◇ Test invalidNamesRejected() started.
+◇ Test unsupportedVersion() started.
+◇ Test reservedFlags() started.
+◇ Test hostInfoDecodes() started.
+◇ Test setTimezoneLeavesOtherFieldsAlone() started.
+◇ Test badMagic() started.
+◇ Test setTimezonePersists() started.
+◇ Test roundTrips() started.
+◇ Test goldenHelloDecodes() started.
+◇ Test startStopTransitions() started.
+◇ Test sharedMessageIDsAreAppendOnly() started.
+◇ Test suspendPayloadRoundTrips() started.
+◇ Test clipboardMessageIDsAreAppendOnly() started.
+◇ Test streamingFeedKeepsPartialFrames() started.
+◇ Test suspendMessageIDsAreAppendOnly() started.
+◇ Test addShareReplacesTheGuestPathForTheSameHostPath() started.
+◇ Test missingCorrelationId() started.
+◇ Test fileChunkPayloadRoundTrips() started.
+◇ Test unknownTypeIsRejected() started.
+◇ Test sharedPayloadRoundTrips() started.
+◇ Test bodyMustBeAMap() started.
+◇ Test timesyncPayloadRoundTrips() started.
+◇ Test clipboardPayloadsRoundTrip() started.
+◇ Test theOverlayHasAJobScript() started.
+◇ Test scalesAreWhole() started.
+◇ Test heldMode() started.
+◇ Test modeBounds() started.
+◇ Test heldScaleIsReadFromTheReply() started.
+✔ Test deleteRemovesRecordAndPersists() passed after 0.004 seconds.
+✔ Test stopAcceptsSuspendedRecord() passed after 0.005 seconds.
+✔ Test nameCollisionRejected() passed after 0.005 seconds.
+✔ Test setRejectedWhileNotStopped() passed after 0.006 seconds.
+✔ Test suspendTransitions() passed after 0.007 seconds.
+✔ Test resolveMissingThrowsNotFound() passed after 0.007 seconds.
+✔ Test shareOnUnknownVMThrowsNotFound() passed after 0.007 seconds.
+✔ Test setAppliesAndPersists() passed after 0.007 seconds.
+✔ Test resumeTransitions() passed after 0.009 seconds.
+✔ Test deleteRejectedWhileNotStopped() passed after 0.009 seconds.
+✔ Test setLeavesUntouchedFieldsAlone() passed after 0.009 seconds.
+✔ Test invalidNamesRejected() passed after 0.010 seconds.
+✔ Test badTransitionsRejected() passed after 0.073 seconds.
+✔ Test sendRunsOffTheMainThread() passed after 0.074 seconds.
+✔ Test anUnchangedGuestClipboardLeavesTheMacAlone() passed after 0.242 seconds.
+✔ Test unicodeNamesAreComposed() passed after 0.242 seconds.
+✔ Test unchangedPasteboardIsNotPushed() passed after 0.242 seconds.
+✔ Test emptyGuestClipboardLeavesTheMacAlone() passed after 0.243 seconds.
+✔ Test goodTreePasses() passed after 0.248 seconds.
+✔ Test theSameGuestTextIsNotPulledTwice() passed after 0.248 seconds.
+✔ Test aPasteboardWithNoTextIsNotPushed() passed after 0.248 seconds.
+✔ Test manifestListingMissingFileIsRejected() passed after 0.249 seconds.
+✔ Test guestTextComesBackToTheMac() passed after 0.249 seconds.
+✔ Test symlinkInOutboxIsRejected() passed after 0.249 seconds.
+✔ Test disabledSyncDoesNothing() passed after 0.249 seconds.
+✔ Test overQuotaIsRejected() passed after 0.249 seconds.
+✔ Test aFailedPushIsTriedAgainOnTheNextFocus() passed after 0.249 seconds.
+✔ Test emptyDuplicateAndTooManyAreRejected() passed after 0.249 seconds.
+✔ Test concealedItemsAreNotPushed() passed after 0.249 seconds.
+✔ Test pdfMagic() passed after 0.249 seconds.
+✔ Test guestTextThatIsTooLargeIsNotPulled() passed after 0.250 seconds.
+✔ Test unsafeDestinationsAreSkipped() passed after 0.250 seconds.
+✔ Test replySplitAcrossReadsDecodes() passed after 0.251 seconds.
+✔ Test errorReplyThrowsItsMessage() passed after 0.251 seconds.
+✔ Test aSuccessfulPushClearsAnEarlierSkip() passed after 0.251 seconds.
+✔ Test destinationsAreOnePerLineSortedAndUnique() passed after 0.251 seconds.
+✔ Test noJobsKeyIsNoJobs() passed after 0.251 seconds.
+✔ Test aPendingSyncIsAskedAgain() passed after 0.251 seconds.
+✔ Test oversizedTextIsSkipped() passed after 0.251 seconds.
+✔ Test oddBackingScalesStayInRange() passed after 0.251 seconds.
+✔ Test fifoIsRejected() passed after 0.251 seconds.
+✔ Test nonsenseSizesAreClampedNotCrashed() passed after 0.318 seconds.
+✔ Test scaleOneOnPlainDisplay() passed after 0.318 seconds.
+✔ Test missingHostIsReportedNotCrashed() passed after 0.318 seconds.
+✔ Test pulledTextIsNotPushedBack() passed after 0.318 seconds.
+✔ Test hugeWindowClampsToMaximum() passed after 0.318 seconds.
+✔ Test onlyAScaleRefusalStepsDown() passed after 0.318 seconds.
+✔ Test retinaWindowMapsToPixels() passed after 0.318 seconds.
+✔ Test defaultDestination() passed after 0.318 seconds.
+✔ Test widthIsAMultipleOfEightSoTheGuestCanHoldIt() passed after 0.318 seconds.
+✔ Test roundingNeverGoesBelowTheMinimum() passed after 0.318 seconds.
+✔ Test scalesStepDown() passed after 0.318 seconds.
+✔ Test correlationMismatchIsAnError() passed after 0.318 seconds.
+✔ Test statusParses() passed after 0.318 seconds.
+✔ Test refusals() passed after 0.318 seconds.
+✔ Test escapingNamesAreRefused() passed after 0.318 seconds.
+✔ Test twoItemsCannotShareAName() passed after 0.318 seconds.
+✔ Test jobsParseAndHostilePathsAreDropped() passed after 0.318 seconds.
+✔ Test tinyWindowClampsToMinimum() passed after 0.318 seconds.
+✔ Test windowsReportsAStateAndNoRunningFlag() passed after 0.318 seconds.
+✔ Test sharesWorkWhileTheVMRuns() passed after 0.318 seconds.
+✔ Test esdOnlyIsoIsReported() passed after 0.318 seconds.
+✔ Test ordinaryNamesPass() passed after 0.318 seconds.
+✔ Test traversalNameIsRejected() passed after 0.318 seconds.
+✔ Test addSharePersists() passed after 0.318 seconds.
+✔ Test createPersistsAndLists() passed after 0.318 seconds.
+✔ Test aGuestWithNoCardSaysSo() passed after 0.318 seconds.
+✔ Test statusParses() passed after 0.318 seconds.
+✔ Test everyOperationAcceptsAUUIDInAnyCase() passed after 0.318 seconds.
+✔ Test trailingGarbageAndEnd() passed after 0.318 seconds.
+✔ Test textBytesArrayMapGolden() passed after 0.318 seconds.
+✔ Test caseDoesNotMatter() passed after 0.318 seconds.
+✔ Test arm64IsoPasses() passed after 0.318 seconds.
+✔ Test summaryDecodesRowsWithAndWithoutNewFields() passed after 0.318 seconds.
+✔ Test rowsMissingRequiredFieldsAreRejected() passed after 0.318 seconds.
+✔ Test itemNamesComeFromTheLastComponent() passed after 0.318 seconds.
+✔ Test anIsoWithNoInstallImageIsReported() passed after 0.318 seconds.
+✔ Test negativeInts() passed after 0.318 seconds.
+✔ Test oversizeEnvelopeThrowsInsteadOfTrapping() passed after 0.318 seconds.
+✔ Test recordsWithoutSharesStillDecode() passed after 0.318 seconds.
+✔ Test randomIsoIsRefused() passed after 0.318 seconds.
+✔ Test clipboardSyncAndTimezoneChangeWhileRunning() passed after 0.318 seconds.
+✔ Test outboxDefaultsToOnAndDecodesWhenSent() passed after 0.318 seconds.
+✔ Test deepNestingIsRefusedNotRecursedInto() passed after 0.318 seconds.
+✔ Test badMapKeyAndUTF8() passed after 0.318 seconds.
+✔ Test installingAndDroppingDefaultToFalseAndDecodeWhenSent() passed after 0.318 seconds.
+✔ Test uintGolden() passed after 0.318 seconds.
+✔ Test everyProblemHasWordsForAPerson() passed after 0.318 seconds.
+✔ Test resourcesStillNeedAStoppedVm() passed after 0.318 seconds.
+✔ Test roundTrip() passed after 0.318 seconds.
+✔ Test listOnMissingFileIsEmpty() passed after 0.318 seconds.
+✔ Test recordsWithoutClipboardSyncDecodeAsOn() passed after 0.318 seconds.
+✔ Suite DaemonClientTests passed after 0.319 seconds.
+✔ Test outboxSwitchChangesWhileRunningAndMissingMeansOn() passed after 0.318 seconds.
+✔ Test hostileLengthIsRejectedWithoutAllocation() passed after 0.318 seconds.
+✔ Test clipboardSyncDefaultsToOnAndDecodesWhenSent() passed after 0.318 seconds.
+✔ Suite PrintingTests passed after 0.319 seconds.
+✔ Suite ClipboardPolicyTests passed after 0.319 seconds.
+✔ Suite GuestAudioTests passed after 0.319 seconds.
+✔ Suite DisplayFitTests passed after 0.319 seconds.
+✔ Suite OutboxRulesTests passed after 0.319 seconds.
+✔ Suite VmSummaryTests passed after 0.319 seconds.
+✔ Test resolveByNameAndUUID() passed after 0.405 seconds.
+✔ Test concurrentCreatesKeepEveryRecord() passed after 0.405 seconds.
+✔ Test removeShareDropsOnlyThatShare() passed after 0.405 seconds.
+✔ Test namesArriveComposed() passed after 0.405 seconds.
+✔ Test concurrentTransitionsOfDifferentVmsAreAllKept() passed after 0.405 seconds.
+✔ Test oversizeLength() passed after 0.405 seconds.
+✔ Test aReplyMissingTheLimitsIsRejected() passed after 0.405 seconds.
+✔ Test roundTrips() passed after 0.405 seconds.
+✔ Test recordsWithoutTimezoneStillDecode() passed after 0.405 seconds.
+✔ Test errorClearsBufferAndDecoderStaysUsable() passed after 0.405 seconds.
+✔ Test badMagic() passed after 0.405 seconds.
+✔ Test installMediaCanBeForgotten() passed after 0.405 seconds.
+✔ Test x64IsoIsRefused() passed after 0.405 seconds.
+✔ Test setTimezoneLeavesOtherFieldsAlone() passed after 0.405 seconds.
+✔ Test defaults() passed after 0.405 seconds.
+✔ Test timesyncMessageIDsAreAppendOnly() passed after 0.405 seconds.
+✔ Test correlationIdTravelsInsideBody() passed after 0.405 seconds.
+✔ Test sharedMessageIDsAreAppendOnly() passed after 0.405 seconds.
+✔ Test startStopTransitions() passed after 0.405 seconds.
+✔ Test goldenHelloDecodes() passed after 0.405 seconds.
+✔ Test goldenHelloFrame() passed after 0.405 seconds.
+✔ Test clipboardMessageIDsAreAppendOnly() passed after 0.405 seconds.
+✔ Test hostInfoDecodes() passed after 0.405 seconds.
+✔ Test suspendPayloadRoundTrips() passed after 0.405 seconds.
+✔ Test roundTrips() passed after 0.405 seconds.
+✔ Test fileChunkPayloadRoundTrips() passed after 0.405 seconds.
+✔ Test addShareReplacesTheGuestPathForTheSameHostPath() passed after 0.405 seconds.
+✔ Test missingCorrelationId() passed after 0.405 seconds.
+✔ Test setTimezonePersists() passed after 0.405 seconds.
+✔ Test unknownTypeIsRejected() passed after 0.405 seconds.
+✔ Test timesyncPayloadRoundTrips() passed after 0.405 seconds.
+✔ Test streamingFeedKeepsPartialFrames() passed after 0.405 seconds.
+✔ Test reservedFlags() passed after 0.405 seconds.
+✔ Test bodyMustBeAMap() passed after 0.405 seconds.
+✔ Test scalesAreWhole() passed after 0.404 seconds.
+✔ Test modeBounds() passed after 0.404 seconds.
+✔ Test clipboardPayloadsRoundTrip() passed after 0.405 seconds.
+✔ Test unsupportedVersion() passed after 0.405 seconds.
+✔ Test heldScaleIsReadFromTheReply() passed after 0.404 seconds.
+✔ Test suspendMessageIDsAreAppendOnly() passed after 0.405 seconds.
+✔ Test heldMode() passed after 0.404 seconds.
+✔ Test theOverlayHasAJobScript() passed after 0.405 seconds.
+✔ Test sharedPayloadRoundTrips() passed after 0.405 seconds.
+✔ Test generatedScriptsHaveValidShellSyntax() passed after 0.405 seconds.
+✔ Suite HostInfoDecodingTests passed after 0.406 seconds.
+✔ Suite CBORTests passed after 0.406 seconds.
+✔ Suite WindowsMediaCheckTests passed after 0.406 seconds.
+✔ Suite DisplayTests passed after 0.406 seconds.
+✔ Suite RegistryTests passed after 0.406 seconds.
+✔ Suite DragDropTests passed after 0.406 seconds.
+✔ Suite FrameTests passed after 0.406 seconds.
+✔ Suite EnvelopeTests passed after 0.406 seconds.
+◇ Test anOrdinaryBootDoesNothing() started.
+◇ Test installationAbortsOnFailedTargetWrites() started.
+✔ Test anOrdinaryBootDoesNothing() passed after 0.008 seconds.
+◇ Test aJobBootMountsInstallsRunsAndPowersOff() started.
+✔ Test installationAbortsOnFailedTargetWrites() passed after 0.008 seconds.
+◇ Test onlyTheOpenRCServiceStartsThePersistentAgent() started.
+✔ Test aJobBootMountsInstallsRunsAndPowersOff() passed after 1.943 seconds.
+◇ Test aFailedJobIsReportedAndStillPowersOff() started.
+✔ Test onlyTheOpenRCServiceStartsThePersistentAgent() passed after 1.946 seconds.
+◇ Test installedFilesystemsAreUnmountedBeforeReady() started.
+✔ Test aFailedJobIsReportedAndStillPowersOff() passed after 1.655 seconds.
+◇ Test noNetworkIsReportedAsSuch() started.
+✔ Test installedFilesystemsAreUnmountedBeforeReady() passed after 1.653 seconds.
+◇ Test clipboardSessionBridgeIsInstalledForDesktopLogins() started.
+✔ Test noNetworkIsReportedAsSuch() passed after 1.757 seconds.
+◇ Test aFolderThatCannotBeMountedPowersOffWithoutReporting() started.
+✔ Test clipboardSessionBridgeIsInstalledForDesktopLogins() passed after 1.756 seconds.
+◇ Test clipboardDesktopDependenciesReachTheInstalledRoot() started.
+✔ Test aFolderThatCannotBeMountedPowersOffWithoutReporting() passed after 1.355 seconds.
+◇ Test theAgentScriptStandsDownForAJob() started.
+✔ Test clipboardDesktopDependenciesReachTheInstalledRoot() passed after 1.356 seconds.
+◇ Test clipboardDesktopServicePublishesAnX11Session() started.
+✔ Test theAgentScriptStandsDownForAJob() passed after 0.018 seconds.
+✔ Suite HelperJobOverlayTests passed after 7.146 seconds.
+✔ Test clipboardDesktopServicePublishesAnX11Session() passed after 0.019 seconds.
+◇ Test installedRootBringsUpEth0ForTheHostGateway() started.
+✔ Test installedRootBringsUpEth0ForTheHostGateway() passed after 0.004 seconds.
+◇ Test installerUsesNoPython() started.
+✔ Test installerUsesNoPython() passed after 0.001 seconds.
+◇ Test rootBackendDoesNotExecuteSessionEnvironmentAsShell() started.
+✔ Test rootBackendDoesNotExecuteSessionEnvironmentAsShell() passed after 0.001 seconds.
+◇ Test clipboardBackendReadsAndWritesThePublishedUserSession() started.
+✔ Test clipboardBackendReadsAndWritesThePublishedUserSession() passed after 0.840 seconds.
+◇ Test sessionHookWritesPrivateRuntimeEnvironment() started.
+✔ Test sessionHookWritesPrivateRuntimeEnvironment() passed after 0.012 seconds.
+✔ Suite GuestOverlayTests passed after 8.008 seconds.
+✔ Test run with 156 tests in 17 suites passed after 8.008 seconds.
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite VMListModelTests started.
+◇ Suite ReceiptMessageTests started.
+◇ Suite QuitPolicyTests started.
+◇ Suite SnapshotTests started.
+◇ Suite DropSessionTests started.
+◇ Suite VMRowLogicTests started.
+◇ Suite ResizeCoalescerTests started.
+◇ Suite VMLinkTests started.
+◇ Suite VMToolbarClipboardTests started.
+◇ Suite VMSettingsModelTests started.
+◇ Suite VMWindowStateTests started.
+◇ Suite ClipboardSyncTests started.
+◇ Suite CreateWizardModelTests started.
+◇ Suite VMSettingsOutboxTests started.
+➜ Suite WizardEndToEndTests skipped.
+◇ Suite StartFailureTests started.
+◇ Suite VMToolbarLogicTests started.
+◇ Test confirmingDeleteSendsIt() started.
+◇ Test unchangedPollDoesNotRepublish() started.
+◇ Test failedActionSetsLastError() started.
+◇ Test lostHostIsReportedNotFatal() started.
+◇ Test actionsAddressTheVmByItsUuid() started.
+◇ Test deleteAsksBeforeItActs() started.
+◇ Test pollPublishesChanges() started.
+◇ Test aLiveVmCannotEvenBeAskedAbout() started.
+➜ Test wizardSizesTheVm() skipped.
+➜ Test emptyList() skipped.
+◇ Test deleteRefusedOnLiveVm() started.
+◇ Test aRefreshDoesNotHideAnActionError() started.
+◇ Test manyAreCounted() started.
+➜ Test wizardRefusesAnX64Iso() skipped.
+◇ Test oneFileIsNamed() started.
+➜ Test actionError() skipped.
+◇ Test aRefusalSaysWhy() started.
+➜ Test settingsOfARunningWindowsVm() skipped.
+➜ Test settingsOfAStoppedLinuxVm() skipped.
+➜ Test wizardWhileInstalling() skipped.
+➜ Test popoverWithMixedStates() skipped.
+➜ Test wizardChoosesTheSystem() skipped.
+◇ Test runningGuestsAreListed() started.
+◇ Test pollsUntilDone() started.
+◇ Test tooManyItemsFailsBeforeCopying() started.
+◇ Test aFinishedDropCanBeDismissedAndAnotherStarted() started.
+➜ Test listWithMixedStates() skipped.
+◇ Test secondDropIsRefusedWithReason() started.
+➜ Test wizardAfterAFailedStart() skipped.
+◇ Test aRefusedDropIsReportedWithTheHostsReason() started.
+◇ Test withNoWindowAndAGuestRunningTheAppLivesInTheMenuBar() started.
+◇ Test aVmThatIsBootingCountsAsRunning() started.
+◇ Test noGuestsQuitsNow() started.
+◇ Test pollingStopsWhenTheVmStops() started.
+◇ Test theMessageNamesWhatWouldBeLost() started.
+◇ Test retriesStopAfterTheLastDelay() started.
+◇ Test onlyTheLatestSizeIsApplied() started.
+◇ Test quitWarnsAboutInstallsAndDrops() started.
+◇ Test theDockIconStaysWhileAWindowIsOpen() started.
+◇ Test guestErrorIsShown() started.
+◇ Test suspendedCountsAsRunning() started.
+◇ Test aPlainRunningGuestGetsAPlainMessage() started.
+◇ Test aSizeAlreadyAppliedIsNotSentAgain() started.
+◇ Test duplicateNamesAreReported() started.
+◇ Test forgetLetsTheSameSizeBeAppliedAgain() started.
+◇ Test aNewSizeRestartsTheRetries() started.
+◇ Test aBusyVmOffersOnlyToWatchIt() started.
+◇ Test sharesAreListedAndRemovedByHostPath() started.
+◇ Test statusSaysWhatIsHappening() started.
+◇ Test aLiveVmCannotBeDeleted() started.
+◇ Test oneApplyAtATime() started.
+◇ Test subtitleDescribesTheMachine() started.
+◇ Test theObviousActionIsNeverDelete() started.
+◇ Test aRunningVmWithNoMachineIsAFault() started.
+◇ Test stateFollowsSummary() started.
+◇ Test soundIsOnlyOfferedForARunningWindowsGuest() started.
+◇ Test eachStateOffersItsOwnActions() started.
+◇ Test theClipboardButtonFollowsTheVmsSetting() started.
+◇ Test eachVmHasOneObviousAction() started.
+◇ Test aRefusedModeIsRetriedWithBackoff() started.
+◇ Test theWarningSaysWhatTestModeCosts() started.
+◇ Test turningSoundOffNeedsNoConsent() started.
+◇ Test anythingElseIsRefused() started.
+◇ Test deleteNamesTheVmAndTheDiskItRemoves() started.
+◇ Test onlyRunningAndBootingShowTheScreen() started.
+◇ Test aNameOrUuidIsAccepted() started.
+◇ Test onlyWhatChangedIsSent() started.
+◇ Test shareErrorsAreShown() started.
+◇ Test valuesAboveHostLimitsAreRefused() started.
+◇ Test aVmTheHostIsBusyWithCannotBeResized() started.
+◇ Test testModeNeedsExplicitConsent() started.
+◇ Test aFailedReadLeavesTheMacAlone() started.
+◇ Test concealedItemsNeverReachTheGuestAndTheWindowSaysSo() started.
+◇ Test aCurrentValueOutsideTheUsualStepsStaysSelectable() started.
+◇ Test x64IsoStaysOnTheSourcePage() started.
+◇ Test textTheMacGaveTheGuestIsNotWrittenBack() started.
+◇ Test resourcesLockWhileRunning() started.
+◇ Test aGuestWithNoDesktopYetIsTriedAgainNextTime() started.
+◇ Test theSameTextIsNotSentTwice() started.
+◇ Test pulledTextIsNotPushedBackOnTheNextFocus() started.
+◇ Test aVmWithSharingOffMovesNothing() started.
+◇ Test choicesStayWithinWhatTheMacHas() started.
+◇ Test windowsNeedsAnIsoBeforeNext() started.
+◇ Test guestTextComesBackWhenTheWindowLosesFocus() started.
+◇ Test pagesFollowTheOsChoice() started.
+◇ Test turningItOnLaterStartsSharing() started.
+◇ Test theOutboxSwitchIsSentWhenChanged() started.
+◇ Test cancelDuringInstallRemovesTheVm() started.
+◇ Test linuxNeedsItsFilesFirst() started.
+◇ Test macTextIsSentWhenTheWindowComesToTheFront() started.
+◇ Test duplicateNameBlocksNext() started.
+◇ Test anyOtherFailureIsStatedPlainly() started.
+◇ Test aUsableIsoLetsTheWizardOn() started.
+◇ Test cancelDoesNotWaitForeverForATaskThatWillNotStop() started.
+◇ Test cancelDuringMediaBuildCancelsTheTask() started.
+◇ Test aRunningHostIsNamedByItsProcess() started.
+➜ Test cancellingAWindowsMediaBuildLeavesNothing() skipped.
+◇ Test resourcesStayWithinWhatTheMacAllows() started.
+◇ Test discardRemovesTheVmAFailedStartLeft() started.
+◇ Test theSummaryStatesTheWindowsAccount() started.
+◇ Test buttonsSayWhatTheyDo() started.
+➜ Test aLinuxVmIsInstalledFromTheWizardToTheEnd() skipped.
+➜ Test cancellingALinuxInstallLeavesNothing() skipped.
+◇ Test eachStateOffersItsOwnButtons() started.
+◇ Test aBootingVmCanOnlyBeCancelled() started.
+◇ Test linuxFlowCreatesAndStarts() started.
+◇ Test badNameBlocksNext() started.
+◇ Test windowsWithoutWimlibOrLinuxFilesNeedsThemFirst() started.
+◇ Test anyOtherActivityLocksThePowerAndPauseButtons() started.
+◇ Test aFailedCreateExplainsAndMakesNothing() started.
+◇ Test failureKeepsTheLogTail() started.
+◇ Test aDefaultNameThatIsTakenGetsASuffix() started.
+◇ Test defaultsFollowTheOs() started.
+◇ Test lowDiskBlocksNext() started.
+◇ Test deleteRetriesWhileTheStartUnwinds() started.
+◇ Test windowsFlowBuildsMediaThenCreatesAndStarts() started.
+◇ Test aFailedStartKeepsTheVmAndSaysWhy() started.
+◇ Test aFailedDownloadSaysWhy() started.
+✔ Suite SnapshotTests passed after 0.001 seconds.
+✔ Test confirmingDeleteSendsIt() passed after 0.002 seconds.
+✔ Test failedActionSetsLastError() passed after 0.002 seconds.
+✔ Test unchangedPollDoesNotRepublish() passed after 0.002 seconds.
+✔ Test lostHostIsReportedNotFatal() passed after 0.002 seconds.
+✔ Test actionsAddressTheVmByItsUuid() passed after 0.002 seconds.
+✔ Test deleteAsksBeforeItActs() passed after 0.002 seconds.
+✔ Test pollPublishesChanges() passed after 0.002 seconds.
+✔ Test aLiveVmCannotEvenBeAskedAbout() passed after 0.002 seconds.
+✔ Test aRefreshDoesNotHideAnActionError() passed after 0.002 seconds.
+✔ Test deleteRefusedOnLiveVm() passed after 0.003 seconds.
+✔ Test tooManyItemsFailsBeforeCopying() passed after 0.002 seconds.
+✔ Suite VMListModelTests passed after 0.003 seconds.
+✔ Test aRefusedDropIsReportedWithTheHostsReason() passed after 0.002 seconds.
+✔ Test soundIsOnlyOfferedForARunningWindowsGuest() passed after 0.003 seconds.
+✔ Test turningSoundOffNeedsNoConsent() passed after 0.003 seconds.
+✔ Test sharesAreListedAndRemovedByHostPath() passed after 0.003 seconds.
+✔ Test valuesAboveHostLimitsAreRefused() passed after 0.003 seconds.
+✔ Test shareErrorsAreShown() passed after 0.003 seconds.
+✔ Test aVmTheHostIsBusyWithCannotBeResized() passed after 0.003 seconds.
+✔ Test aCurrentValueOutsideTheUsualStepsStaysSelectable() passed after 0.003 seconds.
+✔ Test testModeNeedsExplicitConsent() passed after 0.003 seconds.
+✔ Test x64IsoStaysOnTheSourcePage() passed after 0.003 seconds.
+✔ Test choicesStayWithinWhatTheMacHas() passed after 0.003 seconds.
+✔ Test resourcesLockWhileRunning() passed after 0.003 seconds.
+✔ Test windowsNeedsAnIsoBeforeNext() passed after 0.003 seconds.
+✔ Test duplicateNameBlocksNext() passed after 0.003 seconds.
+✔ Test duplicateNamesAreReported() passed after 0.004 seconds.
+✔ Test theOutboxSwitchIsSentWhenChanged() passed after 0.003 seconds.
+✔ Suite VMSettingsOutboxTests passed after 0.004 seconds.
+✔ Test aUsableIsoLetsTheWizardOn() passed after 0.003 seconds.
+✔ Test theSummaryStatesTheWindowsAccount() passed after 0.003 seconds.
+✔ Test discardRemovesTheVmAFailedStartLeft() passed after 0.004 seconds.
+✔ Test badNameBlocksNext() passed after 0.004 seconds.
+✔ Test pagesFollowTheOsChoice() passed after 0.004 seconds.
+✔ Test onlyWhatChangedIsSent() passed after 0.004 seconds.
+✔ Test resourcesStayWithinWhatTheMacAllows() passed after 0.004 seconds.
+✔ Test aDefaultNameThatIsTakenGetsASuffix() passed after 0.004 seconds.
+✔ Test defaultsFollowTheOs() passed after 0.004 seconds.
+✔ Test lowDiskBlocksNext() passed after 0.004 seconds.
+✔ Test aFailedStartKeepsTheVmAndSaysWhy() passed after 0.004 seconds.
+✔ Test windowsWithoutWimlibOrLinuxFilesNeedsThemFirst() passed after 0.004 seconds.
+✔ Test aFailedCreateExplainsAndMakesNothing() passed after 0.004 seconds.
+✔ Test aFailedDownloadSaysWhy() passed after 0.004 seconds.
+✔ Test linuxFlowCreatesAndStarts() passed after 0.004 seconds.
+✔ Test failureKeepsTheLogTail() passed after 0.004 seconds.
+openvm: clipboard: sent 5 bytes to w
+openvm: clipboard: sent 5 bytes to w
+openvm: clipboard: sent 5 bytes to w
+openvm: clipboard: sent 5 bytes to w
+openvm: clipboard: received 10 bytes from w
+openvm: clipboard: received 10 bytes from w
+✔ Test manyAreCounted() passed after 0.015 seconds.
+✔ Test oneFileIsNamed() passed after 0.015 seconds.
+✔ Test aRefusalSaysWhy() passed after 0.015 seconds.
+✔ Test withNoWindowAndAGuestRunningTheAppLivesInTheMenuBar() passed after 0.014 seconds.
+✔ Test runningGuestsAreListed() passed after 0.014 seconds.
+✔ Test quitWarnsAboutInstallsAndDrops() passed after 0.014 seconds.
+✔ Test noGuestsQuitsNow() passed after 0.014 seconds.
+✔ Test theDockIconStaysWhileAWindowIsOpen() passed after 0.014 seconds.
+✔ Test aVmThatIsBootingCountsAsRunning() passed after 0.014 seconds.
+✔ Test statusSaysWhatIsHappening() passed after 0.014 seconds.
+✔ Test theMessageNamesWhatWouldBeLost() passed after 0.014 seconds.
+✔ Test aBusyVmOffersOnlyToWatchIt() passed after 0.014 seconds.
+✔ Test aLiveVmCannotBeDeleted() passed after 0.014 seconds.
+✔ Test theObviousActionIsNeverDelete() passed after 0.014 seconds.
+✔ Test theClipboardButtonFollowsTheVmsSetting() passed after 0.014 seconds.
+✔ Test aRunningVmWithNoMachineIsAFault() passed after 0.014 seconds.
+✔ Test eachStateOffersItsOwnActions() passed after 0.014 seconds.
+✔ Test eachVmHasOneObviousAction() passed after 0.014 seconds.
+✔ Test anythingElseIsRefused() passed after 0.014 seconds.
+✔ Test stateFollowsSummary() passed after 0.014 seconds.
+✔ Test suspendedCountsAsRunning() passed after 0.015 seconds.
+✔ Test aPlainRunningGuestGetsAPlainMessage() passed after 0.015 seconds.
+✔ Suite ReceiptMessageTests passed after 0.015 seconds.
+✔ Test deleteNamesTheVmAndTheDiskItRemoves() passed after 0.014 seconds.
+✔ Test aNameOrUuidIsAccepted() passed after 0.014 seconds.
+✔ Test theWarningSaysWhatTestModeCosts() passed after 0.014 seconds.
+✔ Test macTextIsSentWhenTheWindowComesToTheFront() passed after 0.014 seconds.
+✔ Test concealedItemsNeverReachTheGuestAndTheWindowSaysSo() passed after 0.014 seconds.
+✔ Test onlyRunningAndBootingShowTheScreen() passed after 0.014 seconds.
+✔ Test anyOtherFailureIsStatedPlainly() passed after 0.014 seconds.
+✔ Test buttonsSayWhatTheyDo() passed after 0.014 seconds.
+✔ Test turningItOnLaterStartsSharing() passed after 0.014 seconds.
+✔ Test aFailedReadLeavesTheMacAlone() passed after 0.014 seconds.
+✔ Test secondDropIsRefusedWithReason() passed after 0.015 seconds.
+✔ Test guestTextComesBackWhenTheWindowLosesFocus() passed after 0.014 seconds.
+✔ Test anyOtherActivityLocksThePowerAndPauseButtons() passed after 0.014 seconds.
+✔ Test aRunningHostIsNamedByItsProcess() passed after 0.014 seconds.
+✔ Test eachStateOffersItsOwnButtons() passed after 0.014 seconds.
+✔ Test subtitleDescribesTheMachine() passed after 0.014 seconds.
+✔ Test aBootingVmCanOnlyBeCancelled() passed after 0.014 seconds.
+✔ Suite VMToolbarClipboardTests passed after 0.015 seconds.
+✔ Suite VMLinkTests passed after 0.015 seconds.
+✔ Test guestErrorIsShown() passed after 0.015 seconds.
+✔ Test aGuestWithNoDesktopYetIsTriedAgainNextTime() passed after 0.014 seconds.
+✔ Suite VMWindowStateTests passed after 0.015 seconds.
+✔ Test theSameTextIsNotSentTwice() passed after 0.014 seconds.
+✔ Suite VMSettingsModelTests passed after 0.015 seconds.
+✔ Suite QuitPolicyTests passed after 0.015 seconds.
+✔ Test textTheMacGaveTheGuestIsNotWrittenBack() passed after 0.014 seconds.
+✔ Suite StartFailureTests passed after 0.015 seconds.
+✔ Test aVmWithSharingOffMovesNothing() passed after 0.014 seconds.
+✔ Test pulledTextIsNotPushedBackOnTheNextFocus() passed after 0.014 seconds.
+✔ Test cancelDuringInstallRemovesTheVm() passed after 0.014 seconds.
+✔ Suite VMRowLogicTests passed after 0.015 seconds.
+✔ Suite VMToolbarLogicTests passed after 0.015 seconds.
+✔ Suite ClipboardSyncTests passed after 0.015 seconds.
+✔ Test linuxNeedsItsFilesFirst() passed after 0.016 seconds.
+✔ Test aFinishedDropCanBeDismissedAndAnotherStarted() passed after 0.016 seconds.
+✔ Test windowsFlowBuildsMediaThenCreatesAndStarts() passed after 0.015 seconds.
+✔ Test pollsUntilDone() passed after 0.018 seconds.
+✔ Test deleteRetriesWhileTheStartUnwinds() passed after 0.017 seconds.
+✔ Test cancelDuringMediaBuildCancelsTheTask() passed after 0.020 seconds.
+✔ Test onlyTheLatestSizeIsApplied() passed after 0.020 seconds.
+✔ Test aNewSizeRestartsTheRetries() passed after 0.020 seconds.
+✔ Test forgetLetsTheSameSizeBeAppliedAgain() passed after 0.026 seconds.
+✔ Test aSizeAlreadyAppliedIsNotSentAgain() passed after 0.046 seconds.
+✔ Test retriesStopAfterTheLastDelay() passed after 0.046 seconds.
+✔ Test pollingStopsWhenTheVmStops() passed after 0.050 seconds.
+✔ Suite DropSessionTests passed after 0.051 seconds.
+✔ Test oneApplyAtATime() passed after 0.052 seconds.
+✔ Test aRefusedModeIsRetriedWithBackoff() passed after 0.058 seconds.
+✔ Suite ResizeCoalescerTests passed after 0.059 seconds.
+✔ Test cancelDoesNotWaitForeverForATaskThatWillNotStop() passed after 0.064 seconds.
+✔ Suite CreateWizardModelTests passed after 0.065 seconds.
+✔ Test run with 118 tests in 17 suites passed after 0.065 seconds.
+sh tools/test/test-windows-agent.sh
+test-windows-agent: compiling the agent (syntax check)
+test-windows-agent: agent compiles clean
+test-windows-agent: cross-compiling the real agent (aarch64-windows)
+test-windows-agent: real Win32 path builds clean
+test-windows-agent: building the codec test
+test-windows-agent: codec ok
+test-windows-agent: hostile input to the drop parser
+test-windows-handlers: all checks passed
+test-windows-agent: all checks passed
+sh tools/test/test-file-agent.sh
+file agent: chunk boundaries, empty/binary files, abort, and path validation passed
+sh tools/test/test-shared-agent.sh
+sh: /proc/sys/vm/drop_caches: No such file or directory
+mkdir: /run: Read-only file system
+openvm-tools: mount failed: share s0123456789abcdef is not in the virtio-fs device [exit 1]
+openvm-tools: umount failed: umount: /tmp/openvm-shared-agent.Y0Wjcn/mnt: not currently mounted [exit 1]
+shared agent harness: ok
+sh tools/test/test-suspend-agent.sh
+openvm-tools: guest quiesced for the host sleep
+suspend agent harness: ok
+sh tools/test/test-timesync-agent.sh
+openvm-tools: guest timezone applied (Europe/Berlin)
+timesync agent harness: ok
+sh tools/test/test-printer-agent.sh
+openvm-tools: printers synced (2)
+test-printer-agent: all checks passed
+sh tools/test/test-drag-agent.sh
+openvm-tools: drop of 3 item(s) started
+openvm-tools: drop finished, 3 item(s)
+openvm-tools: drop of 1 item(s) started
+openvm-tools: drop finished, 1 item(s)
+openvm-tools: drop of 1 item(s) started
+openvm-tools: drop finished, 1 item(s)
+openvm-tools: drop of 1 item(s) started
+cp: /tmp/openvm-drag-agent.kvASfL/fs/drops/dtest/tree2/secret: Permission denied
+openvm-tools: drop finished, 0 item(s)
+openvm-tools: drop of 1 item(s) started
+openvm-tools: drop finished, 0 item(s)
+openvm-tools: drop of 1 item(s) started
+openvm-tools: drop finished, 0 item(s)
+test-drag-agent: all checks passed
+sh tools/test/test-send-agent.sh
+test-send-agent: checks passed
+sh tools/test/test-audio-agent.sh
+test-audio-agent: checks passed
+test-audio-agent: checks passed
+sh tools/test/conformance.sh
+conformance: PASS (mock guest replies match the catalogue bit-for-bit)
+check=0
+swift test -Xswiftc -load-plugin-library -Xswiftc /Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing/libTestingMacros.dylib
+Building for debugging...
+[Using on-disk description]
+[1 / 36]
+[3 / 38] OpenVMCore
+[14 / 51] OpenVMWindows
+[19 / 52] OpenVMCore
+[25 / 58] OpenVMCore
+[27 / 60] OpenVMWindows
+/Users/arsh/Developer/openvm/openvm/Package.swift: OpenVMWindows: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: OpenVMCore: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[38 / 65] openvmctl-product
+[45 / 76] openvm-mockguest-product
+[48 / 87] OpenVMCoreTests-product
+[51 / 87] OpenVMHost
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-mockguest-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-mockguest-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[55 / 89] OpenVMHost
+[58 / 93] OpenVMHost
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostTasks.swift:180:9: [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m178 |[0;0m         // Close-on-exec, so a child spawned for some other task (or anything else in this process)
+[0;36m179 |[0;0m         // never inherits these ends: the reader's end-of-file waits for every copy of the write end.
+[0;36m180 |[0;0m         fcntl(fds[0], F_SETFD, FD_CLOEXEC)
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m181 |[0;0m         fcntl(fds[1], F_SETFD, FD_CLOEXEC)
+[0;36m182 |[0;0m 
+
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostTasks.swift:181:9: [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m179 |[0;0m         // never inherits these ends: the reader's end-of-file waits for every copy of the write end.
+[0;36m180 |[0;0m         fcntl(fds[0], F_SETFD, FD_CLOEXEC)
+[0;36m181 |[0;0m         fcntl(fds[1], F_SETFD, FD_CLOEXEC)
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mresult of call to 'fcntl' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m182 |[0;0m 
+[0;36m183 |[0;0m         var actions: posix_spawn_file_actions_t? = nil
+
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostTasks.swift:234:50: [1;33mwarning: [1;39mcapture of 'job' with non-Sendable type 'HostTasks.Job' in a '@Sendable' closure[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/sendable-closure-captures\SendableClosureCaptures]8;;\]
+ [0;36m67 |[0;0m     }
+ [0;36m68 |[0;0m 
+ [0;36m69 |[0;0m     private final class Job {
+    [0;36m|[0;0m                         `- [1;39mnote: [1;39mclass 'Job' does not conform to the 'Sendable' protocol[0;0m
+ [0;36m70 |[0;0m         let pid: pid_t
+ [0;36m71 |[0;0m         var state = State.running
+    [0;36m:[0;0m
+[0;36m232 |[0;0m         lock.unlock()
+[0;36m233 |[0;0m         let reading = fds[0]
+[0;36m234 |[0;0m         Thread.detachNewThread { [self] in watch(job, id: id, output: reading) }
+    [0;36m|[0;0m                                                  `- [1;33mwarning: [1;39mcapture of 'job' with non-Sendable type 'HostTasks.Job' in a '@Sendable' closure[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/sendable-closure-captures\SendableClosureCaptures]8;;\]
+[0;36m235 |[0;0m         return id
+[0;36m236 |[0;0m     }
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[#SendableClosureCaptures]: <https://docs.swift.org/compiler/documentation/diagnostics/sendable-closure-captures>
+[59 / 93] openvmd-product
+[64 / 95] openvm-product
+/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/ShareOps.swift:116:9: [1;33mwarning: [1;39mresult of 'try?' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m114 |[0;0m     guard let shares = record.shares, !shares.isEmpty else { return }
+[0;36m115 |[0;0m     for share in shares {
+[0;36m116 |[0;0m         [4;39mtry? mountShare(record, share, probe: false, allShares: shares)[0;0m
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mresult of 'try?' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m117 |[0;0m     }
+[0;36m118 |[0;0m }
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[70 / 117] OpenVMApp
+[71 / 117] openvmd-product
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmctl-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmctl-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[76 / 118] openvm-product
+[79 / 118] openvm-product
+[80 / 118] OpenVMApp
+[86 / 119] OpenVMHost
+[88 / 119] OpenVMCoreTests-product
+[91 / 119] OpenVMCoreTests-product
+[93 / 119] OpenVMApp
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/FrameTests.swift:61:19: [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m59 |[0;0m         #expect(throws: FrameError.badMagic) {
+[0;36m60 |[0;0m             var d = FrameDecoder()
+[0;36m61 |[0;0m             try d.feed(wire)
+   [0;36m|[0;0m                   `- [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m62 |[0;0m         }
+[0;36m63 |[0;0m     }
+
+macro expansion #expect:3:19: [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+`- /Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/FrameTests.swift:62:10: [1;39mnote: [1;39mexpanded code originates here[0;0m
+[0;36m57 |[0;0m         var wire = Frame(type: 3, payload: Data("x".utf8)).encoded()
+[0;36m58 |[0;0m         wire[0] = 0x00
+[0;36m59 |[0;0m         [4;39m#expect(throws: FrameError.badMagic) {[0;0m
+   [0;36m|[0;0m         `- [1;39mnote: [1;39min expansion of macro 'expect' here[0;0m
+[0;36m60 |[0;0m             var d = FrameDecoder()
+[0;36m61 |[0;0m             try d.feed(wire)
+[0;36m62 |[0;0m         }
+[0;36m    +--- [0;0mmacro expansion #expect [0;36m---------------------------------------[0;0m
+[0;36m    |[0;0m[0;36m1 |[0;0m Testing.__checkClosureCall(throws: FrameError.badMagic,performing: {
+[0;36m    |[0;0m[0;36m2 |[0;0m             var d = FrameDecoder()
+[0;36m    |[0;0m[0;36m3 |[0;0m             try d.feed(wire)
+[0;36m    |[0;0m  [0;36m|[0;0m                   `- [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m    |[0;0m[0;36m4 |[0;0m         },expression: .__fromPropertyAccess(.__fromSyntaxNode("FrameError"),.__fromSyntaxNode("badMagic")),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+[0;36m    +----------------------------[0;0m[0;36m---------------------------------------[0;0m
+[0;36m63 |[0;0m     }
+[0;36m64 |[0;0m 
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/FrameTests.swift:69:19: [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m67 |[0;0m         #expect(throws: FrameError.unsupportedVersion(2)) {
+[0;36m68 |[0;0m             var d = FrameDecoder()
+[0;36m69 |[0;0m             try d.feed(f.encoded())
+   [0;36m|[0;0m                   `- [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m70 |[0;0m         }
+[0;36m71 |[0;0m     }
+
+macro expansion #expect:3:19: [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+`- /Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/FrameTests.swift:70:10: [1;39mnote: [1;39mexpanded code originates here[0;0m
+[0;36m65 |[0;0m     @Test func unsupportedVersion() throws {
+[0;36m66 |[0;0m         let f = Frame(version: 2, type: 1, payload: Data("x".utf8))
+[0;36m67 |[0;0m         [4;39m#expect(throws: FrameError.unsupportedVersion(2)) {[0;0m
+   [0;36m|[0;0m         `- [1;39mnote: [1;39min expansion of macro 'expect' here[0;0m
+[0;36m68 |[0;0m             var d = FrameDecoder()
+[0;36m69 |[0;0m             try d.feed(f.encoded())
+[0;36m70 |[0;0m         }
+[0;36m    +--- [0;0mmacro expansion #expect [0;36m---------------------------------------[0;0m
+[0;36m    |[0;0m[0;36m1 |[0;0m Testing.__checkClosureCall(throws: FrameError.unsupportedVersion(2),performing: {
+[0;36m    |[0;0m[0;36m2 |[0;0m             var d = FrameDecoder()
+[0;36m    |[0;0m[0;36m3 |[0;0m             try d.feed(f.encoded())
+[0;36m    |[0;0m  [0;36m|[0;0m                   `- [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m    |[0;0m[0;36m4 |[0;0m         },expression: .__fromFunctionCall(.__fromSyntaxNode("FrameError"),"unsupportedVersion",(nil,.__fromSyntaxNode("2"))),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+[0;36m    +----------------------------[0;0m[0;36m---------------------------------------[0;0m
+[0;36m71 |[0;0m     }
+[0;36m72 |[0;0m 
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/FrameTests.swift:77:19: [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m75 |[0;0m         #expect(throws: FrameError.reservedFlags(1)) {
+[0;36m76 |[0;0m             var d = FrameDecoder()
+[0;36m77 |[0;0m             try d.feed(f.encoded())
+   [0;36m|[0;0m                   `- [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m78 |[0;0m         }
+[0;36m79 |[0;0m     }
+
+macro expansion #expect:3:19: [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+`- /Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/FrameTests.swift:78:10: [1;39mnote: [1;39mexpanded code originates here[0;0m
+[0;36m73 |[0;0m     @Test func reservedFlags() throws {
+[0;36m74 |[0;0m         let f = Frame(type: 1, flags: 1, payload: Data("x".utf8))
+[0;36m75 |[0;0m         [4;39m#expect(throws: FrameError.reservedFlags(1)) {[0;0m
+   [0;36m|[0;0m         `- [1;39mnote: [1;39min expansion of macro 'expect' here[0;0m
+[0;36m76 |[0;0m             var d = FrameDecoder()
+[0;36m77 |[0;0m             try d.feed(f.encoded())
+[0;36m78 |[0;0m         }
+[0;36m    +--- [0;0mmacro expansion #expect [0;36m---------------------------------------[0;0m
+[0;36m    |[0;0m[0;36m1 |[0;0m Testing.__checkClosureCall(throws: FrameError.reservedFlags(1),performing: {
+[0;36m    |[0;0m[0;36m2 |[0;0m             var d = FrameDecoder()
+[0;36m    |[0;0m[0;36m3 |[0;0m             try d.feed(f.encoded())
+[0;36m    |[0;0m  [0;36m|[0;0m                   `- [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m    |[0;0m[0;36m4 |[0;0m         },expression: .__fromFunctionCall(.__fromSyntaxNode("FrameError"),"reservedFlags",(nil,.__fromSyntaxNode("1"))),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+[0;36m    +----------------------------[0;0m[0;36m---------------------------------------[0;0m
+[0;36m79 |[0;0m     }
+[0;36m80 |[0;0m 
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/FrameTests.swift:86:19: [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m84 |[0;0m         #expect(throws: FrameError.oversize(0x0020_0000)) {
+[0;36m85 |[0;0m             var d = FrameDecoder()
+[0;36m86 |[0;0m             try d.feed(header)
+   [0;36m|[0;0m                   `- [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m87 |[0;0m         }
+[0;36m88 |[0;0m     }
+
+macro expansion #expect:3:19: [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+`- /Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/FrameTests.swift:87:10: [1;39mnote: [1;39mexpanded code originates here[0;0m
+[0;36m82 |[0;0m         // length field = 0x00200000 > maxPayload, header hand-built (Frame init would refuse)
+[0;36m83 |[0;0m         let header = bytes("4F 56 4D 43 00 01 00 09 00 00 00 20 00 00")
+[0;36m84 |[0;0m         [4;39m#expect(throws: FrameError.oversize(0x0020_0000)) {[0;0m
+   [0;36m|[0;0m         `- [1;39mnote: [1;39min expansion of macro 'expect' here[0;0m
+[0;36m85 |[0;0m             var d = FrameDecoder()
+[0;36m86 |[0;0m             try d.feed(header)
+[0;36m87 |[0;0m         }
+[0;36m    +--- [0;0mmacro expansion #expect [0;36m---------------------------------------[0;0m
+[0;36m    |[0;0m[0;36m1 |[0;0m Testing.__checkClosureCall(throws: FrameError.oversize(0x0020_0000),performing: {
+[0;36m    |[0;0m[0;36m2 |[0;0m             var d = FrameDecoder()
+[0;36m    |[0;0m[0;36m3 |[0;0m             try d.feed(header)
+[0;36m    |[0;0m  [0;36m|[0;0m                   `- [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m    |[0;0m[0;36m4 |[0;0m         },expression: .__fromFunctionCall(.__fromSyntaxNode("FrameError"),"oversize",(nil,.__fromSyntaxNode("0x0020_0000"))),comments: [],isRequired: false,sourceLocation: Testing.SourceLocation.__here()).__expected()
+[0;36m    +----------------------------[0;0m[0;36m---------------------------------------[0;0m
+[0;36m88 |[0;0m     }
+[0;36m89 |[0;0m 
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/FrameTests.swift:92:17: [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m90 |[0;0m     @Test func errorClearsBufferAndDecoderStaysUsable() throws {
+[0;36m91 |[0;0m         var dec = FrameDecoder()
+[0;36m92 |[0;0m         try dec.feed(Data([0x4F, 0x56]))  // partial magic, fine
+   [0;36m|[0;0m                 `- [1;33mwarning: [1;39mresult of call to 'feed' is unused[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/no-usage\NoUsage]8;;\]
+[0;36m93 |[0;0m         #expect(throws: FrameError.unsupportedVersion(7)) {
+[0;36m94 |[0;0m             try dec.feed(bytes("4D 43 00 07 00 01 00 00 00 00 00 00"))
+
+[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>
+[95 / 120] OpenVMCoreTests-product
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/CBORTests.swift:8:9: [1;33mwarning: [1;39mvariable 'cleaned' was never mutated; consider changing to 'let' constant[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated\VariableNeverMutated]8;;\]
+  [0;36m6 |[0;0m 
+  [0;36m7 |[0;0m private func bytes(_ hex: String) -> Data {
+  [0;36m8 |[0;0m     var cleaned = hex.split(whereSeparator: { $0 == " " || $0 == "\n" }).joined()
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mvariable 'cleaned' was never mutated; consider changing to 'let' constant[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated\VariableNeverMutated]8;;\]
+  [0;36m9 |[0;0m     var out = Data()
+ [0;36m10 |[0;0m     var i = cleaned.startIndex
+
+[#VariableNeverMutated]: <https://docs.swift.org/compiler/documentation/diagnostics/variable-never-mutated>
+[99 / 122] OpenVMApp
+[102 / 122]
+/Users/arsh/Developer/openvm/openvm/Package.swift: OpenVMHost: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[106 / 123] OpenVMDaemonTests-product
+[108 / 123] OpenVMCoreTests-product
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmd-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvmd-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: openvm-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[116 / 135] openvmd-product
+[117 / 135] openvmd-product
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:82:13: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+ [0;36m80 |[0;0m         let (reg, _) = try makeRegistry()
+ [0;36m81 |[0;0m         for bad in ["", "-lead", "_us", "has space", String(repeating: "a", count: 65)] {
+ [0;36m82 |[0;0m             await #expect(throws: VmRegistryError.nameInvalid) {
+    [0;36m|[0;0m             `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+ [0;36m83 |[0;0m                 try reg.create(name: bad)
+ [0;36m84 |[0;0m             }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:92:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+ [0;36m90 |[0;0m         defer { try? FileManager.default.removeItem(at: home) }
+ [0;36m91 |[0;0m         _ = try reg.create(name: "dup")
+ [0;36m92 |[0;0m         await #expect(throws: VmRegistryError.nameExists) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+ [0;36m93 |[0;0m             try reg.create(name: "dup")
+ [0;36m94 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:107:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m105 |[0;0m     @Test func resolveMissingThrowsNotFound() async throws {
+[0;36m106 |[0;0m         let (reg, _) = try makeRegistry("missing.json")
+[0;36m107 |[0;0m         await #expect(throws: VmRegistryError.notFound) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m108 |[0;0m             try reg.resolve("nope")
+[0;36m109 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:125:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m123 |[0;0m         defer { try? FileManager.default.removeItem(at: home) }
+[0;36m124 |[0;0m         _ = try reg.create(name: "one-way")
+[0;36m125 |[0;0m         await #expect(throws: VmRegistryError.badTransition) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m126 |[0;0m             try reg.stop("one-way")
+[0;36m127 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:129:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m127 |[0;0m         }
+[0;36m128 |[0;0m         _ = try reg.start("one-way")
+[0;36m129 |[0;0m         await #expect(throws: VmRegistryError.badTransition) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m130 |[0;0m             try reg.start("one-way")
+[0;36m131 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:140:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m138 |[0;0m         #expect(try reg.delete("doomed").uuid == vm.uuid)
+[0;36m139 |[0;0m         #expect(try reg.list().isEmpty)
+[0;36m140 |[0;0m         await #expect(throws: VmRegistryError.notFound) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m141 |[0;0m             try reg.resolve("doomed")
+[0;36m142 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:150:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m148 |[0;0m         _ = try reg.create(name: "busy")
+[0;36m149 |[0;0m         _ = try reg.start("busy")
+[0;36m150 |[0;0m         await #expect(throws: VmRegistryError.badTransition) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m151 |[0;0m             try reg.delete("busy")
+[0;36m152 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:159:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m157 |[0;0m         defer { try? FileManager.default.removeItem(at: home) }
+[0;36m158 |[0;0m         _ = try reg.create(name: "nap")
+[0;36m159 |[0;0m         await #expect(throws: VmRegistryError.badTransition) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m160 |[0;0m             try reg.suspend("nap")  // only running may suspend
+[0;36m161 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:164:24: [1;33mwarning: [1;39mno calls to throwing functions occur within 'try' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m162 |[0;0m         _ = try reg.start("nap")
+[0;36m163 |[0;0m         #expect(try reg.suspend("nap").state == .suspended)
+[0;36m164 |[0;0m         let reopened = try VmRegistry(path: home.appendingPathComponent("suspend.json"))
+    [0;36m|[0;0m                        `- [1;33mwarning: [1;39mno calls to throwing functions occur within 'try' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m165 |[0;0m         #expect(try reopened.resolve("nap").state == .suspended)
+[0;36m166 |[0;0m         await #expect(throws: VmRegistryError.badTransition) {
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:166:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m164 |[0;0m         let reopened = try VmRegistry(path: home.appendingPathComponent("suspend.json"))
+[0;36m165 |[0;0m         #expect(try reopened.resolve("nap").state == .suspended)
+[0;36m166 |[0;0m         await #expect(throws: VmRegistryError.badTransition) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m167 |[0;0m             try reg.suspend("nap")  // suspended may not suspend again
+[0;36m168 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:176:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m174 |[0;0m         _ = try reg.create(name: "wake")
+[0;36m175 |[0;0m         _ = try reg.start("wake")
+[0;36m176 |[0;0m         await #expect(throws: VmRegistryError.badTransition) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m177 |[0;0m             try reg.resume("wake")  // running may not resume
+[0;36m178 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:190:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m188 |[0;0m         _ = try reg.suspend("out")
+[0;36m189 |[0;0m         #expect(try reg.stop("out").state == .stopped)
+[0;36m190 |[0;0m         await #expect(throws: VmRegistryError.badTransition) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m191 |[0;0m             try reg.resume("out")  // stopped may not resume
+[0;36m192 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:202:24: [1;33mwarning: [1;39mno calls to throwing functions occur within 'try' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m200 |[0;0m         #expect(updated.cpus == 8)
+[0;36m201 |[0;0m         #expect(updated.memoryMB == 8192)
+[0;36m202 |[0;0m         let reopened = try VmRegistry(path: home.appendingPathComponent("set.json"))
+    [0;36m|[0;0m                        `- [1;33mwarning: [1;39mno calls to throwing functions occur within 'try' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m203 |[0;0m         let rec = try reopened.resolve("cfg")
+[0;36m204 |[0;0m         #expect(rec.cpus == 8)
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:222:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m220 |[0;0m         _ = try reg.create(name: "live")
+[0;36m221 |[0;0m         _ = try reg.start("live")
+[0;36m222 |[0;0m         await #expect(throws: VmRegistryError.badTransition) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m223 |[0;0m             try reg.set("live", cpus: 2)
+[0;36m224 |[0;0m         }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:235:24: [1;33mwarning: [1;39mno calls to throwing functions occur within 'try' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m233 |[0;0m         #expect(updated.shares?[0].hostPath == "/host/docs")
+[0;36m234 |[0;0m         #expect(updated.shares?[0].guestPath == "/mnt/docs")
+[0;36m235 |[0;0m         let reopened = try VmRegistry(path: home.appendingPathComponent("shares.json"))
+    [0;36m|[0;0m                        `- [1;33mwarning: [1;39mno calls to throwing functions occur within 'try' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m236 |[0;0m         #expect(try reopened.resolve("sharer").shares?.count == 1)
+[0;36m237 |[0;0m     }
+
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMCoreTests/RegistryTests.swift:272:9: [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m270 |[0;0m     @Test func shareOnUnknownVMThrowsNotFound() async throws {
+[0;36m271 |[0;0m         let (reg, _) = try makeRegistry("sharenf.json")
+[0;36m272 |[0;0m         await #expect(throws: VmRegistryError.notFound) {
+    [0;36m|[0;0m         `- [1;33mwarning: [1;39mno 'async' operations occur within 'await' expression[0;0m [#]8;;https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker\UnnecessaryEffectMarker]8;;\]
+[0;36m273 |[0;0m             try reg.addShare("ghost", hostPath: "/host/x", guestPath: "/mnt/x")
+[0;36m274 |[0;0m         }
+
+[#UnnecessaryEffectMarker]: <https://docs.swift.org/compiler/documentation/diagnostics/unnecessary-effect-marker>
+[120 / 135] OpenVMDaemonTests-product
+/Users/arsh/Developer/openvm/openvm/Package.swift: OpenVMApp: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[124 / 135] OpenVMApp
+[128 / 137] OpenVMAppTests-product
+/Users/arsh/Developer/openvm/openvm/Package.swift: OpenVMCoreTests-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: OpenVMCoreTests-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[133 / 141] OpenVMDaemonTests-product
+/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/GuestWindowsTests.swift:46:35: [1;33mwarning: [1;39mRequirement 'GuestWindows.readBool(platform, GuestWindows.pmuGetterName)' is ambiguous (from macro 'require')[0;0m
+[0;36m44 |[0;0m     func enableActuallySetsTheFlags() throws {
+[0;36m45 |[0;0m         let platform = VZGenericPlatformConfiguration()
+[0;36m46 |[0;0m         let before = try #require([4;39mGuestWindows.readBool(platform, GuestWindows.pmuGetterName)[0;0m)
+   [0;36m|[0;0m                                   |- [1;33mwarning: [1;39mRequirement 'GuestWindows.readBool(platform, GuestWindows.pmuGetterName)' is ambiguous (from macro 'require')[0;0m
+   [0;36m|[0;0m                                   |- [1;39mnote: [1;39mTo unwrap an optional value, add 'as Bool?'[0;0m
+   [0;36m|[0;0m                                   `- [1;39mnote: [1;39mTo check if a value is true, add '?? false'[0;0m
+[0;36m47 |[0;0m         #expect(before == false)
+[0;36m48 |[0;0m         GuestWindows.enablePMUEmulation(on: platform)
+[139 / 152] OpenVMAppTests-product
+[142 / 152] OpenVMAppTests-product
+[143 / 152] OpenVMAppTests-product
+[150 / 156] OpenVMDaemonTests-product
+[152 / 156] OpenVMAppTests-product
+/Users/arsh/Developer/openvm/openvm/Package.swift: OpenVMDaemonTests-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: OpenVMDaemonTests-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+[154 / 157] OpenVMAppTests-product
+[156 / 160] OpenVMAppTests-product/Users/arsh/Developer/openvm/openvm/Package.swift: OpenVMAppTests-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/usr/lib' not found
+/Users/arsh/Developer/openvm/openvm/Package.swift: OpenVMAppTests-product: ld: warning: search path '/Library/Developer/CommandLineTools/Developer/Library/Frameworks' not found
+
+Build complete! (7.98 sec)
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite GuestShutdownTests started.
+◇ Suite OutboxIntakeTests started.
+◇ Suite GuestOverlayCmdlineTests started.
+◇ Suite GuestWindowsTests started.
+◇ Suite ConcurrencyTests started.
+◇ Suite OldToolsTests started.
+◇ Suite GuestPayloadTests started.
+◇ Suite GuestSuspendTests started.
+◇ Suite WimHelperVMTests started.
+◇ Suite GuestTimesyncTests started.
+◇ Suite GuestReadinessTests started.
+◇ Suite HostInfoTests started.
+◇ Suite OwnedMediaTests started.
+◇ Suite StopIntentTests started.
+◇ Suite ArtifactReceiverTests started.
+◇ Suite WindowsISOTests started.
+◇ Suite GuestCmdlineTests started.
+◇ Suite OutboxWatcherTests started.
+◇ Suite HostTasksTests started.
+◇ Suite HostSleepTests started.
+◇ Suite SharedFoldersTests started.
+◇ Suite GuestLifecycleTests started.
+◇ Suite HostLockTests started.
+◇ Test aRejectedSetIsDeletedAndReported() started.
+◇ Test receivedFilesCarryTheQuarantineMark() started.
+◇ Test hiddenEntriesAreNotTakenAsSets() started.
+◇ Test aSetWithoutItsReadyMarkIsLeftAlone() started.
+◇ Test gracefulRequestFailureStillForcesStop() started.
+◇ Test aNameAlreadyThereIsNotOverwritten() started.
+◇ Test graceExpiryForcesStop() started.
+◇ Test gracefulCompletionAvoidsForcedStop() started.
+◇ Test aSymlinkIsRejectedEvenInsideAFolder() started.
+◇ Test alreadyStoppedDoesNotRequestShutdown() started.
+◇ Test "the Windows configuration carries the devices the guest agent needs" started.
+◇ Test noPayloadMeansNoOverlayArgument() started.
+◇ Test forcedStopFailurePropagates() started.
+◇ Test "the private fine-grained-traps switch exists on the generic platform class" started.
+◇ Test "the Windows configuration boots an EFI disk with a display and a NIC" started.
+◇ Test installAndDropFlagsAppearInRows() started.
+◇ Test "enabling PMU emulation actually sets the flag (read back through the getter)" started.
+◇ Test aCompleteSetMovesToTheDestinationAndTheOutboxIsEmptied() started.
+◇ Test "enabling PMU emulation is harmless on a fresh platform config" started.
+◇ Test forcedStopMustConfirmStoppedState() started.
+◇ Test installBootGetsTheServedOverlay() started.
+◇ Test persistentBootHasNoOverlay() started.
+◇ Test aPathThatIsNotADirectoryIsNotAPayload() started.
+◇ Test "fine-grained traps default to on, so a run is never silently different" started.
+◇ Test stopAllWithNothingLiveSucceeds() started.
+◇ Test envOverlayWins() started.
+◇ Test otherFailuresAreLeftAlone() started.
+◇ Test listAnswersWhileAnotherConnectionIsBusy() started.
+◇ Test "the private PMU switch exists on the generic platform class" started.
+◇ Test oldAgentReportsNeedsUpdate() started.
+◇ Test activityAppearsInRows() started.
+◇ Test differentVmsDoNotShareASlot() started.
+◇ Test aQuiesceAckCompletesTheHandshake() started.
+◇ Test secondStartIsRefusedAsBusy() started.
+◇ Test anAgentErrorReplyFailsTheHandshake() started.
+◇ Test aWrongReplyTypeIsIgnoredUntilTimeout() started.
+◇ Test theOverlayIsOnlyOfferedWhenItIsThere() started.
+◇ Test silenceTimesOut() started.
+◇ Test silenceTimesOut() started.
+◇ Test theEnvironmentOverridesEveryOtherPlace() started.
+◇ Test replyToAClosedClientDoesNotKillTheHost() started.
+◇ Test anAgentClockAckCompletesTheSync() started.
+◇ Test aBlockingExchangeLeavesTheMainActorFree() started.
+◇ Test unrelatedReplyDoesNotConfirmReadiness() started.
+◇ Test aBundleCarriesItsPayloadInResources() started.
+◇ Test aJobThatReportedOkSucceeds() started.
+◇ Test aJobThatReportedAnErrorFails() started.
+◇ Test noStatusIsNotSuccess() started.
+◇ Test hostInfoReportsLimits() started.
+◇ Test matchingGuestReplyConfirmsReadiness() started.
+◇ Test consentIsCheckedBeforeTheGuestIsLookedUp() started.
+◇ Test aMissingFileIsNotAnError() started.
+◇ Test linuxPowerDownMeansPowerOff() started.
+◇ Test aWrongReplyTypeIsIgnoredUntilTimeout() started.
+◇ Test theGuestMemoryIsEnoughForWimlibAndItsFiles() started.
+◇ Test aDirectoryIsNeverRemoved() started.
+◇ Test wrongMessageTypeDoesNotConfirmReadiness() started.
+◇ Test jobBootCarriesTheJobArg() started.
+◇ Test silenceIsUnknownAndUnknownNeverRestarts() started.
+◇ Test anythingElseInTheStatusFileIsNotSuccess() started.
+◇ Test anAgentErrorReplyFailsTheSync() started.
+◇ Test valuesAboveHostLimitsAreRefused() started.
+◇ Test aFileOutsideTheMediaFolderIsKept() started.
+◇ Test enablingWindowsSoundNeedsExplicitConsent() started.
+◇ Test findExecutableFindsOnlyExecutableFiles() started.
+◇ Test theLastWordWins() started.
+◇ Test aLinkOutIsNotFollowed() started.
+◇ Test aStoppedWatcherSeesNothing() started.
+◇ Test listingNamesTheFilesTheVerdictNeeds() started.
+◇ Test withoutAPinnedCopyTheMirrorIsTheFallback() started.
+◇ Test theIsoIsDetachedAfterwards() started.
+◇ Test ownedMediaIsRemoved() started.
+◇ Test theAgentsGoingDownLineIsRead() started.
+◇ Test netbootUsesThePinnedModloop() started.
+◇ Test linuxRestartLineMeansRestart() started.
+◇ Test aRealIsoPathIsAccepted() started.
+◇ Test onlyExactNamesAreServed() started.
+◇ Test "the host power watcher registers" started.
+◇ Test servesTheOverlayToTheGuestNetwork() started.
+◇ Test "a running guest without a live channel is left alone" started.
+◇ Test aSetRenamedIntoPlaceIsTakenWithoutPolling() started.
+◇ Test "a guest the user suspended is left alone" started.
+◇ Test persistentBootsAreUnchanged() started.
+◇ Test "the host sleep takes the running guests with a live channel" started.
+◇ Test anX64IsoIsRefusedWithItsReason() started.
+◇ Test theOpAnswersForAGoodAndABadIso() started.
+◇ Test cancelEndsTheProcessGroup() started.
+◇ Test onlyARealIsoFileIsAccepted() started.
+◇ Test aJobGetsDefaultSignalsEvenWhenTheHostIgnoresSigpipe() started.
+◇ Test aPathThatClimbsOutIsKept() started.
+◇ Test restartsAreRationed() started.
+◇ Test onlyGetServesFiles() started.
+◇ Test aPeerOutsideTheGuestNetworkIsRefused() started.
+◇ Test onlyTheGuestSubnetIsAGuestPeer() started.
+◇ Test aCancelledTaskRemovesItsOutput() started.
+◇ Test "a stop is let through a start, because it is how a boot is cancelled" started.
+◇ Test anIsoWithoutAWindowsImageIsRefused() started.
+◇ Test aFailedTaskRemovesItsOutput() started.
+◇ Test unknownTaskIsAnError() started.
+◇ Test aMissingDirectoryIsSimplyAbsent() started.
+◇ Test "the device tag is valid and the share set carries every configured folder" started.
+◇ Test "a guest that is still booting answers no channel operation" started.
+◇ Test lockIsReleasedWithItsHolder() started.
+◇ Test "a VM with no shares still gets the device, so shares can be added live" started.
+◇ Test noOverlayIsNotFoundNotACrash() started.
+◇ Test aBuildWithoutAPayloadSaysSo() started.
+◇ Test "after a host restart, records that claim a live guest are stopped" started.
+◇ Test stopAllCountsWhatWasLiveAndIsGone() started.
+◇ Test anArm64WindowsIsoIsUsable() started.
+◇ Test "share names are stable, distinct per path, and what the guest agent accepts" started.
+◇ Test "a stop report from an old boot cannot end a newer boot of the same VM" started.
+◇ Test theOutputIsAlwaysUnderTheMediaFolder() started.
+◇ Test theHelperNeedsTheLinuxFiles() started.
+◇ Test aKindOutsideTheListIsRefused() started.
+◇ Test theScriptsCacheDoesNotFollowAThrowawayHome() started.
+◇ Test aFinishedTaskKeepsItsOutput() started.
+◇ Test differentHomesDoNotCollide() started.
+◇ Test finishedTasksAreNotKeptForever() started.
+◇ Test cancellingAFinishedTaskDoesNothing() started.
+◇ Test "a guest that stops itself is recorded as stopped, once, and a second report is harmless" started.
+◇ Test taskReportsLastLineAndExit() started.
+◇ Test failedTaskKeepsItsError() started.
+◇ Test secondHostIsRefusedAndNamesTheHolder() started.
+◇ Test withoutWimlibTheHelperIsUsed() started.
+◇ Test carriageReturnsAlsoEndAProgressLine() started.
+◇ Test withoutWimlibOrAHelperItSaysWhat() started.
+◇ Test aVeryLongLineIsCutDown() started.
+◇ Test differentKindsRunSideBySide() started.
+◇ Test aFinishedKindCanBeStartedAgain() started.
+◇ Test aSlowTaskDoesNotHoldAQuickOnesOutputOpen() started.
+◇ Test windowsMediaIsAFixedCommand() started.
+◇ Test aTaskThatCannotStartSaysSo() started.
+◇ Test simultaneousStartsOfOneKindMakeOneTask() started.
+◇ Test startingARunningKindAgainReturnsTheRunningTask() started.
+◇ Test fetchLinuxIsAFixedCommand() started.
+◇ Test aBadIsoIsRefused() started.
+◇ Test theMediaTaskNamesItsDownloadCache() started.
+◇ Test aPayloadWithoutWindowsSupportSaysSo() started.
+openvmd: served the install overlay (13 bytes)
+✔ Test aMissingFileIsNotAnError() passed after 0.059 seconds.
+✔ Test ownedMediaIsRemoved() passed after 0.059 seconds.
+✔ Test aLinkOutIsNotFollowed() passed after 0.059 seconds.
+✔ Test aDirectoryIsNeverRemoved() passed after 0.059 seconds.
+✔ Test aFileOutsideTheMediaFolderIsKept() passed after 0.059 seconds.
+✔ Test onlyARealIsoFileIsAccepted() passed after 0.059 seconds.
+✔ Test servesTheOverlayToTheGuestNetwork() passed after 0.059 seconds.
+✔ Test onlyTheGuestSubnetIsAGuestPeer() passed after 0.058 seconds.
+✔ Test aPathThatClimbsOutIsKept() passed after 0.059 seconds.
+✔ Test listingNamesTheFilesTheVerdictNeeds() passed after 0.059 seconds.
+✔ Test aMissingDirectoryIsSimplyAbsent() passed after 0.059 seconds.
+✔ Test unknownTaskIsAnError() passed after 0.059 seconds.
+✔ Test gracefulRequestFailureStillForcesStop() passed after 0.059 seconds.
+✔ Test aPeerOutsideTheGuestNetworkIsRefused() passed after 0.059 seconds.
+✔ Test aBuildWithoutAPayloadSaysSo() passed after 0.058 seconds.
+✔ Test graceExpiryForcesStop() passed after 0.059 seconds.
+✔ Test alreadyStoppedDoesNotRequestShutdown() passed after 0.059 seconds.
+✔ Test aKindOutsideTheListIsRefused() passed after 0.058 seconds.
+✔ Test noOverlayIsNotFoundNotACrash() passed after 0.059 seconds.
+✔ Test onlyGetServesFiles() passed after 0.059 seconds.
+✔ Test onlyExactNamesAreServed() passed after 0.059 seconds.
+✔ Test taskReportsLastLineAndExit() passed after 0.058 seconds.
+✔ Test aRealIsoPathIsAccepted() passed after 0.059 seconds.
+✔ Test cancellingAFinishedTaskDoesNothing() passed after 0.058 seconds.
+✔ Test gracefulCompletionAvoidsForcedStop() passed after 0.059 seconds.
+✔ Test failedTaskKeepsItsError() passed after 0.058 seconds.
+✔ Test carriageReturnsAlsoEndAProgressLine() passed after 0.058 seconds.
+✔ Test aTaskThatCannotStartSaysSo() passed after 0.058 seconds.
+✔ Test aVeryLongLineIsCutDown() passed after 0.058 seconds.
+✔ Test fetchLinuxIsAFixedCommand() passed after 0.058 seconds.
+✔ Test forcedStopFailurePropagates() passed after 0.059 seconds.
+✔ Suite OwnedMediaTests passed after 0.060 seconds.
+✔ Suite ArtifactReceiverTests passed after 0.060 seconds.
+openvm: vm: received 1 item(s) from the guest
+✔ Test forcedStopMustConfirmStoppedState() passed after 0.081 seconds.
+✔ Suite GuestShutdownTests passed after 0.081 seconds.
+✔ Test aRejectedSetIsDeletedAndReported() passed after 0.085 seconds.
+✔ Test receivedFilesCarryTheQuarantineMark() passed after 0.186 seconds.
+✔ Test aSetWithoutItsReadyMarkIsLeftAlone() passed after 0.186 seconds.
+✔ Test hiddenEntriesAreNotTakenAsSets() passed after 0.186 seconds.
+✔ Test aNameAlreadyThereIsNotOverwritten() passed after 0.186 seconds.
+✔ Test aSymlinkIsRejectedEvenInsideAFolder() passed after 0.188 seconds.
+✔ Test "the Windows configuration carries the devices the guest agent needs" passed after 0.218 seconds.
+✔ Test "the Windows configuration boots an EFI disk with a display and a NIC" passed after 0.218 seconds.
+✔ Test installAndDropFlagsAppearInRows() passed after 0.218 seconds.
+✔ Test "enabling PMU emulation actually sets the flag (read back through the getter)" passed after 0.218 seconds.
+✔ Test aCompleteSetMovesToTheDestinationAndTheOutboxIsEmptied() passed after 0.218 seconds.
+✔ Suite OutboxIntakeTests passed after 0.218 seconds.
+✔ Test "enabling PMU emulation is harmless on a fresh platform config" passed after 0.219 seconds.
+✔ Test "fine-grained traps default to on, so a run is never silently different" passed after 0.219 seconds.
+✔ Test "the private fine-grained-traps switch exists on the generic platform class" passed after 0.219 seconds.
+✔ Test installBootGetsTheServedOverlay() passed after 0.219 seconds.
+✔ Test persistentBootHasNoOverlay() passed after 0.219 seconds.
+✔ Test "the private PMU switch exists on the generic platform class" passed after 0.219 seconds.
+✔ Test listAnswersWhileAnotherConnectionIsBusy() passed after 0.219 seconds.
+✔ Test stopAllWithNothingLiveSucceeds() passed after 0.219 seconds.
+✔ Test otherFailuresAreLeftAlone() passed after 0.219 seconds.
+✔ Test activityAppearsInRows() passed after 0.219 seconds.
+✔ Test aPathThatIsNotADirectoryIsNotAPayload() passed after 0.219 seconds.
+✔ Test oldAgentReportsNeedsUpdate() passed after 0.219 seconds.
+✔ Test secondStartIsRefusedAsBusy() passed after 0.219 seconds.
+✔ Suite GuestWindowsTests passed after 0.220 seconds.
+✔ Suite OldToolsTests passed after 0.220 seconds.
+✔ Test envOverlayWins() passed after 0.221 seconds.
+✔ Test theOverlayIsOnlyOfferedWhenItIsThere() passed after 0.221 seconds.
+✔ Test silenceTimesOut() passed after 0.221 seconds.
+✔ Test aQuiesceAckCompletesTheHandshake() passed after 0.221 seconds.
+✔ Test anAgentErrorReplyFailsTheHandshake() passed after 0.221 seconds.
+✔ Test aWrongReplyTypeIsIgnoredUntilTimeout() passed after 0.221 seconds.
+✔ Test silenceTimesOut() passed after 0.221 seconds.
+✔ Test theEnvironmentOverridesEveryOtherPlace() passed after 0.221 seconds.
+✔ Suite GuestSuspendTests passed after 0.222 seconds.
+✔ Test replyToAClosedClientDoesNotKillTheHost() passed after 0.222 seconds.
+✔ Test unrelatedReplyDoesNotConfirmReadiness() passed after 0.243 seconds.
+✔ Test hostInfoReportsLimits() passed after 0.270 seconds.
+✔ Test aJobThatReportedAnErrorFails() passed after 0.270 seconds.
+✔ Test noStatusIsNotSuccess() passed after 0.270 seconds.
+✔ Test aBundleCarriesItsPayloadInResources() passed after 0.270 seconds.
+✔ Test anAgentClockAckCompletesTheSync() passed after 0.270 seconds.
+✔ Test noPayloadMeansNoOverlayArgument() passed after 0.271 seconds.
+✔ Suite GuestPayloadTests passed after 0.271 seconds.
+✔ Suite GuestOverlayCmdlineTests passed after 0.271 seconds.
+✔ Test aWrongReplyTypeIsIgnoredUntilTimeout() passed after 0.271 seconds.
+✔ Test linuxPowerDownMeansPowerOff() passed after 0.271 seconds.
+✔ Test differentVmsDoNotShareASlot() passed after 0.271 seconds.
+✔ Test theGuestMemoryIsEnoughForWimlibAndItsFiles() passed after 0.271 seconds.
+✔ Test aJobThatReportedOkSucceeds() passed after 0.271 seconds.
+✔ Test wrongMessageTypeDoesNotConfirmReadiness() passed after 0.271 seconds.
+✔ Test jobBootCarriesTheJobArg() passed after 0.271 seconds.
+✔ Test silenceIsUnknownAndUnknownNeverRestarts() passed after 0.271 seconds.
+✔ Test matchingGuestReplyConfirmsReadiness() passed after 0.271 seconds.
+✔ Suite GuestReadinessTests passed after 0.272 seconds.
+✔ Suite ConcurrencyTests passed after 0.272 seconds.
+✔ Test anAgentErrorReplyFailsTheSync() passed after 0.272 seconds.
+✔ Test valuesAboveHostLimitsAreRefused() passed after 0.273 seconds.
+✔ Test enablingWindowsSoundNeedsExplicitConsent() passed after 0.273 seconds.
+✔ Test consentIsCheckedBeforeTheGuestIsLookedUp() passed after 0.273 seconds.
+✔ Test withoutAPinnedCopyTheMirrorIsTheFallback() passed after 0.273 seconds.
+✔ Test theLastWordWins() passed after 0.273 seconds.
+✔ Test anythingElseInTheStatusFileIsNotSuccess() passed after 0.273 seconds.
+✔ Test theAgentsGoingDownLineIsRead() passed after 0.273 seconds.
+✔ Test findExecutableFindsOnlyExecutableFiles() passed after 0.273 seconds.
+✔ Test netbootUsesThePinnedModloop() passed after 0.273 seconds.
+✔ Test linuxRestartLineMeansRestart() passed after 0.273 seconds.
+✔ Test "the host power watcher registers" passed after 0.273 seconds.
+✔ Suite WimHelperVMTests passed after 0.274 seconds.
+✔ Suite HostInfoTests passed after 0.274 seconds.
+✔ Test aSetRenamedIntoPlaceIsTakenWithoutPolling() passed after 0.273 seconds.
+✔ Test "a running guest without a live channel is left alone" passed after 0.273 seconds.
+✔ Test "a guest the user suspended is left alone" passed after 0.273 seconds.
+✔ Test persistentBootsAreUnchanged() passed after 0.273 seconds.
+✔ Test "the host sleep takes the running guests with a live channel" passed after 0.273 seconds.
+✔ Test aJobGetsDefaultSignalsEvenWhenTheHostIgnoresSigpipe() passed after 0.273 seconds.
+✔ Suite GuestCmdlineTests passed after 0.274 seconds.
+✔ Suite HostSleepTests passed after 0.274 seconds.
+✔ Test restartsAreRationed() passed after 0.274 seconds.
+✔ Test aCancelledTaskRemovesItsOutput() passed after 0.274 seconds.
+✔ Test "a stop is let through a start, because it is how a boot is cancelled" passed after 0.274 seconds.
+✔ Test aFailedTaskRemovesItsOutput() passed after 0.274 seconds.
+✔ Test "the device tag is valid and the share set carries every configured folder" passed after 0.274 seconds.
+✔ Test "a guest that is still booting answers no channel operation" passed after 0.274 seconds.
+✔ Test "a VM with no shares still gets the device, so shares can be added live" passed after 0.274 seconds.
+✔ Test lockIsReleasedWithItsHolder() passed after 0.274 seconds.
+✔ Test "after a host restart, records that claim a live guest are stopped" passed after 0.274 seconds.
+✔ Test stopAllCountsWhatWasLiveAndIsGone() passed after 0.274 seconds.
+✔ Test "share names are stable, distinct per path, and what the guest agent accepts" passed after 0.274 seconds.
+✔ Test "a stop report from an old boot cannot end a newer boot of the same VM" passed after 0.274 seconds.
+✔ Test theOutputIsAlwaysUnderTheMediaFolder() passed after 0.274 seconds.
+✔ Test theScriptsCacheDoesNotFollowAThrowawayHome() passed after 0.274 seconds.
+✔ Test theHelperNeedsTheLinuxFiles() passed after 0.274 seconds.
+✔ Test aFinishedTaskKeepsItsOutput() passed after 0.273 seconds.
+✔ Test differentHomesDoNotCollide() passed after 0.274 seconds.
+✔ Test "a guest that stops itself is recorded as stopped, once, and a second report is harmless" passed after 0.274 seconds.
+✔ Test secondHostIsRefusedAndNamesTheHolder() passed after 0.273 seconds.
+✔ Test withoutWimlibOrAHelperItSaysWhat() passed after 0.273 seconds.
+✔ Test withoutWimlibTheHelperIsUsed() passed after 0.273 seconds.
+✔ Test differentKindsRunSideBySide() passed after 0.273 seconds.
+✔ Test aFinishedKindCanBeStartedAgain() passed after 0.274 seconds.
+✔ Test aSlowTaskDoesNotHoldAQuickOnesOutputOpen() passed after 0.273 seconds.
+✔ Test windowsMediaIsAFixedCommand() passed after 0.273 seconds.
+✔ Test simultaneousStartsOfOneKindMakeOneTask() passed after 0.273 seconds.
+✔ Test aBadIsoIsRefused() passed after 0.273 seconds.
+✔ Test startingARunningKindAgainReturnsTheRunningTask() passed after 0.273 seconds.
+✔ Test theMediaTaskNamesItsDownloadCache() passed after 0.273 seconds.
+✔ Test aPayloadWithoutWindowsSupportSaysSo() passed after 0.273 seconds.
+✔ Suite StopIntentTests passed after 0.275 seconds.
+✔ Suite SharedFoldersTests passed after 0.275 seconds.
+✔ Suite GuestLifecycleTests passed after 0.275 seconds.
+✔ Suite HostLockTests passed after 0.275 seconds.
+✔ Test cancelEndsTheProcessGroup() passed after 0.378 seconds.
+✔ Test anX64IsoIsRefusedWithItsReason() passed after 0.415 seconds.
+✔ Test aBlockingExchangeLeavesTheMainActorFree() passed after 0.463 seconds.
+✔ Suite GuestTimesyncTests passed after 0.464 seconds.
+✔ Test aStoppedWatcherSeesNothing() passed after 0.490 seconds.
+✔ Suite OutboxWatcherTests passed after 0.491 seconds.
+✔ Test anIsoWithoutAWindowsImageIsRefused() passed after 0.497 seconds.
+✔ Test anArm64WindowsIsoIsUsable() passed after 0.593 seconds.
+✔ Test theOpAnswersForAGoodAndABadIso() passed after 0.599 seconds.
+✔ Test theIsoIsDetachedAfterwards() passed after 0.607 seconds.
+✔ Suite WindowsISOTests passed after 0.608 seconds.
+✔ Test finishedTasksAreNotKeptForever() passed after 0.753 seconds.
+✔ Suite HostTasksTests passed after 0.754 seconds.
+✔ Test run with 138 tests in 23 suites passed after 0.755 seconds.
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite EnvelopeTests started.
+◇ Suite DragDropTests started.
+◇ Suite ClipboardPolicyTests started.
+◇ Suite PrintingTests started.
+◇ Suite VmSummaryTests started.
+◇ Suite DisplayFitTests started.
+◇ Suite WindowsMediaCheckTests started.
+◇ Suite DaemonClientTests started.
+◇ Suite OutboxRulesTests started.
+◇ Suite HelperJobOverlayTests started.
+◇ Suite RegistryTests started.
+◇ Suite DisplayTests started.
+◇ Suite FrameTests started.
+◇ Suite GuestOverlayTests started.
+◇ Suite HostInfoDecodingTests started.
+◇ Suite CBORTests started.
+◇ Suite GuestAudioTests started.
+◇ Test clipboardMessageIDsAreAppendOnly() started.
+◇ Test suspendPayloadRoundTrips() started.
+◇ Test statusParses() started.
+◇ Test timesyncMessageIDsAreAppendOnly() started.
+◇ Test ordinaryNamesPass() started.
+◇ Test timesyncPayloadRoundTrips() started.
+◇ Test disabledSyncDoesNothing() started.
+◇ Test unknownTypeIsRejected() started.
+◇ Test bodyMustBeAMap() started.
+◇ Test clipboardPayloadsRoundTrip() started.
+◇ Test aFailedPushIsTriedAgainOnTheNextFocus() started.
+◇ Test namesArriveComposed() started.
+◇ Test oversizedTextIsSkipped() started.
+◇ Test escapingNamesAreRefused() started.
+◇ Test twoItemsCannotShareAName() started.
+◇ Test sharedMessageIDsAreAppendOnly() started.
+◇ Test correlationIdTravelsInsideBody() started.
+◇ Test unchangedPasteboardIsNotPushed() started.
+◇ Test suspendMessageIDsAreAppendOnly() started.
+◇ Test fileChunkPayloadRoundTrips() started.
+◇ Test aSuccessfulPushClearsAnEarlierSkip() started.
+◇ Test sharedPayloadRoundTrips() started.
+◇ Test theSameGuestTextIsNotPulledTwice() started.
+◇ Test outboxDefaultsToOnAndDecodesWhenSent() started.
+◇ Test missingCorrelationId() started.
+◇ Test guestTextThatIsTooLargeIsNotPulled() started.
+◇ Test guestTextComesBackToTheMac() started.
+◇ Test anUnchangedGuestClipboardLeavesTheMacAlone() started.
+◇ Test itemNamesComeFromTheLastComponent() started.
+◇ Test roundTrips() started.
+◇ Test summaryDecodesRowsWithAndWithoutNewFields() started.
+◇ Test rowsMissingRequiredFieldsAreRejected() started.
+◇ Test concealedItemsAreNotPushed() started.
+◇ Test aPasteboardWithNoTextIsNotPushed() started.
+◇ Test installingAndDroppingDefaultToFalseAndDecodeWhenSent() started.
+◇ Test emptyGuestClipboardLeavesTheMacAlone() started.
+◇ Test noJobsKeyIsNoJobs() started.
+◇ Test roundingNeverGoesBelowTheMinimum() started.
+◇ Test scaleOneOnPlainDisplay() started.
+◇ Test clipboardSyncDefaultsToOnAndDecodesWhenSent() started.
+◇ Test replySplitAcrossReadsDecodes() started.
+◇ Test pulledTextIsNotPushedBack() started.
+◇ Test retinaWindowMapsToPixels() started.
+◇ Test onlyAScaleRefusalStepsDown() started.
+◇ Test caseDoesNotMatter() started.
+◇ Test nonsenseSizesAreClampedNotCrashed() started.
+◇ Test missingHostIsReportedNotCrashed() started.
+◇ Test x64IsoIsRefused() started.
+◇ Test symlinkInOutboxIsRejected() started.
+◇ Test jobsParseAndHostilePathsAreDropped() started.
+◇ Test anIsoWithNoInstallImageIsReported() started.
+◇ Test sendRunsOffTheMainThread() started.
+◇ Test everyProblemHasWordsForAPerson() started.
+◇ Test emptyDuplicateAndTooManyAreRejected() started.
+◇ Test errorReplyThrowsItsMessage() started.
+◇ Test esdOnlyIsoIsReported() started.
+◇ Test unicodeNamesAreComposed() started.
+◇ Test arm64IsoPasses() started.
+◇ Test aPendingSyncIsAskedAgain() started.
+◇ Test randomIsoIsRefused() started.
+◇ Test destinationsAreOnePerLineSortedAndUnique() started.
+◇ Test tinyWindowClampsToMinimum() started.
+◇ Test hugeWindowClampsToMaximum() started.
+◇ Test correlationMismatchIsAnError() started.
+◇ Test unsafeDestinationsAreSkipped() started.
+◇ Test widthIsAMultipleOfEightSoTheGuestCanHoldIt() started.
+◇ Test fifoIsRejected() started.
+◇ Test traversalNameIsRejected() started.
+◇ Test scalesStepDown() started.
+◇ Test refusals() started.
+◇ Test defaultDestination() started.
+◇ Test overQuotaIsRejected() started.
+◇ Test theOverlayHasAJobScript() started.
+◇ Test goodTreePasses() started.
+◇ Test createPersistsAndLists() started.
+◇ Test modeBounds() started.
+◇ Test oddBackingScalesStayInRange() started.
+◇ Test nameCollisionRejected() started.
+◇ Test scalesAreWhole() started.
+◇ Test setRejectedWhileNotStopped() started.
+◇ Test stopAcceptsSuspendedRecord() started.
+◇ Test manifestListingMissingFileIsRejected() started.
+◇ Test heldMode() started.
+◇ Test heldScaleIsReadFromTheReply() started.
+◇ Test pdfMagic() started.
+◇ Test aReplyMissingTheLimitsIsRejected() started.
+◇ Test oversizeLength() started.
+◇ Test hostInfoDecodes() started.
+◇ Test reservedFlags() started.
+◇ Test setTimezonePersists() started.
+◇ Test listOnMissingFileIsEmpty() started.
+◇ Test generatedScriptsHaveValidShellSyntax() started.
+◇ Test deleteRejectedWhileNotStopped() started.
+◇ Test errorClearsBufferAndDecoderStaysUsable() started.
+◇ Test streamingFeedKeepsPartialFrames() started.
+◇ Test resolveByNameAndUUID() started.
+◇ Test badMapKeyAndUTF8() started.
+◇ Test unsupportedVersion() started.
+◇ Test windowsReportsAStateAndNoRunningFlag() started.
+◇ Test roundTrip() started.
+◇ Test shareOnUnknownVMThrowsNotFound() started.
+◇ Test roundTrips() started.
+◇ Test statusParses() started.
+◇ Test aGuestWithNoCardSaysSo() started.
+◇ Test resourcesStillNeedAStoppedVm() started.
+◇ Test negativeInts() started.
+◇ Test goldenHelloDecodes() started.
+◇ Test goldenHelloFrame() started.
+◇ Test badMagic() started.
+◇ Test startStopTransitions() started.
+◇ Test concurrentCreatesKeepEveryRecord() started.
+◇ Test deepNestingIsRefusedNotRecursedInto() started.
+◇ Test suspendTransitions() started.
+◇ Test trailingGarbageAndEnd() started.
+◇ Test resolveMissingThrowsNotFound() started.
+◇ Test deleteRemovesRecordAndPersists() started.
+◇ Test defaults() started.
+◇ Test outboxSwitchChangesWhileRunningAndMissingMeansOn() started.
+◇ Test oversizeEnvelopeThrowsInsteadOfTrapping() started.
+◇ Test hostileLengthIsRejectedWithoutAllocation() started.
+◇ Test clipboardSyncAndTimezoneChangeWhileRunning() started.
+◇ Test uintGolden() started.
+◇ Test textBytesArrayMapGolden() started.
+◇ Test recordsWithoutSharesStillDecode() started.
+◇ Test recordsWithoutTimezoneStillDecode() started.
+◇ Test recordsWithoutClipboardSyncDecodeAsOn() started.
+◇ Test setLeavesUntouchedFieldsAlone() started.
+◇ Test concurrentTransitionsOfDifferentVmsAreAllKept() started.
+◇ Test sharesWorkWhileTheVMRuns() started.
+◇ Test installMediaCanBeForgotten() started.
+◇ Test setTimezoneLeavesOtherFieldsAlone() started.
+◇ Test invalidNamesRejected() started.
+◇ Test removeShareDropsOnlyThatShare() started.
+◇ Test resumeTransitions() started.
+◇ Test setAppliesAndPersists() started.
+◇ Test addShareReplacesTheGuestPathForTheSameHostPath() started.
+◇ Test badTransitionsRejected() started.
+◇ Test addSharePersists() started.
+◇ Test everyOperationAcceptsAUUIDInAnyCase() started.
+✔ Test setRejectedWhileNotStopped() passed after 0.006 seconds.
+✔ Test nameCollisionRejected() passed after 0.007 seconds.
+✔ Test deleteRejectedWhileNotStopped() passed after 0.008 seconds.
+✔ Test shareOnUnknownVMThrowsNotFound() passed after 0.008 seconds.
+✔ Test suspendTransitions() passed after 0.010 seconds.
+✔ Test deleteRemovesRecordAndPersists() passed after 0.017 seconds.
+✔ Test resolveMissingThrowsNotFound() passed after 0.018 seconds.
+✔ Test setLeavesUntouchedFieldsAlone() passed after 0.075 seconds.
+✔ Test setAppliesAndPersists() passed after 0.076 seconds.
+✔ Test badTransitionsRejected() passed after 0.077 seconds.
+✔ Test invalidNamesRejected() passed after 0.160 seconds.
+✔ Test resumeTransitions() passed after 0.161 seconds.
+✔ Test stopAcceptsSuspendedRecord() passed after 0.163 seconds.
+✔ Test sendRunsOffTheMainThread() passed after 0.163 seconds.
+✔ Test statusParses() passed after 0.304 seconds.
+✔ Test clipboardMessageIDsAreAppendOnly() passed after 0.304 seconds.
+✔ Test suspendPayloadRoundTrips() passed after 0.304 seconds.
+✔ Test timesyncMessageIDsAreAppendOnly() passed after 0.304 seconds.
+✔ Test timesyncPayloadRoundTrips() passed after 0.304 seconds.
+✔ Test ordinaryNamesPass() passed after 0.304 seconds.
+✔ Test aFailedPushIsTriedAgainOnTheNextFocus() passed after 0.305 seconds.
+✔ Test bodyMustBeAMap() passed after 0.306 seconds.
+✔ Test namesArriveComposed() passed after 0.306 seconds.
+✔ Test unknownTypeIsRejected() passed after 0.306 seconds.
+✔ Test correlationIdTravelsInsideBody() passed after 0.306 seconds.
+✔ Test sharedMessageIDsAreAppendOnly() passed after 0.306 seconds.
+✔ Test fileChunkPayloadRoundTrips() passed after 0.306 seconds.
+✔ Test escapingNamesAreRefused() passed after 0.306 seconds.
+✔ Test aSuccessfulPushClearsAnEarlierSkip() passed after 0.306 seconds.
+✔ Test disabledSyncDoesNothing() passed after 0.306 seconds.
+✔ Test twoItemsCannotShareAName() passed after 0.306 seconds.
+✔ Test oversizedTextIsSkipped() passed after 0.306 seconds.
+✔ Test theSameGuestTextIsNotPulledTwice() passed after 0.306 seconds.
+✔ Test unchangedPasteboardIsNotPushed() passed after 0.306 seconds.
+✔ Test suspendMessageIDsAreAppendOnly() passed after 0.306 seconds.
+✔ Test clipboardPayloadsRoundTrip() passed after 0.306 seconds.
+✔ Test outboxDefaultsToOnAndDecodesWhenSent() passed after 0.306 seconds.
+✔ Test sharedPayloadRoundTrips() passed after 0.306 seconds.
+✔ Test missingCorrelationId() passed after 0.306 seconds.
+✔ Test guestTextThatIsTooLargeIsNotPulled() passed after 0.306 seconds.
+✔ Test anUnchangedGuestClipboardLeavesTheMacAlone() passed after 0.307 seconds.
+✔ Test itemNamesComeFromTheLastComponent() passed after 0.307 seconds.
+✔ Suite DragDropTests passed after 0.307 seconds.
+✔ Test aPasteboardWithNoTextIsNotPushed() passed after 0.307 seconds.
+✔ Test rowsMissingRequiredFieldsAreRejected() passed after 0.307 seconds.
+✔ Test summaryDecodesRowsWithAndWithoutNewFields() passed after 0.307 seconds.
+✔ Test guestTextComesBackToTheMac() passed after 0.307 seconds.
+✔ Test installingAndDroppingDefaultToFalseAndDecodeWhenSent() passed after 0.307 seconds.
+✔ Test concealedItemsAreNotPushed() passed after 0.308 seconds.
+✔ Test replySplitAcrossReadsDecodes() passed after 0.308 seconds.
+✔ Test noJobsKeyIsNoJobs() passed after 0.308 seconds.
+✔ Test roundTrips() passed after 0.308 seconds.
+✔ Test roundingNeverGoesBelowTheMinimum() passed after 0.308 seconds.
+✔ Test onlyAScaleRefusalStepsDown() passed after 0.308 seconds.
+✔ Test scaleOneOnPlainDisplay() passed after 0.308 seconds.
+✔ Test clipboardSyncDefaultsToOnAndDecodesWhenSent() passed after 0.308 seconds.
+✔ Suite EnvelopeTests passed after 0.309 seconds.
+✔ Test emptyGuestClipboardLeavesTheMacAlone() passed after 0.308 seconds.
+✔ Suite VmSummaryTests passed after 0.309 seconds.
+✔ Test jobsParseAndHostilePathsAreDropped() passed after 0.313 seconds.
+✔ Test retinaWindowMapsToPixels() passed after 0.313 seconds.
+✔ Test nonsenseSizesAreClampedNotCrashed() passed after 0.315 seconds.
+✔ Test anIsoWithNoInstallImageIsReported() passed after 0.315 seconds.
+✔ Test caseDoesNotMatter() passed after 0.315 seconds.
+✔ Test x64IsoIsRefused() passed after 0.315 seconds.
+✔ Test missingHostIsReportedNotCrashed() passed after 0.325 seconds.
+✔ Test arm64IsoPasses() passed after 0.326 seconds.
+✔ Test esdOnlyIsoIsReported() passed after 0.326 seconds.
+✔ Test pulledTextIsNotPushedBack() passed after 0.326 seconds.
+✔ Test aPendingSyncIsAskedAgain() passed after 0.326 seconds.
+✔ Test unicodeNamesAreComposed() passed after 0.326 seconds.
+✔ Suite ClipboardPolicyTests passed after 0.327 seconds.
+✔ Test tinyWindowClampsToMinimum() passed after 0.326 seconds.
+✔ Test hugeWindowClampsToMaximum() passed after 0.328 seconds.
+✔ Test correlationMismatchIsAnError() passed after 0.328 seconds.
+✔ Test destinationsAreOnePerLineSortedAndUnique() passed after 0.328 seconds.
+✔ Test emptyDuplicateAndTooManyAreRejected() passed after 0.328 seconds.
+✔ Test defaultDestination() passed after 0.328 seconds.
+✔ Test traversalNameIsRejected() passed after 0.328 seconds.
+✔ Test scalesStepDown() passed after 0.328 seconds.
+✔ Test unsafeDestinationsAreSkipped() passed after 0.328 seconds.
+✔ Test overQuotaIsRejected() passed after 0.328 seconds.
+✔ Test goodTreePasses() passed after 0.328 seconds.
+✔ Test randomIsoIsRefused() passed after 0.328 seconds.
+✔ Test fifoIsRejected() passed after 0.328 seconds.
+✔ Test refusals() passed after 0.328 seconds.
+✔ Test symlinkInOutboxIsRejected() passed after 0.328 seconds.
+✔ Test widthIsAMultipleOfEightSoTheGuestCanHoldIt() passed after 0.328 seconds.
+✔ Test modeBounds() passed after 0.328 seconds.
+✔ Test theOverlayHasAJobScript() passed after 0.328 seconds.
+◇ Test anOrdinaryBootDoesNothing() started.
+✔ Test heldMode() passed after 0.334 seconds.
+✔ Test pdfMagic() passed after 0.334 seconds.
+✔ Test heldScaleIsReadFromTheReply() passed after 0.334 seconds.
+✔ Test oversizeLength() passed after 0.334 seconds.
+✔ Test setTimezonePersists() passed after 0.334 seconds.
+✔ Test errorReplyThrowsItsMessage() passed after 0.334 seconds.
+✔ Test everyProblemHasWordsForAPerson() passed after 0.335 seconds.
+✔ Test manifestListingMissingFileIsRejected() passed after 0.334 seconds.
+✔ Test scalesAreWhole() passed after 0.334 seconds.
+✔ Suite DaemonClientTests passed after 0.335 seconds.
+✔ Suite WindowsMediaCheckTests passed after 0.335 seconds.
+✔ Suite PrintingTests passed after 0.336 seconds.
+✔ Test aReplyMissingTheLimitsIsRejected() passed after 0.334 seconds.
+✔ Suite OutboxRulesTests passed after 0.335 seconds.
+✔ Suite DisplayTests passed after 0.335 seconds.
+✔ Test oddBackingScalesStayInRange() passed after 0.352 seconds.
+✔ Test hostInfoDecodes() passed after 0.352 seconds.
+✔ Test unsupportedVersion() passed after 0.352 seconds.
+✔ Test errorClearsBufferAndDecoderStaysUsable() passed after 0.352 seconds.
+✔ Test streamingFeedKeepsPartialFrames() passed after 0.352 seconds.
+✔ Test roundTrip() passed after 0.352 seconds.
+✔ Test badMapKeyAndUTF8() passed after 0.352 seconds.
+✔ Test roundTrips() passed after 0.352 seconds.
+✔ Test statusParses() passed after 0.352 seconds.
+✔ Test negativeInts() passed after 0.352 seconds.
+✔ Test resourcesStillNeedAStoppedVm() passed after 0.352 seconds.
+✔ Test aGuestWithNoCardSaysSo() passed after 0.352 seconds.
+✔ Test trailingGarbageAndEnd() passed after 0.352 seconds.
+✔ Test listOnMissingFileIsEmpty() passed after 0.352 seconds.
+✔ Test windowsReportsAStateAndNoRunningFlag() passed after 0.352 seconds.
+✔ Test goldenHelloDecodes() passed after 0.352 seconds.
+✔ Test resolveByNameAndUUID() passed after 0.352 seconds.
+✔ Test badMagic() passed after 0.352 seconds.
+✔ Test defaults() passed after 0.351 seconds.
+✔ Test createPersistsAndLists() passed after 0.352 seconds.
+✔ Test textBytesArrayMapGolden() passed after 0.351 seconds.
+✔ Test goldenHelloFrame() passed after 0.352 seconds.
+✔ Test uintGolden() passed after 0.351 seconds.
+✔ Test reservedFlags() passed after 0.352 seconds.
+✔ Test recordsWithoutClipboardSyncDecodeAsOn() passed after 0.351 seconds.
+✔ Test recordsWithoutSharesStillDecode() passed after 0.351 seconds.
+✔ Test recordsWithoutTimezoneStillDecode() passed after 0.351 seconds.
+✔ Test installMediaCanBeForgotten() passed after 0.351 seconds.
+✔ Test concurrentTransitionsOfDifferentVmsAreAllKept() passed after 0.351 seconds.
+✔ Test outboxSwitchChangesWhileRunningAndMissingMeansOn() passed after 0.351 seconds.
+✔ Test oversizeEnvelopeThrowsInsteadOfTrapping() passed after 0.352 seconds.
+✔ Test clipboardSyncAndTimezoneChangeWhileRunning() passed after 0.351 seconds.
+✔ Test hostileLengthIsRejectedWithoutAllocation() passed after 0.352 seconds.
+✔ Test setTimezoneLeavesOtherFieldsAlone() passed after 0.351 seconds.
+✔ Test everyOperationAcceptsAUUIDInAnyCase() passed after 0.351 seconds.
+✔ Test removeShareDropsOnlyThatShare() passed after 0.351 seconds.
+✔ Test deepNestingIsRefusedNotRecursedInto() passed after 0.352 seconds.
+✔ Test addSharePersists() passed after 0.351 seconds.
+✔ Test startStopTransitions() passed after 0.352 seconds.
+✔ Test addShareReplacesTheGuestPathForTheSameHostPath() passed after 0.351 seconds.
+✔ Test sharesWorkWhileTheVMRuns() passed after 0.351 seconds.
+✔ Test concurrentCreatesKeepEveryRecord() passed after 0.352 seconds.
+✔ Suite DisplayFitTests passed after 0.353 seconds.
+✔ Suite FrameTests passed after 0.353 seconds.
+✔ Suite HostInfoDecodingTests passed after 0.353 seconds.
+✔ Test generatedScriptsHaveValidShellSyntax() passed after 0.352 seconds.
+✔ Suite CBORTests passed after 0.353 seconds.
+✔ Suite GuestAudioTests passed after 0.353 seconds.
+✔ Suite RegistryTests passed after 0.353 seconds.
+◇ Test installationAbortsOnFailedTargetWrites() started.
+✔ Test anOrdinaryBootDoesNothing() passed after 0.031 seconds.
+◇ Test aJobBootMountsInstallsRunsAndPowersOff() started.
+✔ Test installationAbortsOnFailedTargetWrites() passed after 0.007 seconds.
+◇ Test onlyTheOpenRCServiceStartsThePersistentAgent() started.
+✔ Test aJobBootMountsInstallsRunsAndPowersOff() passed after 2.311 seconds.
+◇ Test aFailedJobIsReportedAndStillPowersOff() started.
+✔ Test onlyTheOpenRCServiceStartsThePersistentAgent() passed after 2.314 seconds.
+◇ Test installedFilesystemsAreUnmountedBeforeReady() started.
+✔ Test aFailedJobIsReportedAndStillPowersOff() passed after 1.759 seconds.
+◇ Test noNetworkIsReportedAsSuch() started.
+✔ Test installedFilesystemsAreUnmountedBeforeReady() passed after 1.757 seconds.
+◇ Test clipboardSessionBridgeIsInstalledForDesktopLogins() started.
+✔ Test noNetworkIsReportedAsSuch() passed after 1.763 seconds.
+◇ Test aFolderThatCannotBeMountedPowersOffWithoutReporting() started.
+✔ Test clipboardSessionBridgeIsInstalledForDesktopLogins() passed after 1.763 seconds.
+◇ Test clipboardDesktopDependenciesReachTheInstalledRoot() started.
+✔ Test aFolderThatCannotBeMountedPowersOffWithoutReporting() passed after 1.714 seconds.
+◇ Test theAgentScriptStandsDownForAJob() started.
+✔ Test clipboardDesktopDependenciesReachTheInstalledRoot() passed after 1.716 seconds.
+◇ Test clipboardDesktopServicePublishesAnX11Session() started.
+✔ Test theAgentScriptStandsDownForAJob() passed after 0.016 seconds.
+✔ Suite HelperJobOverlayTests passed after 7.927 seconds.
+✔ Test clipboardDesktopServicePublishesAnX11Session() passed after 0.017 seconds.
+◇ Test installedRootBringsUpEth0ForTheHostGateway() started.
+✔ Test installedRootBringsUpEth0ForTheHostGateway() passed after 0.004 seconds.
+◇ Test installerUsesNoPython() started.
+✔ Test installerUsesNoPython() passed after 0.001 seconds.
+◇ Test rootBackendDoesNotExecuteSessionEnvironmentAsShell() started.
+✔ Test rootBackendDoesNotExecuteSessionEnvironmentAsShell() passed after 0.001 seconds.
+◇ Test clipboardBackendReadsAndWritesThePublishedUserSession() started.
+✔ Test clipboardBackendReadsAndWritesThePublishedUserSession() passed after 0.170 seconds.
+◇ Test sessionHookWritesPrivateRuntimeEnvironment() started.
+✔ Test sessionHookWritesPrivateRuntimeEnvironment() passed after 0.010 seconds.
+✔ Suite GuestOverlayTests passed after 8.116 seconds.
+✔ Test run with 156 tests in 17 suites passed after 8.117 seconds.
+◇ Test run started.
+↳ Testing Library Version: 2403
+↳ Target Platform: arm64e-apple-macos14.0
+◇ Suite VMRowLogicTests started.
+◇ Suite QuitPolicyTests started.
+◇ Suite VMSettingsOutboxTests started.
+➜ Suite WizardEndToEndTests skipped.
+◇ Suite VMLinkTests started.
+◇ Suite ResizeCoalescerTests started.
+◇ Suite CreateWizardModelTests started.
+◇ Suite VMWindowStateTests started.
+◇ Suite ClipboardSyncTests started.
+◇ Suite ReceiptMessageTests started.
+◇ Suite VMListModelTests started.
+◇ Suite DropSessionTests started.
+◇ Suite StartFailureTests started.
+◇ Suite VMSettingsModelTests started.
+◇ Suite VMToolbarLogicTests started.
+◇ Suite SnapshotTests started.
+◇ Suite VMToolbarClipboardTests started.
+◇ Test deleteNamesTheVmAndTheDiskItRemoves() started.
+◇ Test theMessageNamesWhatWouldBeLost() started.
+◇ Test subtitleDescribesTheMachine() started.
+◇ Test statusSaysWhatIsHappening() started.
+◇ Test aPlainRunningGuestGetsAPlainMessage() started.
+◇ Test theDockIconStaysWhileAWindowIsOpen() started.
+◇ Test aBusyVmOffersOnlyToWatchIt() started.
+◇ Test quitWarnsAboutInstallsAndDrops() started.
+◇ Test withNoWindowAndAGuestRunningTheAppLivesInTheMenuBar() started.
+◇ Test aLiveVmCannotBeDeleted() started.
+◇ Test eachStateOffersItsOwnActions() started.
+◇ Test noGuestsQuitsNow() started.
+◇ Test eachVmHasOneObviousAction() started.
+◇ Test runningGuestsAreListed() started.
+◇ Test suspendedCountsAsRunning() started.
+◇ Test theObviousActionIsNeverDelete() started.
+➜ Test cancellingALinuxInstallLeavesNothing() skipped.
+➜ Test aLinuxVmIsInstalledFromTheWizardToTheEnd() skipped.
+◇ Test aVmThatIsBootingCountsAsRunning() started.
+◇ Test anythingElseIsRefused() started.
+◇ Test aNameOrUuidIsAccepted() started.
+◇ Test theOutboxSwitchIsSentWhenChanged() started.
+◇ Test aRefusedModeIsRetriedWithBackoff() started.
+◇ Test aSizeAlreadyAppliedIsNotSentAgain() started.
+➜ Test cancellingAWindowsMediaBuildLeavesNothing() skipped.
+◇ Test windowsFlowBuildsMediaThenCreatesAndStarts() started.
+◇ Test forgetLetsTheSameSizeBeAppliedAgain() started.
+◇ Test aNewSizeRestartsTheRetries() started.
+◇ Test retriesStopAfterTheLastDelay() started.
+◇ Test linuxNeedsItsFilesFirst() started.
+◇ Test cancelDuringMediaBuildCancelsTheTask() started.
+◇ Test onlyTheLatestSizeIsApplied() started.
+◇ Test aDefaultNameThatIsTakenGetsASuffix() started.
+◇ Test aFailedStartKeepsTheVmAndSaysWhy() started.
+◇ Test badNameBlocksNext() started.
+◇ Test linuxFlowCreatesAndStarts() started.
+◇ Test oneApplyAtATime() started.
+◇ Test resourcesStayWithinWhatTheMacAllows() started.
+◇ Test aFailedDownloadSaysWhy() started.
+◇ Test aVmWithSharingOffMovesNothing() started.
+◇ Test duplicateNameBlocksNext() started.
+◇ Test theSameTextIsNotSentTwice() started.
+◇ Test deleteRetriesWhileTheStartUnwinds() started.
+◇ Test windowsNeedsAnIsoBeforeNext() started.
+◇ Test defaultsFollowTheOs() started.
+◇ Test failureKeepsTheLogTail() started.
+◇ Test aGuestWithNoDesktopYetIsTriedAgainNextTime() started.
+◇ Test lowDiskBlocksNext() started.
+◇ Test cancelDuringInstallRemovesTheVm() started.
+◇ Test cancelDoesNotWaitForeverForATaskThatWillNotStop() started.
+◇ Test theSummaryStatesTheWindowsAccount() started.
+◇ Test turningItOnLaterStartsSharing() started.
+◇ Test windowsWithoutWimlibOrLinuxFilesNeedsThemFirst() started.
+◇ Test x64IsoStaysOnTheSourcePage() started.
+◇ Test aFailedCreateExplainsAndMakesNothing() started.
+◇ Test discardRemovesTheVmAFailedStartLeft() started.
+◇ Test oneFileIsNamed() started.
+◇ Test guestTextComesBackWhenTheWindowLosesFocus() started.
+◇ Test aRefusalSaysWhy() started.
+◇ Test aFailedReadLeavesTheMacAlone() started.
+◇ Test pulledTextIsNotPushedBackOnTheNextFocus() started.
+◇ Test pagesFollowTheOsChoice() started.
+◇ Test macTextIsSentWhenTheWindowComesToTheFront() started.
+◇ Test unchangedPollDoesNotRepublish() started.
+◇ Test manyAreCounted() started.
+◇ Test deleteAsksBeforeItActs() started.
+◇ Test confirmingDeleteSendsIt() started.
+◇ Test concealedItemsNeverReachTheGuestAndTheWindowSaysSo() started.
+◇ Test aRunningVmWithNoMachineIsAFault() started.
+◇ Test textTheMacGaveTheGuestIsNotWrittenBack() started.
+◇ Test pollPublishesChanges() started.
+◇ Test failedActionSetsLastError() started.
+◇ Test deleteRefusedOnLiveVm() started.
+◇ Test aUsableIsoLetsTheWizardOn() started.
+◇ Test onlyRunningAndBootingShowTheScreen() started.
+◇ Test stateFollowsSummary() started.
+◇ Test aLiveVmCannotEvenBeAskedAbout() started.
+◇ Test actionsAddressTheVmByItsUuid() started.
+◇ Test anyOtherFailureIsStatedPlainly() started.
+◇ Test aRunningHostIsNamedByItsProcess() started.
+◇ Test guestErrorIsShown() started.
+◇ Test lostHostIsReportedNotFatal() started.
+◇ Test tooManyItemsFailsBeforeCopying() started.
+◇ Test duplicateNamesAreReported() started.
+◇ Test aRefreshDoesNotHideAnActionError() started.
+◇ Test aFinishedDropCanBeDismissedAndAnotherStarted() started.
+◇ Test pollsUntilDone() started.
+◇ Test onlyWhatChangedIsSent() started.
+◇ Test pollingStopsWhenTheVmStops() started.
+◇ Test aRefusedDropIsReportedWithTheHostsReason() started.
+◇ Test aVmTheHostIsBusyWithCannotBeResized() started.
+◇ Test aBootingVmCanOnlyBeCancelled() started.
+◇ Test secondDropIsRefusedWithReason() started.
+◇ Test aCurrentValueOutsideTheUsualStepsStaysSelectable() started.
+◇ Test choicesStayWithinWhatTheMacHas() started.
+◇ Test sharesAreListedAndRemovedByHostPath() started.
+◇ Test buttonsSayWhatTheyDo() started.
+◇ Test wizardChoosesTheSystem() started.
+◇ Test eachStateOffersItsOwnButtons() started.
+◇ Test anyOtherActivityLocksThePowerAndPauseButtons() started.
+◇ Test valuesAboveHostLimitsAreRefused() started.
+◇ Test theWarningSaysWhatTestModeCosts() started.
+◇ Test wizardSizesTheVm() started.
+◇ Test soundIsOnlyOfferedForARunningWindowsGuest() started.
+◇ Test wizardAfterAFailedStart() started.
+◇ Test settingsOfARunningWindowsVm() started.
+◇ Test wizardWhileInstalling() started.
+◇ Test shareErrorsAreShown() started.
+◇ Test settingsOfAStoppedLinuxVm() started.
+◇ Test turningSoundOffNeedsNoConsent() started.
+◇ Test wizardRefusesAnX64Iso() started.
+◇ Test resourcesLockWhileRunning() started.
+◇ Test actionError() started.
+◇ Test theClipboardButtonFollowsTheVmsSetting() started.
+◇ Test popoverWithMixedStates() started.
+◇ Test emptyList() started.
+◇ Test testModeNeedsExplicitConsent() started.
+◇ Test listWithMixedStates() started.
+✔ Test theOutboxSwitchIsSentWhenChanged() passed after 0.001 seconds.
+✔ Suite VMSettingsOutboxTests passed after 0.002 seconds.
+✔ Test aDefaultNameThatIsTakenGetsASuffix() passed after 0.002 seconds.
+✔ Test aFailedStartKeepsTheVmAndSaysWhy() passed after 0.002 seconds.
+✔ Test linuxFlowCreatesAndStarts() passed after 0.002 seconds.
+✔ Test resourcesStayWithinWhatTheMacAllows() passed after 0.002 seconds.
+✔ Test badNameBlocksNext() passed after 0.002 seconds.
+✔ Test aFailedDownloadSaysWhy() passed after 0.002 seconds.
+✔ Test defaultsFollowTheOs() passed after 0.002 seconds.
+✔ Test duplicateNameBlocksNext() passed after 0.003 seconds.
+✔ Test lowDiskBlocksNext() passed after 0.003 seconds.
+✔ Test aFailedCreateExplainsAndMakesNothing() passed after 0.003 seconds.
+✔ Test discardRemovesTheVmAFailedStartLeft() passed after 0.003 seconds.
+✔ Test failureKeepsTheLogTail() passed after 0.003 seconds.
+✔ Test pagesFollowTheOsChoice() passed after 0.003 seconds.
+✔ Test unchangedPollDoesNotRepublish() passed after 0.003 seconds.
+✔ Test x64IsoStaysOnTheSourcePage() passed after 0.003 seconds.
+✔ Test confirmingDeleteSendsIt() passed after 0.003 seconds.
+✔ Test failedActionSetsLastError() passed after 0.003 seconds.
+✔ Test windowsWithoutWimlibOrLinuxFilesNeedsThemFirst() passed after 0.004 seconds.
+✔ Test theSummaryStatesTheWindowsAccount() passed after 0.004 seconds.
+✔ Test aUsableIsoLetsTheWizardOn() passed after 0.003 seconds.
+✔ Test deleteAsksBeforeItActs() passed after 0.003 seconds.
+✔ Test aLiveVmCannotEvenBeAskedAbout() passed after 0.003 seconds.
+✔ Test actionsAddressTheVmByItsUuid() passed after 0.003 seconds.
+✔ Test tooManyItemsFailsBeforeCopying() passed after 0.003 seconds.
+✔ Test duplicateNamesAreReported() passed after 0.004 seconds.
+✔ Test aRefreshDoesNotHideAnActionError() passed after 0.013 seconds.
+✔ Test deleteRefusedOnLiveVm() passed after 0.014 seconds.
+✔ Test lostHostIsReportedNotFatal() passed after 0.013 seconds.
+✔ Test aRefusedDropIsReportedWithTheHostsReason() passed after 0.013 seconds.
+✔ Test onlyWhatChangedIsSent() passed after 0.014 seconds.
+✔ Test aVmTheHostIsBusyWithCannotBeResized() passed after 0.014 seconds.
+✔ Test pollPublishesChanges() passed after 0.014 seconds.
+✔ Suite VMListModelTests passed after 0.015 seconds.
+✔ Test choicesStayWithinWhatTheMacHas() passed after 0.014 seconds.
+✔ Test sharesAreListedAndRemovedByHostPath() passed after 0.014 seconds.
+✔ Test aCurrentValueOutsideTheUsualStepsStaysSelectable() passed after 0.014 seconds.
+✔ Test wizardChoosesTheSystem() passed after 3.653 seconds.
+✔ Test valuesAboveHostLimitsAreRefused() passed after 3.760 seconds.
+✔ Test soundIsOnlyOfferedForARunningWindowsGuest() passed after 3.760 seconds.
+✔ Test wizardSizesTheVm() passed after 7.385 seconds.
+✔ Test turningSoundOffNeedsNoConsent() passed after 7.516 seconds.
+✔ Test wizardAfterAFailedStart() passed after 10.891 seconds.
+✔ Test wizardRefusesAnX64Iso() passed after 14.412 seconds.
+✔ Test shareErrorsAreShown() passed after 14.507 seconds.
+✘ Test settingsOfAStoppedLinuxVm() recorded an issue at SnapshotTests.swift:151:23: Expectation failed: different <= allowed
+↳ settings-stopped-linux: 360233 pixels differ (allowed 3078)
+↳ different <= allowed → false
+↳   different → 360233
+↳   allowed → 3078
+✘ Test settingsOfAStoppedLinuxVm() failed after 18.948 seconds with 1 issue.
+✔ Test testModeNeedsExplicitConsent() passed after 19.118 seconds.
+✔ Test emptyList() passed after 21.728 seconds.
+✔ Test windowsNeedsAnIsoBeforeNext() passed after 21.800 seconds.
+✔ Test actionError() passed after 24.414 seconds.
+✔ Test resourcesLockWhileRunning() passed after 24.491 seconds.
+✔ Test listWithMixedStates() passed after 27.098 seconds.
+✔ Test popoverWithMixedStates() passed after 28.349 seconds.
+✘ Test settingsOfARunningWindowsVm() recorded an issue at SnapshotTests.swift:157:23: Expectation failed: different <= allowed
+↳ settings-running-windows: 392430 pixels differ (allowed 3078)
+↳ different <= allowed → false
+↳   different → 392430
+↳   allowed → 3078
+✘ Test settingsOfARunningWindowsVm() failed after 32.813 seconds with 1 issue.
+openvm: clipboard: sent 5 bytes to w
+openvm: clipboard: sent 5 bytes to w
+openvm: clipboard: received 10 bytes from w
+openvm: clipboard: received 10 bytes from w
+openvm: clipboard: sent 5 bytes to w
+openvm: clipboard: sent 5 bytes to w
+✔ Test theMessageNamesWhatWouldBeLost() passed after 32.970 seconds.
+✔ Test deleteNamesTheVmAndTheDiskItRemoves() passed after 32.970 seconds.
+✔ Test subtitleDescribesTheMachine() passed after 32.970 seconds.
+✔ Test aPlainRunningGuestGetsAPlainMessage() passed after 32.970 seconds.
+✔ Test theDockIconStaysWhileAWindowIsOpen() passed after 32.970 seconds.
+✔ Test aBusyVmOffersOnlyToWatchIt() passed after 32.970 seconds.
+✔ Test aLiveVmCannotBeDeleted() passed after 32.970 seconds.
+✔ Test withNoWindowAndAGuestRunningTheAppLivesInTheMenuBar() passed after 32.970 seconds.
+✔ Test eachStateOffersItsOwnActions() passed after 32.970 seconds.
+✔ Test quitWarnsAboutInstallsAndDrops() passed after 32.970 seconds.
+✔ Test statusSaysWhatIsHappening() passed after 32.970 seconds.
+✔ Test eachVmHasOneObviousAction() passed after 32.970 seconds.
+✔ Test runningGuestsAreListed() passed after 32.970 seconds.
+✔ Test wizardWhileInstalling() passed after 36.330 seconds.
+✘ Suite SnapshotTests failed after 36.332 seconds with 2 issues.
+✔ Test noGuestsQuitsNow() passed after 36.422 seconds.
+✔ Test theObviousActionIsNeverDelete() passed after 36.422 seconds.
+✔ Test aVmThatIsBootingCountsAsRunning() passed after 36.422 seconds.
+✔ Suite VMRowLogicTests passed after 36.422 seconds.
+✔ Test anythingElseIsRefused() passed after 36.423 seconds.
+✔ Test suspendedCountsAsRunning() passed after 36.423 seconds.
+✔ Test aNameOrUuidIsAccepted() passed after 36.423 seconds.
+✔ Suite QuitPolicyTests passed after 36.423 seconds.
+✔ Suite VMLinkTests passed after 36.423 seconds.
+✔ Test aRunningVmWithNoMachineIsAFault() passed after 36.422 seconds.
+✔ Test guestTextComesBackWhenTheWindowLosesFocus() passed after 36.422 seconds.
+✔ Test oneFileIsNamed() passed after 36.422 seconds.
+✔ Test turningItOnLaterStartsSharing() passed after 36.422 seconds.
+✔ Test macTextIsSentWhenTheWindowComesToTheFront() passed after 36.422 seconds.
+✔ Test concealedItemsNeverReachTheGuestAndTheWindowSaysSo() passed after 36.422 seconds.
+✔ Test anyOtherFailureIsStatedPlainly() passed after 36.422 seconds.
+✔ Test aFailedReadLeavesTheMacAlone() passed after 36.422 seconds.
+✔ Test onlyRunningAndBootingShowTheScreen() passed after 36.422 seconds.
+✔ Test aRunningHostIsNamedByItsProcess() passed after 36.422 seconds.
+✔ Test manyAreCounted() passed after 36.422 seconds.
+✔ Test stateFollowsSummary() passed after 36.422 seconds.
+✔ Test aBootingVmCanOnlyBeCancelled() passed after 36.422 seconds.
+✔ Test buttonsSayWhatTheyDo() passed after 36.422 seconds.
+✔ Test eachStateOffersItsOwnButtons() passed after 36.422 seconds.
+✔ Suite VMWindowStateTests passed after 36.423 seconds.
+✔ Test cancelDoesNotWaitForeverForATaskThatWillNotStop() passed after 36.423 seconds.
+✔ Suite StartFailureTests passed after 36.423 seconds.
+✔ Test theWarningSaysWhatTestModeCosts() passed after 36.422 seconds.
+✔ Test aRefusalSaysWhy() passed after 36.422 seconds.
+✔ Test anyOtherActivityLocksThePowerAndPauseButtons() passed after 36.422 seconds.
+✔ Test secondDropIsRefusedWithReason() passed after 36.422 seconds.
+✔ Suite ReceiptMessageTests passed after 36.423 seconds.
+✔ Test theClipboardButtonFollowsTheVmsSetting() passed after 36.422 seconds.
+✔ Test cancelDuringInstallRemovesTheVm() passed after 36.423 seconds.
+✔ Suite VMSettingsModelTests passed after 36.423 seconds.
+✔ Test windowsFlowBuildsMediaThenCreatesAndStarts() passed after 36.423 seconds.
+✔ Suite VMToolbarClipboardTests passed after 36.423 seconds.
+✔ Suite VMToolbarLogicTests passed after 36.423 seconds.
+✔ Test linuxNeedsItsFilesFirst() passed after 36.423 seconds.
+✔ Test guestErrorIsShown() passed after 36.422 seconds.
+✔ Test aVmWithSharingOffMovesNothing() passed after 36.423 seconds.
+✔ Test aGuestWithNoDesktopYetIsTriedAgainNextTime() passed after 36.423 seconds.
+✔ Test pulledTextIsNotPushedBackOnTheNextFocus() passed after 36.423 seconds.
+✔ Test theSameTextIsNotSentTwice() passed after 36.423 seconds.
+✔ Test textTheMacGaveTheGuestIsNotWrittenBack() passed after 36.423 seconds.
+✔ Suite ClipboardSyncTests passed after 36.424 seconds.
+✔ Test onlyTheLatestSizeIsApplied() passed after 36.423 seconds.
+✔ Test aNewSizeRestartsTheRetries() passed after 36.423 seconds.
+✔ Test forgetLetsTheSameSizeBeAppliedAgain() passed after 36.423 seconds.
+✔ Test aFinishedDropCanBeDismissedAndAnotherStarted() passed after 36.424 seconds.
+✔ Test pollsUntilDone() passed after 36.426 seconds.
+✔ Test deleteRetriesWhileTheStartUnwinds() passed after 36.427 seconds.
+✔ Test cancelDuringMediaBuildCancelsTheTask() passed after 36.429 seconds.
+✔ Suite CreateWizardModelTests passed after 36.430 seconds.
+✔ Test aSizeAlreadyAppliedIsNotSentAgain() passed after 36.458 seconds.
+✔ Test pollingStopsWhenTheVmStops() passed after 36.458 seconds.
+✔ Test retriesStopAfterTheLastDelay() passed after 36.458 seconds.
+✔ Test aRefusedModeIsRetriedWithBackoff() passed after 36.458 seconds.
+✔ Suite DropSessionTests passed after 36.459 seconds.
+✔ Test oneApplyAtATime() passed after 36.465 seconds.
+✔ Suite ResizeCoalescerTests passed after 36.465 seconds.
+✘ Test run with 118 tests in 17 suites failed after 36.466 seconds with 2 issues.
+Note: Some test targets reported failures:
+  - OpenVMAppTests (Swift Testing)
+make: *** [test] Error 1
+snap=2

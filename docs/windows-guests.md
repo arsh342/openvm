@@ -198,3 +198,75 @@ succeeds: the guest has to read back a random probe file through the share.
   caused it is a guess.
 * The first boot comes up at 1024x768 (viogpudo's default), not the 1920x1080
   scanout. Later boots keep the last mode.
+
+## Building the install media
+
+`tools/build/mk-windows-media.sh` turns the user's ISO into a raw disk image that boots straight
+into an unattended install: a FAT32 boot volume (the boot chain, the BCD, `boot.wim`) and an exFAT
+data volume (`install.wim`, which is 7.6 GB and cannot live on FAT32). It needs three things the
+app cannot assume a Mac has, and handles each:
+
+* **The UEFI applications and the Windows agent** are built when the payload is built
+  (`tools/build/mk-payload.sh`, which needs clang, lld and zig) and shipped prebuilt
+  (`OPENVM_PREBUILT`). A payload built where those tools are missing has no Windows part, and the
+  task says so.
+* **wimlib** does four things: read the Windows edition and language out of `install.wim`, and add
+  the WinPE payload to `boot.wim`. They are one script, `tools/build/wim-job.sh`, because they
+  depend on each other's results. It runs on the Mac when the Mac has `wimlib-imagex`
+  (`OPENVM_WIMLIB`), and otherwise in a **helper VM**.
+* **The helper VM** is a short-lived Alpine guest (`openvm.job=wim` on its kernel command line).
+  wimlib is GPL, so openVM never ships it: the guest installs it from Alpine's *community*
+  repository (it is not in `main`; 1.14.4, 466 KiB) each time, then runs the job script on two
+  shared folders, the job folder (read-write) and the mounted ISO (read-only), writes `ok` or
+  `error: …` to `status` in the job folder, and powers off. Nothing is installed on the Mac.
+  `openvmd --wim-job <job-dir> <iso-root>` (and the app binary) runs one; it takes no host lock
+  and its own artifact port, so it works beside a running host.
+
+**Measured** with the real Windows 11 ARM64 ISO (26300, en-GB) on an M-series Mac, with the
+download cache warm:
+
+| wimlib from | total time | edition | `boot.wim` |
+|---|---|---|---|
+| the Mac (Homebrew) | 35 s | image 3, en-GB | 642,851,057 bytes |
+| the helper VM | 43 s | image 3, en-GB | 642,851,579 bytes |
+
+The two `boot.wim` files hold the same 63 files under `/openvm`, and `unattend.xml`,
+`image-index.txt` and `winpeshl.ini` are byte-identical; the 522-byte size difference is wimlib's
+own metadata. The helper's job itself takes about 15 seconds; the rest is copying the ISO's files.
+
+**Checking the ISO first.** `windows-iso-check` mounts the ISO and reads file names only, so a
+wrong download (an x64 ISO, a Linux ISO, an ISO with `install.esd`) is refused in about a second,
+with a reason, instead of after the build. The real ISO above is accepted in 1.2 s.
+
+## Sending files to the Mac
+
+`openvm-tools-win.exe --send <path>...` (the "Send to Mac" entry in the SendTo menu, added to the
+default profile by `SetupComplete.cmd`) copies files and folders into `Z:\outbox`, the same way the
+Linux tool does: built under a hidden name, `.ready` written last, renamed into place. A link
+(reparse point) anywhere stops the send. The copy uses the same read-retry loop as a drop, because of
+the viofs read faults noted above.
+
+Measured on a real Windows guest (`docs/evidence/windows-smoke-send-2026-11-06.txt`): a 2 GiB file went
+Desktop to Mac byte-identical in 12 s, and the received file carried the quarantine mark. Not yet
+measured: a 12 x 200 MB tree, and the SendTo menu itself by hand (the smoke starts the helper through
+the agent, not through Explorer).
+
+## The account
+
+The wizard asks for a user name, a password, and whether to sign in automatically. The account is made
+by the answer file, and `SetupComplete.cmd` then makes sure it is in Administrators, by the group's SID
+and with the computer's name in front of the user's, and writes the group's members to
+`C:\openvm\setupcomplete.log`. Without a wizard the script's defaults stand: `openvm` / `openvm`.
+
+Guests installed before this were left with no usable administrator: the computer and the account were
+both called `openvm`, and `net localgroup administrators` listed only the disabled built-in
+`Administrator`, so an elevation prompt had nobody to offer. Windows does not allow a user named like the
+computer, which is why the computer is now `OPENVM-GUEST`. That this collision is what stopped the account
+joining the group is the likely reading, not a proven one. A real install with this fix has not been
+checked yet: `make windows-smoke` now fails if the account is not an administrator.
+
+The password goes from the wizard to the media script through its environment, never its command line.
+It is plain text in the answer file on the install media, which the host deletes after the install. With
+automatic sign-in Windows keeps it in the guest, in a form that can be read. Without it, the guest starts
+at the sign-in screen, and what needs a session (clipboard, drops, display) waits until someone signs in;
+that path has not been run yet.

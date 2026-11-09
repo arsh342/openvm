@@ -4,7 +4,7 @@ import Foundation
 import OpenVMCore
 import Testing
 
-@testable import openvmd
+@testable import OpenVMHost
 
 /// The suspend handshake follows the GuestTimesyncTests probe pattern: a socket
 /// pair plus a thread that plays the guest agent side. The host asks the guest

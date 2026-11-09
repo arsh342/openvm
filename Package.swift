@@ -6,9 +6,24 @@ let settings: [SwiftSetting] = [.defaultIsolation(MainActor.self)]
 let package = Package(
     name: "openvm-core",
     platforms: [.macOS(.v14)],
+    products: [
+        .executable(name: "openvm", targets: ["OpenVMApp"])
+    ],
     targets: [
         .target(name: "OpenVMCore", swiftSettings: settings),
         .target(name: "OpenVMWindows", swiftSettings: settings),
+        .target(
+            name: "OpenVMHost",
+            dependencies: ["OpenVMCore", "OpenVMWindows"],
+            path: "Sources/OpenVMHost",
+            swiftSettings: settings
+        ),
+        .executableTarget(
+            name: "OpenVMApp",
+            dependencies: ["OpenVMCore", "OpenVMHost"],
+            path: "Sources/OpenVMApp",
+            swiftSettings: settings
+        ),
         .executableTarget(
             name: "openvm-mockguest",
             dependencies: ["OpenVMCore"],
@@ -17,7 +32,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "openvmd",
-            dependencies: ["OpenVMCore", "OpenVMWindows"],
+            dependencies: ["OpenVMHost"],
             path: "Sources/openvmd",
             swiftSettings: settings
         ),
@@ -29,8 +44,15 @@ let package = Package(
         ),
         .testTarget(
             name: "OpenVMDaemonTests",
-            dependencies: ["openvmd", "OpenVMWindows"],
+            dependencies: ["OpenVMHost", "OpenVMWindows"],
             path: "Tests/OpenVMDaemonTests",
+            swiftSettings: settings
+        ),
+        .testTarget(
+            name: "OpenVMAppTests",
+            dependencies: ["OpenVMApp", "OpenVMHost"],
+            path: "Tests/OpenVMAppTests",
+            exclude: ["Snapshots"],
             swiftSettings: settings
         ),
         .testTarget(

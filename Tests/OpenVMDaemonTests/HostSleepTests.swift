@@ -3,7 +3,7 @@ import Foundation
 import OpenVMCore
 import Testing
 
-@testable import openvmd
+@testable import OpenVMHost
 
 /// The host-sleep handshake cannot be exercised in CI (it needs the machine to
 /// sleep), so the policy it follows is pinned down here: only the running

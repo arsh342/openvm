@@ -20,6 +20,7 @@ DAEMON=.build/debug/openvmd
 CTL=.build/debug/openvmctl
 HOME_DIR=$(mktemp -d /tmp/openvm-winsmoke.XXXXXX)
 export OPENVM_HOME="$HOME_DIR"
+export OPENVM_RECEIVE_DIR="$HOME_DIR/received"
 SAVED_CLIPBOARD=$(pbpaste)
 VM=win
 PID=""
@@ -236,6 +237,20 @@ grep -q 'dropped big.bin (2147483648 bytes)' "$HOME_DIR/big-drop.out" || fail "l
 [ "$i" -ge 5 ] || fail "the large drop was too quick to prove anything ($i pings)"
 echo "smoke: files dropped onto the guest desktop ($i pings answered during a 2 GiB drop)"
 
+# --- send to the Mac ---------------------------------------------------------
+# The files the drops put on the Desktop go back through the outbox: a small one, then 2 GiB.
+recv="$HOME_DIR/received/$VM"
+"$CTL" drag send "$VM" "C:\Users\openvm\Desktop\note.txt" >/dev/null || fail "the guest refused to send a file"
+retry 30 test -f "$recv/note.txt" || fail "a sent file did not reach the Mac"
+cmp -s "$recv/note.txt" "$HOME_DIR/dropped/note.txt" || fail "the sent file differs"
+xattr "$recv/note.txt" | grep -q com.apple.quarantine || fail "a received file was not quarantined"
+sent_at=$(date +%s)
+"$CTL" drag send "$VM" "C:\Users\openvm\Desktop\big.bin" >/dev/null || fail "the guest refused to send 2 GiB"
+retry 60 test -f "$recv/big.bin" || fail "the 2 GiB file did not reach the Mac"
+cmp -s "$recv/big.bin" "$HOME_DIR/dropped/big.bin" || fail "the 2 GiB file differs after the round trip"
+[ -z "$(ls -A "$HOME_DIR/outbox/"* 2>/dev/null)" ] || fail "the outbox was not emptied"
+echo "smoke: files sent from the guest to the Mac (2 GiB round trip in $(( $(date +%s) - sent_at )) s)"
+
 # --- suspend -----------------------------------------------------------------
 # The scale must be applied again after a resume; the agent's log counts each time.
 "$CTL" display set "$VM" --width 2560 --height 1600 --scale 2 >/dev/null || fail "scale before suspend failed"
@@ -295,6 +310,13 @@ if "$CTL" audio test "$VM" >/dev/null 2>&1; then fail "a tone played after disab
 echo "smoke: sound off by default, on after enable, off after disable"
 
 # --- the guest's disk --------------------------------------------------------
+# The guest stops itself and the record follows with no further command: only the
+# framework's end-of-guest report can do that.
+"$CTL" stop "$VM" --no-wait | grep -q "stopping $VM" || fail "no-wait stop output wrong"
+retry 90 sh -c "'$CTL' list | grep -q 'state=stopped'" || fail "the record did not follow the guest's own shutdown"
+"$CTL" start "$VM" >/dev/null || fail "start after a guest-initiated stop failed"
+retry 180 agent_up || fail "the agent did not answer after a guest-initiated stop"
+echo "smoke: the record followed the guest's own shutdown, and the VM started again"
 "$CTL" stop "$VM" | grep -q "stopped $VM" || fail "final stop failed"
 attached=$(hdiutil attach -readonly -nobrowse -noverify -imagekey diskimage-class=CRawDiskImage \
   "$OPENVM_HOME/disks/$VM/disk.raw" 2>/dev/null) || fail "could not read the guest's disk"
@@ -308,6 +330,10 @@ cmp -s "$desktop/My Tree/sub/deep.bin" "$HOME_DIR/dropped/My Tree/sub/deep.bin" 
   || fail "the dropped tree is not on the Desktop"
 cmp -s "$desktop/big.bin" "$HOME_DIR/dropped/big.bin" || fail "the large drop differs on the Desktop"
 echo "smoke: dropped files match on the guest's disk"
+# Elevation needs an admin to offer: nothing else in this smoke would notice if openvm were not one.
+tr -d '\r' <"$root/openvm/setupcomplete.log" | sed -n '/openvm-admins:/,$p' | grep -qi '\\openvm$' \
+  || fail "the openvm account is not an administrator"
+echo "smoke: the openvm account is an administrator"
 # Set once before the suspend and once by the resume, at least.
 [ "$(tr -d '\r' <"$root/openvm/agent.log" | grep -c 'display holds 2560x1600 at scale 2')" -ge 3 ] \
   || fail "the scale was not re-applied after resume"

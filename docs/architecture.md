@@ -10,9 +10,11 @@ openvmctl ──Unix socket──▶ openvmd ──vsock port 52──▶ guest 
 
 | Part | Where | Job |
 | --- | --- | --- |
-| `openvmd` | `Sources/openvmd` | Owns the VMs: boots and stops them, and drives every host-side feature |
+| `OpenVMHost` | `Sources/OpenVMHost` | The host library. Owns the VMs: boots and stops them, serves the socket, and drives every host-side feature |
+| `openvmd` | `Sources/openvmd` | The headless host: a thin `main` over `OpenVMHost`, with no windows. One host runs per `OPENVM_HOME`; a second is refused, naming the holder's pid |
+| `openvm.app` | `Sources/OpenVMApp` | The app. Hosts the VMs itself through `OpenVMHost` (a VM window needs the live machine in its own process) and still serves the socket, so `openvmctl` works against it. Build it with `make app` |
 | `openvmctl` | `Sources/openvmctl` | Turns commands into daemon requests and prints the replies |
-| `OpenVMCore` | `Sources/OpenVMCore` | Code both share: the wire protocol, the VM registry, and the rules for each feature |
+| `OpenVMCore` | `Sources/OpenVMCore` | Code the host, the CLI and the app share: the wire protocol, the VM registry, the client (`DaemonClient`), and the rules for each feature |
 | `OpenVMWindows` | `Sources/OpenVMWindows` | The Virtualization.framework configuration for Windows guests |
 | Linux agent | `tools/guest/openvm-tools.c` | Answers the host inside a Linux guest |
 | Windows agent | `tools/guest/openvm-tools-win.c` | The same, as a Windows service |
@@ -22,7 +24,7 @@ openvmctl ──Unix socket──▶ openvmd ──vsock port 52──▶ guest 
 Taking `openvmctl display set win --width 2560 --height 1664 --scale 2`:
 
 1. `openvmctl` parses the command and sends a `vmRequest` over the Unix socket (`DaemonClient.swift`).
-2. `Server.swift` reads the frame and hands it to `vmOp`, which calls the handler for that op (`VmRequest.swift`).
+2. `Server.swift` (in `OpenVMHost`) reads the frame and hands it to `vmOp`, which calls the handler for that op (`VmRequest.swift`).
 3. The handler finds the VM and its live guest, and checks the arguments (`GuestOps.swift`).
 4. `DisplayControl.swift` resizes the framework's display, then sends a `displayRequest` through `GuestChannel.swift`.
 5. The agent applies the mode and scale, and replies with what the guest really holds.
@@ -46,5 +48,5 @@ A guest is not trusted. Every value from a guest is checked before the host acts
 
 ## Boot
 
-* **Linux:** the kernel boots directly. The first start installs Alpine to the disk from a generated overlay (`tools/build/mk-guest-overlay.sh`), and later starts boot the installed system.
+* **Linux:** the kernel boots directly. The first start installs Alpine to the disk from the install overlay in the guest payload (built by `tools/build/mk-payload.sh`, which runs `tools/build/mk-guest-overlay.sh`), which the host serves to the guest, and later starts boot the installed system.
 * **Windows:** the firmware loads `tools/uefi/openvm-efi.c`, which provides a framebuffer and starts Windows Boot Manager. The first start runs an unattended install from media built by `tools/build/mk-windows-media.sh`.

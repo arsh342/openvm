@@ -39,7 +39,7 @@ case "create":
             args.append((key, .uint(v)))
         } else if key == "boot-mode" {
             let mode = argv[i + 1]
-            guard ["linux", "windows"].contains(mode) else {
+            guard ["linux", "windows", "linux-iso"].contains(mode) else {
                 print(usage)
                 exit(2)
             }
@@ -76,13 +76,19 @@ case "set":
             args.append((key, .text(argv[i + 1])))
         case "boot-mode":
             let mode = argv[i + 1]
-            guard ["linux", "windows"].contains(mode) else {
+            guard ["linux", "windows", "linux-iso"].contains(mode) else {
                 print(usage)
                 exit(2)
             }
             args.append((key, .text(mode)))
         case "variable-store-path":
             args.append((key, .text(argv[i + 1])))
+        case "clipboard-sync":
+            guard ["on", "off"].contains(argv[i + 1]) else {
+                print(usage)
+                exit(2)
+            }
+            args.append((key, .bool(argv[i + 1] == "on")))
         default:
             print(usage)
             exit(2)
@@ -94,6 +100,52 @@ case "list":
         print(usage)
         exit(2)
     }
+case "task":
+    // Long jobs the host runs, from a fixed list: openvmctl task start fetch-linux
+    if argv.count >= 3, argv[1] == "start" {
+        requestOp = "task-start"
+        args.append(("kind", .text(argv[2])))
+        // windows-media takes the ISO to build from and a name for the media: --iso PATH --name NAME
+        var i = 3
+        while i + 1 < argv.count, ["--iso", "--name"].contains(argv[i]) {
+            let value =
+                argv[i] == "--iso" ? URL(fileURLWithPath: argv[i + 1]).standardizedFileURL.path : argv[i + 1]
+            args.append((String(argv[i].dropFirst(2)), .text(value)))
+            i += 2
+        }
+        guard i == argv.count else {
+            print(usage)
+            exit(2)
+        }
+    } else if argv.count == 3, ["status", "cancel"].contains(argv[1]) {
+        requestOp = "task-\(argv[1])"
+        args.append(("taskId", .text(argv[2])))
+    } else {
+        print(usage)
+        exit(2)
+    }
+case "windows-iso" where argv.count == 3 && argv[1] == "check":
+    // Is this ISO something a Windows guest can be built from?
+    requestOp = "windows-iso-check"
+    args.append(("iso", .text(URL(fileURLWithPath: argv[2]).standardizedFileURL.path)))
+case "linux-iso" where argv.count == 3 && argv[1] == "check":
+    // Can this ISO start on this Mac?
+    requestOp = "linux-iso-check"
+    args.append(("iso", .text(URL(fileURLWithPath: argv[2]).standardizedFileURL.path)))
+case "eject" where argv.count == 2:
+    // Take the installer ISO out of a stopped VM, so it starts from its disk.
+    requestOp = "eject-installer"
+    args.append(("id", .text(argv[1])))
+case "host-info" where argv.count == 1:
+    // What this Mac can give a VM, and what is ready.
+    break
+case "stop-all" where argv.count == 1:
+    // Shut down every running guest, as quitting the app does.
+    break
+case "stop" where argv.count == 3 && argv[2] == "--no-wait":
+    // Ask the guest to stop and return at once; the VM's record follows it.
+    args.append(("id", .text(argv[1])))
+    args.append(("wait", .bool(false)))
 case "start", "stop", "ping", "info", "delete", "suspend", "resume":
     guard argv.count == 2 else {
         print(usage)
@@ -179,6 +231,12 @@ case "drag":
         requestOp = "drag"
         args.append(("id", .text(argv[2])))
         args.append(("op", .text(argv[1])))
+    } else if argv.count == 4, argv[1] == "send" {
+        // Runs the guest's send tool on a path inside the guest; what it sends lands in Downloads.
+        requestOp = "drag"
+        args.append(("id", .text(argv[2])))
+        args.append(("op", .text("send")))
+        args.append(("path", .text(argv[3])))
     } else if argv.count >= 4, argv[1] == "drop" {
         dropCommand = DropCommand(
             vmID: argv[2],
@@ -211,6 +269,8 @@ case "audio":
         requestOp = "audio"
         args.append(("id", .text(argv[2])))
         args.append(("op", .text(argv[1])))
+        // Typing --test-mode is the consent; the host will not enable Windows sound without it.
+        if turnsOn { args.append(("testMode", .bool(true))) }
     } else {
         print(usage)
         exit(2)
@@ -293,6 +353,19 @@ do {
         {
             for row in rows { printRow(row) }
         }
+        if ["host-info", "task-start", "task-status", "task-cancel", "windows-iso-check", "linux-iso-check"].contains(requestOp),
+            case .map(let res)? = (entries.first { $0.key == "result" }?.value)
+        {
+            print(
+                res.map { entry -> String in
+                    switch entry.value {
+                    case .uint(let n): return "\(entry.key)=\(n)"
+                    case .bool(let b): return "\(entry.key)=\(b)"
+                    case .text(let t): return "\(entry.key)=\(t)"
+                    default: return entry.key
+                    }
+                }.joined(separator: "  "))
+        }
         if requestOp == "audio", case .map(let res)? = (entries.first { $0.key == "result" }?.value),
             let audio = GuestAudioStatus(.map(res))
         {
@@ -348,6 +421,7 @@ func printRow(_ item: CBOR) {
         switch e.value {
         case .text(let s): return "\(e.key)=\(s)"
         case .uint(let u): return "\(e.key)=\(u)"
+        case .bool(let b): return "\(e.key)=\(b)"
         default: return "\(e.key)=?"
         }
     }

@@ -211,12 +211,18 @@ static void test_hostile_names_are_refused(void) {
     assert(reply_has("could not place"));
 }
 
+static void test_send_needs_a_usable_path(void) {
+    op("send");
+    assert(reply_has("send has no usable path"));
+}
+
 static void test_unknown_op(void) {
     op("explode");
     assert(reply_has("drag op must be"));
 }
 
 int main(void) {
+    test_send_needs_a_usable_path();
     test_enter_needs_a_session();
     test_files_and_trees_land_on_the_desktop();
     test_a_name_in_use_is_not_overwritten();

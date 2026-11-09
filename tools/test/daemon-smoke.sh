@@ -8,6 +8,7 @@ DAEMON=.build/debug/openvmd
 CTL=.build/debug/openvmctl
 HOME_DIR=$(mktemp -d /tmp/openvm-smoke.XXXXXX)
 export OPENVM_HOME="$HOME_DIR"
+export OPENVM_RECEIVE_DIR="$HOME_DIR/received"
 # Exercise registry-only CLI behavior before the optional real-guest phase.
 # Preserve a caller-provided support path for that phase; otherwise use default.
 REAL_SUPPORT=${OPENVM_SUPPORT:-}
@@ -46,7 +47,9 @@ wait_for_daemon() {
   # codesign invalidates the executable page cache. Wait on the actual socket.
   for _ in $(seq 1 50); do
     kill -0 "$PID" 2>/dev/null || return 1
-    [ -S "$OPENVM_HOME/openvmd.sock" ] && return 0
+    # A socket file is not a listening daemon: a killed daemon can leave its file behind, and the next
+    # one unlinks and rebinds it. Ask it something.
+    "$CTL" list >/dev/null 2>&1 && return 0
     sleep 0.1
   done
   return 1
@@ -255,6 +258,18 @@ FAKE
   capture=$("$CTL" display capture srv1) || fail "capture after drop failed"
   "$CTL" file pull srv1 "$capture" "$HOME_DIR/after-drop.png" >/dev/null || fail "capture pull failed"
   echo "smoke: files dropped onto the guest desktop ($i pings answered during a 2 GiB drop)"
+  # Send to Mac: the file the drop put on the Desktop goes back through the outbox, small and 2 GiB.
+  recv="$HOME_DIR/received/srv1"
+  "$CTL" drag send srv1 /home/openvm/Desktop/note.txt >/dev/null || fail "the guest refused to send a file"
+  for _ in $(seq 1 30); do [ -f "$recv/note.txt" ] && break; sleep 1; done
+  [ "$(cat "$recv/note.txt" 2>/dev/null)" = hello ] || fail "a sent file did not reach the Mac"
+  xattr "$recv/note.txt" | grep -q com.apple.quarantine || fail "a received file was not quarantined"
+  sent_at=$(date +%s)
+  "$CTL" drag send srv1 /home/openvm/Desktop/big.bin >/dev/null || fail "the guest refused to send 2 GiB"
+  for _ in $(seq 1 300); do [ -f "$recv/big.bin" ] && break; sleep 1; done
+  cmp -s "$HOME_DIR/dropped/big.bin" "$recv/big.bin" || fail "the 2 GiB file differs after the round trip"
+  [ -z "$(ls -A "$HOME_DIR/outbox/"* 2>/dev/null)" ] || fail "the outbox was not emptied"
+  echo "smoke: files sent from the guest to the Mac (2 GiB round trip in $(( $(date +%s) - sent_at )) s)"
   # Sound: the guest plays, and the Mac's output starts for it and stops after it.
   # The host half means something only if nothing else on the Mac is playing.
   idle=$("$CTL" audio status srv1)
@@ -305,6 +320,21 @@ FAKE
   "$CTL" stop srv1 | grep -q "stopped srv1" || fail "stop output wrong after persistent boot"
   "$CTL" list | grep -q "state=stopped" || fail "state not stopped after persistent guest stop"
   echo "smoke: persistent disk boot and guest agent ping passed"
+  # The guest stops itself (the agent powers it off) and the record follows with no
+  # further command: only the framework's end-of-guest report can do that.
+  "$CTL" start srv1 | grep -q "guest booted" || fail "restart before the no-wait stop failed"
+  "$CTL" stop srv1 --no-wait | grep -q "stopping srv1" || fail "no-wait stop output wrong"
+  i=0
+  until "$CTL" list | grep -q "state=stopped"; do
+    i=$((i + 1)); [ "$i" -lt 90 ] || fail "the record did not follow the guest's own shutdown"
+    sleep 1
+  done
+  # The agent says on the console whether the guest was restarting or shutting down; the host reads it.
+  grep -q 'openvm-tools: going down: shutdown' "$HOME_DIR/srv1.console.log" \
+    || fail "the guest did not say it was shutting down: $(tail -5 "$HOME_DIR/srv1.console.log")"
+  "$CTL" start srv1 | grep -q "guest booted" || fail "start after a guest-initiated stop failed"
+  "$CTL" stop srv1 | grep -q "stopped srv1" || fail "stop after a guest-initiated stop failed"
+  echo "smoke: the record followed the guest's own shutdown, and the VM started again"
 fi
 
 echo "smoke: okay"

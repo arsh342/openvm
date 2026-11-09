@@ -6,16 +6,16 @@ openVM is a free, open-source virtual machine manager for Apple Silicon. Your gu
 
 Built in Swift and C, on Apple's own `Virtualization.framework`.
 
-![Windows 11 running in openVM at Retina scale](docs/images/hidpi-windows-2x.png)
+![Windows 11 running in openVM](docs/images/hidpi-windows-2x.png)
 
-> **Early release.** openVM is command-line only today. The VM window is the next big step, so for now you control guests with `openvmctl` and cannot use a guest's desktop directly.
+> **Early release.** openVM now has a window for each VM, a library, a setup wizard and a menu-bar icon, and everything still works from `openvmctl` too. Several parts have been tested by script but not yet by hand in the app; the list is in [docs/manual-checks.md](docs/manual-checks.md).
 
 ## Why openVM
 
 * **Built on Apple's hypervisor.** ARM guests run directly on your Mac's CPU, with no translation layer.
 * **Deep integration.** The connection between macOS and the guest is the product, not an add-on.
 * **Automatic installs.** Linux installs itself on first start, and Windows installs unattended from your own ISO.
-* **Retina ready.** Guest desktops scale to 2x and 3x, at your Mac's native resolution.
+* **Retina ready on Linux.** A Linux guest's desktop scales to 2x and 3x, at your Mac's native resolution. A Windows guest is held at 1024 pixels wide in its window for now.
 * **Free and open.** Apache 2.0 licensed, with no account and no subscription.
 
 ## Features
@@ -25,53 +25,93 @@ Built in Swift and C, on Apple's own `Virtualization.framework`.
 | Clipboard | Yes | Yes |
 | File transfer | Yes | Yes |
 | Shared folders | Yes | Yes |
+| A window for each VM, with keyboard and mouse | Yes | Yes, at 1024 pixels wide for now |
+| Clipboard follows focus (text; passwords are never shared) | Yes | Yes |
 | Drag files into a guest | Yes | Yes |
+| Send files from a guest to your Mac | Yes | Yes |
+| A guest that restarts itself is started again | Yes | Not yet |
 | Print to your Mac's printers | Yes | Yes |
-| Resize the display, 1x to 3x scale | Yes | Yes |
+| Resize the display, 1x to 3x scale | Yes | Not in its window yet |
 | Sound through your Mac | Yes | Opt-in, see below |
 | Clock and time zone follow your Mac | Yes | Yes |
 | Safe pause when your Mac sleeps | Yes | Yes |
 
-Guests are Alpine Linux ARM64 with an XFCE desktop, and Windows 11 ARM64.
+Guests are Alpine Linux ARM64 with an XFCE desktop, and Windows 11 ARM64, and these features are for those two. You can also install any other ARM64 Linux from its own ISO (see below).
 
 ## Requirements
 
 * An Apple Silicon Mac, on macOS 14 or later
 * Swift 6, from Xcode or the Command Line Tools
-* For Windows guests: your own Windows 11 ARM64 ISO, plus `wimlib` and `zig` from Homebrew
+* For Windows guests: your own Windows 11 ARM64 ISO. Nothing else to install: openVM builds the install media itself, using `wimlib` from Homebrew if the Mac has it, and otherwise a short-lived Alpine helper VM that carries its own copy (it needs the Linux guest files, below). `zig` and `lld` are only needed to build openVM's payload from source
 
 ## Get started
 
-Build openVM, and give the daemon its Virtualization entitlement:
+Build openVM, the guest payload (the files a guest is built from), and the daemon's signature, which gives it the Virtualization entitlement:
 
 ```sh
 make check
+make payload
 codesign --force --sign - --entitlements tools/build/vm.entitlements.xml --options runtime .build/debug/openvmd
 ```
 
-Start the daemon, and leave it running:
+Start the daemon, and leave it running. It finds the payload in `.build/payload` when started from this directory, or wherever `OPENVM_PAYLOAD` points:
 
 ```sh
 .build/debug/openvmd
 ```
 
-### Create a Linux guest
+Or build the app, which carries its own payload, hosts the VMs itself, and shows each one in a window (use one or the other, not both):
 
 ```sh
-tools/build/fetch-linux.sh           # once
-.build/debug/openvmctl create lin
-.build/debug/openvmctl start lin     # first start installs Alpine
+make app
+open .build/openvm.app
 ```
+
+The app's wizard creates Linux and Windows guests for you: it fetches what Linux needs, checks and converts your Windows ISO, and installs. The commands below do the same by hand.
+
+### Create a Linux guest
+
+Fetch the Linux files once, then create and start a guest:
+
+```sh
+.build/debug/openvmctl task start fetch-linux        # prints a task id
+.build/debug/openvmctl task status <task-id>         # progress, until state=done
+.build/debug/openvmctl create lin
+.build/debug/openvmctl start lin     # first start installs Alpine, and takes a few minutes
+```
+
+`tools/build/fetch-linux.sh` does the same fetch by hand, but needs a C compiler; the task uses the unpacker shipped in the payload instead.
 
 ### Create a Windows guest
 
+Check that the ISO is one openVM can use, then build the install media (about a minute, once per ISO). It goes in `$OPENVM_HOME/media`:
+
 ```sh
-tools/build/mk-windows-media.sh <Win11_Arm64.iso> media.raw      # once per ISO
-.build/debug/openvmctl create win --boot-mode windows --install-media media.raw --diskSizeMB 65536
+.build/debug/openvmctl windows-iso check ~/Downloads/Win11_Arm64.iso
+.build/debug/openvmctl task start windows-media --iso ~/Downloads/Win11_Arm64.iso --name win   # prints a task id
+.build/debug/openvmctl task status <task-id>                                                    # until state=done
+.build/debug/openvmctl create win --boot-mode windows --install-media ~/.openvm/media/win.raw --diskSizeMB 65536
 .build/debug/openvmctl start win     # first start installs Windows
 ```
 
-The Windows guest has a local account `openvm` with the password `openvm`. Change it if the guest matters to you.
+Without `wimlib` on the Mac, fetch the Linux files first (`openvmctl task start fetch-linux`): the media is then built in a helper VM. The media needs about 22 GB of disk while it exists.
+
+From the wizard you choose the Windows user name and password. Built by hand, the guest has an administrator account `openvm` with the password `openvm`, so change it if the guest matters to you.
+
+### Install another Linux from its ISO
+
+Use **New Virtual Machine ▸ Another Linux, from an ISO** in the app, or:
+
+```sh
+.build/debug/openvmctl linux-iso check ~/Downloads/distro-arm64.iso
+.build/debug/openvmctl create mylinux --boot-mode linux-iso --install-media ~/Downloads/distro-arm64.iso --diskSizeMB 65536
+.build/debug/openvmctl start mylinux       # finish the distribution's own installer in the VM's window
+.build/debug/openvmctl eject mylinux       # with the VM stopped, once it is installed
+```
+
+The ISO must be an ARM64 (aarch64) build that boots by UEFI: Macs with Apple silicon cannot run Intel and AMD builds. Ubuntu, Debian, Fedora and Kali publish these. Official Arch Linux is x86-64 only, and Omarchy is built on it, so only a community ARM64 build of Omarchy can work.
+
+These guests run without openVM's guest tools, so clipboard, drag and drop, Send to Mac, shared-folder mounting, printing and clock sync do not work in them yet. When a guest restarts itself the VM stops; press Start.
 
 ## Using a guest
 
@@ -90,6 +130,11 @@ Run `openvmctl` with no arguments to see every command.
 
 ## Before you rely on it
 
+* **A Windows guest runs at 1024 pixels wide in its window for now.** Any other width scrambles the picture, so the app holds that width and scales it up, which looks softer than your display can show. See [docs/gui-notes.md](docs/gui-notes.md).
+* **Scrolling in a guest can run the opposite way to your Mac on a trackpad.** View ▸ Reverse Scrolling is meant to switch it, but it has no effect on a trackpad yet.
+* **Windows shows an extra, invisible display on new installs.** A window dragged off the right edge can get lost there. In Windows, Settings ▸ System ▸ Display ▸ Show only on 2 hides it, and that survives a restart.
+* **Restarting Windows from the Start menu stops the VM.** Press Start in openVM to bring it back.
+* **Building Windows media may need a newer macOS than the app does.** The media script uses `diskutil image`, which older releases of macOS do not have. It has only been run on macOS 27.
 * **Windows sound needs Test Mode.** Windows guests are silent by default, because no Microsoft-signed driver exists for Apple's virtual sound device. `openvmctl audio enable <vm> --test-mode` installs a third-party test-signed driver, then you restart the VM. Test Mode weakens driver signature checks, trusts a third party's certificate in the guest, and shows a desktop watermark. `openvmctl audio disable <vm>` and a restart undo it.
 * **Windows guests use a private Apple API.** They need `_setPerformanceMonitoringUnitEmulationEnabled:`, which Apple could remove in any macOS release. It also keeps openVM off the Mac App Store. Linux guests do not use it.
 * **Large copies inside Windows can fail.** A bug in the current virtio-win release can fail big reads from a shared folder. openVM's own drops retry around it, but a copy you start inside Windows can still stop with an error.
@@ -97,9 +142,8 @@ Run `openvmctl` with no arguments to see every command.
 
 ## Roadmap
 
-* A VM window with keyboard and mouse
-* Dragging files out of a guest
-* Restarting a VM after a reboot from inside the guest
+* Dragging files out of a guest, straight from its window (files can be sent with "Send to Mac" today)
+* Restarting a Windows VM after a reboot from inside the guest
 * Microphone
 * Windows sound without Test Mode
 
@@ -116,7 +160,9 @@ See [docs/testing.md](docs/testing.md) for what each one covers.
 ```
 Sources/OpenVMCore/       wire protocol, VM registry, shared rules
 Sources/OpenVMWindows/    the Windows VM configuration
-Sources/openvmd/          the daemon: VM lifecycle and host-side features
+Sources/OpenVMHost/       the host library: VM lifecycle and host-side features
+Sources/OpenVMApp/        the app: VM windows, library, wizard, menu bar
+Sources/openvmd/          a headless host, for scripts and the smokes
 Sources/openvmctl/        the command-line client
 Sources/openvm-mockguest/ a guest stand-in for tests
 Tests/                    Swift tests

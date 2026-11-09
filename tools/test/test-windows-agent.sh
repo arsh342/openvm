@@ -289,4 +289,9 @@ $CC -std=c99 -Wall -Wextra -Werror -Wno-unused-function -I tools/guest \
     -o "$WORK/codec_test" "$WORK/codec_test.c"
 "$WORK/codec_test"
 
+echo "test-windows-agent: hostile input to the drop parser"
+$CC -std=c99 -Wall -Wextra -Werror -Wno-unused-function -Wno-unused-variable -DOPENVM_SYNTAX_CHECK \
+    -I tools/guest -o "$WORK/handlers_test" tools/test/test-windows-handlers.c
+"$WORK/handlers_test"
+
 echo "test-windows-agent: all checks passed"

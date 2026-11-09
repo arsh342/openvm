@@ -34,11 +34,20 @@ get "$DEST/modloop-virt.tmp" "modloop-virt"
 # Alpine ships vmlinuz-virt as an EFI zboot container ("MZ"+"zimg", gzip payload).
 # VZLinuxBootLoader needs the raw arm64 Image, so unpack it and verify the internal
 # arm64 magic ("ARMd64" lives at offset 0x38 of a raw kernel image).
-zboot="$DEST/openvm-zboot.tmp"
-cc -O2 -o "$zboot" "$(dirname "$0")/../guest/openvm-zboot.c" -lz || exit 1
+# A prebuilt unpacker (OPENVM_ZBOOT, shipped with the app) means the Mac needs no C compiler;
+# otherwise build it from source.
+built=0
+if [ -n "${OPENVM_ZBOOT:-}" ] && [ -x "$OPENVM_ZBOOT" ]; then
+  zboot="$OPENVM_ZBOOT"
+else
+  zboot="$DEST/openvm-zboot.tmp"
+  cc -O2 -o "$zboot" "$(dirname "$0")/../guest/openvm-zboot.c" -lz || exit 1
+  built=1
+fi
+echo "fetch-linux: unpacking the kernel with $zboot"
 status=0
 "$zboot" "$DEST/vmlinuz.tmp" "$DEST/vmlinuz.raw.tmp" || status=$?
-rm -f "$zboot"
+[ "$built" = 1 ] && rm -f "$zboot"
 case "$status" in
   0) mv "$DEST/vmlinuz.raw.tmp" "$DEST/vmlinuz.tmp" ;;
   3) ;; # already a raw image

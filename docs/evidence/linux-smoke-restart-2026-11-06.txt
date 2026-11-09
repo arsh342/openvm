@@ -1,0 +1,42 @@
+.build/debug/openvmd: replacing existing signature
+openvmd: listening on /tmp/openvm-smoke.b1COFy/openvmd.sock
+openvmd: host power watcher registered
+mk-guest-overlay: wrote /tmp/openvm-smoke.b1COFy/overlay/openvm.apkovl.tar.gz
+openvmd: listening on /tmp/openvm-smoke.b1COFy/openvmd.sock
+openvmd: host power watcher registered
+openvmd: served the pinned modloop (16412672 bytes)
+smoke: first-boot install and guest agent ping passed
+openvmd: srv1: printing unavailable: failure("channel connect failed: Error Domain=NSPOSIXErrorDomain Code=54 \"Connection reset by peer\"")
+openvmd: 3A211194-4634-4010-8C57-C288AD40B00E: the guest stopped
+openvmd: srv1: published 1 printer(s)
+openvmd: srv1: printing unavailable: failure("channel connect failed: Error Domain=NSPOSIXErrorDomain Code=54 \"Connection reset by peer\"")
+openvmd: 3A211194-4634-4010-8C57-C288AD40B00E: the guest stopped
+smoke: binary file push/pull round-trip passed
+smoke: shared folder mounted in the guest
+smoke: shared folder removed and re-added live
+openvmd: srv1: published 1 printer(s)
+smoke: desktop clipboard round-trip passed
+openvmd: srv1: spooled OpenVM_Smoke--1.pdf (17519 bytes) to OpenVM_Smoke
+smoke: guest print reached the host lp as a PDF
+smoke: guest display followed the host to 1280x720 and 1600x900
+smoke: guest desktop scaled to 1x, 2x and 3x
+smoke: the XFCE desktop is drawn
+smoke: files dropped onto the guest desktop (7 pings answered during a 2 GiB drop)
+openvm: srv1: received 1 item(s) from the guest
+openvm: srv1: received 1 item(s) from the guest
+smoke: files sent from the guest to the Mac (2 GiB round trip in 6 s)
+smoke: guest audio played through the host (output idle, running, idle)
+smoke: suspend/resume and agent re-ping passed
+openvmd: srv1: printing unavailable: failure("channel connect failed: Error Domain=NSPOSIXErrorDomain Code=54 \"Connection reset by peer\"")
+openvmd: 3A211194-4634-4010-8C57-C288AD40B00E: the guest stopped
+smoke: persistent disk boot and guest agent ping passed
+openvmd: srv1: printing unavailable: failure("channel connect failed: Error Domain=NSPOSIXErrorDomain Code=54 \"Connection reset by peer\"")
+openvmd: 3A211194-4634-4010-8C57-C288AD40B00E: the guest stopped
+openvmd: srv1: published 1 printer(s)
+openvmd: srv1: printing unavailable: failure("channel connect failed: Error Domain=NSPOSIXErrorDomain Code=54 \"Connection reset by peer\"")
+openvmd: 3A211194-4634-4010-8C57-C288AD40B00E: the guest stopped
+smoke: the record followed the guest's own shutdown, and the VM started again
+smoke: okay
+smoke: artifacts retained at /tmp/openvm-smoke.b1COFy
+exit=0
+ * Stopping openvm-tools ...openvm-tools: going down: shutdown

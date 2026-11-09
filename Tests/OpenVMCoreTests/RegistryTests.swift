@@ -7,7 +7,7 @@ import Testing
 @Suite struct RegistryTests {
 
     // each test gets its own OPENVM_HOME-shaped directory
-    private func makeRegistry(_ fileName: String = "vms.json") throws -> (VmRegistry, URL) {
+    fileprivate func makeRegistry(_ fileName: String = "vms.json") throws -> (VmRegistry, URL) {
         let home = FileManager.default.temporaryDirectory
             .appendingPathComponent("openvm-tests-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
@@ -303,5 +303,102 @@ import Testing
         #expect(try reg.addShare(lower, hostPath: "/tmp", guestPath: "/mnt/t").shares?.count == 1)
         #expect(try reg.removeShare(lower, hostPath: "/tmp").shares?.isEmpty == true)
         #expect(try reg.delete(lower).uuid == vm.uuid)
+    }
+}
+
+extension RegistryTests {
+    /// Connections are served on their own threads, so creates arrive together.
+    @Test func concurrentCreatesKeepEveryRecord() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        let group = DispatchGroup()
+        for i in 0..<16 {
+            DispatchQueue.global().async(group: group) { _ = try? reg.create(name: "box-\(i)") }
+        }
+        group.wait()
+        #expect(try reg.list().count == 16)
+    }
+
+    @Test func concurrentTransitionsOfDifferentVmsAreAllKept() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        for i in 0..<8 { _ = try reg.create(name: "vm-\(i)") }
+        let group = DispatchGroup()
+        for i in 0..<8 {
+            DispatchQueue.global().async(group: group) { _ = try? reg.start("vm-\(i)") }
+        }
+        group.wait()
+        #expect(try reg.list().allSatisfy { $0.state == .running })
+    }
+}
+
+extension RegistryTests {
+    /// The clipboard policy and the time zone are not resources: they can change while the VM runs.
+    @Test func clipboardSyncAndTimezoneChangeWhileRunning() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        _ = try reg.create(name: "live")
+        _ = try reg.start("live")
+        #expect(try reg.set("live", timezone: "Europe/Berlin").timezone == "Europe/Berlin")
+        let updated = try reg.set("live", clipboardSync: false)
+        #expect(updated.clipboardSync == false)
+        #expect(updated.syncsClipboard == false)
+        #expect(try reg.resolve("live").state == .running)  // changing a setting does not touch the state
+    }
+
+    /// CPUs, memory and the boot setup are read when the VM boots, so a running VM refuses them.
+    @Test func resourcesStillNeedAStoppedVm() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        _ = try reg.create(name: "busy")
+        _ = try reg.start("busy")
+        #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", cpus: 2) }
+        #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", memoryMB: 2048) }
+        #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", bootMode: .windows) }
+        #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", variableStorePath: "/x") }
+        // and a refused change leaves the rest alone, even when a permitted field came with it
+        #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", cpus: 2, clipboardSync: false) }
+        #expect(try reg.resolve("busy").clipboardSync == nil)
+    }
+
+    @Test func recordsWithoutClipboardSyncDecodeAsOn() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        let json = """
+            {"vms":[{"uuid":"U","name":"old","state":"stopped","cpus":2,"memoryMB":1024,"createdAt":"2026-01-01T00:00:00Z"}]}
+            """
+        try json.write(to: home.appendingPathComponent("vms.json"), atomically: true, encoding: .utf8)
+        let record = try reg.resolve("old")
+        #expect(record.clipboardSync == nil)
+        #expect(record.syncsClipboard)  // missing means on
+    }
+}
+
+extension RegistryTests {
+    /// Once the install is done the media is removed, so the record must not point at a missing file.
+    @Test func installMediaCanBeForgotten() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        _ = try reg.create(name: "win", bootMode: .windows, installMediaPath: "/x/media/win.raw")
+        #expect(try reg.resolve("win").installMediaPath == "/x/media/win.raw")
+        try reg.clearInstallMedia("win")
+        #expect(try reg.resolve("win").installMediaPath == nil)
+        try reg.clearInstallMedia("win")  // already gone: not an error
+        #expect(throws: VmRegistryError.notFound) { try reg.clearInstallMedia("nope") }
+    }
+}
+
+extension RegistryTests {
+    @Test func outboxSwitchChangesWhileRunningAndMissingMeansOn() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        let fresh = try reg.create(name: "live")
+        #expect(fresh.outbox == nil)
+        #expect(fresh.acceptsOutbox)
+        _ = try reg.start("live")
+        let off = try reg.set("live", outbox: false)
+        #expect(off.outbox == false)
+        #expect(!off.acceptsOutbox)
+        #expect(try reg.resolve("live").state == .running)
     }
 }

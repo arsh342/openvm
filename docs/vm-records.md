@@ -18,10 +18,11 @@ per-VM config file yet; the record *is* the config.
   "memoryMB":  4096,                   // ≥128
   "diskPath":  "…/disks/srv1/disk.raw", // present iff a raw disk was provisioned
   "timezone":  "Europe/Berlin",         // optional IANA zone; absent = guest default
+  "clipboardSync": true,                 // optional; share the clipboard with this VM; absent = true
   "shares":    [                          // optional shared folders; absent = none
     {"hostPath": "/Users/me/Projects", "guestPath": "/mnt/openvm/Projects"}
   ],
-  "bootMode":  "linux|windows",         // optional; absent = linux
+  "bootMode":  "linux|windows|linux-iso", // optional; absent = linux
   "variableStorePath": "…/nvram.bin",   // optional; Windows EFI variable store
   "installMediaPath":  "…/media.raw",   // optional; Windows install media
   "machineIdentifier": "…",             // optional; Windows, base64, kept for the VM's lifetime
@@ -40,6 +41,9 @@ Field semantics beyond the obvious:
   `<diskPath>.openvm-installed` (root-device marker), `.openvm-kernel`,
   `.openvm-initramfs` (installed-kernel pair exported by first boot). `delete`
   sweeps all of them.
+* `clipboardSync` is optional and absent in records written before the field existed; absent
+  means on. It is a per-VM policy the person can change while the VM runs, as the time zone
+  can; CPUs and memory cannot, because they are read when the VM boots.
 * `timezone` is optional and absent in records written before the field
   existed — a missing key must keep decoding, so every field added after v1 is
   `Optional`. The zone is pushed to the guest with the host clock at boot and
