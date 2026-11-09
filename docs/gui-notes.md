@@ -336,16 +336,47 @@ scrambled. The guest accepts every size tried. Turning off the 5120x2880 registr
 clear the scanout. It then recreates the resource at once with the same id (the id goes through a FIFO free
 list with nothing else in it), and it only logs a failed command. So if the Mac's GPU keeps a resource that
 is on the scanout, the create fails and later transfers land in the first resource, which is 1024 wide
-(`CreateResource` even carries a `FIXME`). That the create fails is inferred: the reply was never seen. A
-patched driver would prove it: passing TRUE there clears the scanout first.
+(`CreateResource` even carries a `FIXME`). That the create fails is inferred: the reply was never seen. The
+trial below supports this, but it is not the whole fault.
 
 **Tried, and did not help:**
 
 * Turning off the 5120x2880 registration.
 * Turning off the second display (below): 1280 still smeared, and larger sizes gave no capture at all.
-* Restarting the device: `pnputil /restart-device` restarted all of Windows on this guest.
+* Restarting the device: `pnputil /restart-device` crashes Windows on this guest (below).
 * Booting into a large size: with 2496x1496 set, Windows came back at 1024x768, with the app's fit off, and
   again with the host reporting 2496x1496 as the scanout. The driver hard-codes 1024x768 as its preferred mode.
+
+**A patched driver, tried on one guest (2026-11-08).** One byte of `viogpudo` 0.1.302 changed, so the mode
+change calls `DestroyFrameBufferObj(TRUE, FALSE)`, under Test Mode and with a self-signed certificate. Pictures are
+captures of the Mac-side view. The guest's service path confirmed the patched file was the one running.
+
+| Change, with the patched driver | What the window showed |
+| --- | --- |
+| 1024 to 1536 | Clean, filling the window (overlapping copies without the patch) |
+| 1280 to 2048 | Clean (zoomed and split without the patch) |
+| 2048 to 1024 | Clean |
+| 2048 to 1600, 42 s after the last change | Scrambled |
+| 1600 to 1024 | Squashed into the top half, and later drawing landed in the wrong places |
+| Then to 2048, then to 1024, over a minute each | Still squashed, until the guest restarted |
+| From a fresh boot, one change to 1600x900 | Black (seen by eye; no capture was saved) |
+| 1280 | No capture was saved, so not known |
+
+So the patch changes the fault and does not end it. Some widths now work, and a width that fails can leave every
+later size wrong until a restart. The clean widths are all multiples of 512, which may mean nothing with three
+widths. The patch was undone: it would need Test Mode and a self-signed certificate on every guest, and a
+resize could still reach a bad width.
+
+An unchanged thumbnail is not a result: the app keeps the last picture when a capture is black, and the timer
+slows while the window is in the background.
+
+**Stopping the display device crashes Windows.** Measured twice, once from `pnputil /restart-device` and once
+from `pnputil /add-driver /install`, each with the original driver running. Both are bugcheck 0x124 with parameter
+0x11 (Arm synchronous external abort), from a 16-bit write faulting at the same physical address, 0x280014000.
+The stack in both dumps runs from the driver's teardown through `DestroyFrameBufferObj` to `strh w1, [x8]`,
+which is the virtqueue notify. `setupapi.dev.log` ends at `{Restarting Devices}`. That the device is already off
+when the notify happens is inferred. A driver can still be changed safely by pointing the service's `ImagePath` at
+it and restarting, with no live stop.
 
 **The second display.** Windows also shows an invisible display: Microsoft Basic Display Driver at
 1920x1080, over the boot framebuffer `openvm-framebuffer.efi` makes in reserved RAM. The likely reason is
