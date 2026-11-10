@@ -47,8 +47,7 @@ A failure goes back as a bug with the step that showed it.
 
 - [x] **Linux.** Run `reboot` in a guest with its window open. It comes back by itself.
       Run `poweroff`: it stays stopped.
-- [ ] **Windows.** Restart from the Start menu. It currently ends Stopped (known; see
-      `docs/windows-guests.md`).
+- [x] **Windows.** Restart from the Start menu. It comes back by itself (2026-11-10).
 
 ## Printing and sound (moved here from M3)
 

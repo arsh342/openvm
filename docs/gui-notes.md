@@ -308,18 +308,20 @@ a running VM.
   without anything being pressed.
 * **Never guessed.** A guest that says nothing, or a host-requested stop, is not restarted. At most
   three automatic restarts in five minutes, so a guest that restarts the moment it boots cannot loop.
-* **Windows is not done.** It has no console to read; the candidates (the service's user-mode-reboot
-  control, event 1074 at pre-shutdown) are untried, and a Windows restart still leaves the VM Stopped.
+* **Windows needs none of this.** A restart from the Start menu comes back by itself, with the VM never leaving
+  Running (owner, 2026-11-10; also seen on 2026-11-07 and 08, when Start-menu restarts and two crash reboots all
+  kept the VM Running). This was earlier written down as a bug without being tried. Why Windows differs is
+  not known; a likely reason is that it resets through the firmware, which the framework carries out as a reset
+  and not a stop.
 
 ## Where M4 stands (2026-11-09)
 
 The build work is finished. M4 is not accepted yet: the checks in `docs/manual-checks.md` and the clean-account
-acceptance run still need a person. Four bugs are known and open:
+acceptance run still need a person. Three bugs are known and open:
 
 1. Reverse Scrolling has no effect on a trackpad (below).
 2. A Windows guest is held at 1024 pixels wide, because other widths scramble (below).
-3. Restarting Windows from inside the guest stops the VM (`docs/windows-guests.md`).
-4. New Windows installs have an invisible second display (below). Hiding it by hand works; nothing does it automatically.
+3. New Windows installs have an invisible second display (below). Hiding it by hand works; nothing does it automatically.
 
 ## Known fault: Reverse Scrolling has no effect on a trackpad
 

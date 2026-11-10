@@ -29,7 +29,7 @@ Built in Swift and C, on Apple's own `Virtualization.framework`.
 | Clipboard follows focus (text; passwords are never shared) | Yes | Yes |
 | Drag files into a guest | Yes | Yes |
 | Send files from a guest to your Mac | Yes | Yes |
-| A guest that restarts itself is started again | Yes | Not yet |
+| A guest that restarts itself comes back | Yes | Yes |
 | Print to your Mac's printers | Yes | Yes |
 | Resize the display, 1x to 3x scale | Yes | Not in its window yet |
 | Sound through your Mac | Yes | Opt-in, see below |
@@ -133,7 +133,6 @@ Run `openvmctl` with no arguments to see every command.
 * **A Windows guest runs at 1024 pixels wide in its window for now.** Any other width scrambles the picture, so the app holds that width and scales it up, which looks softer than your display can show. See [docs/gui-notes.md](docs/gui-notes.md).
 * **Scrolling in a guest can run the opposite way to your Mac on a trackpad.** View ▸ Reverse Scrolling is meant to switch it, but it has no effect on a trackpad yet.
 * **Windows shows an extra, invisible display on new installs.** A window dragged off the right edge can get lost there. In Windows, Settings ▸ System ▸ Display ▸ Show only on 2 hides it, and that survives a restart.
-* **Restarting Windows from the Start menu stops the VM.** Press Start in openVM to bring it back.
 * **Building Windows media may need a newer macOS than the app does.** The media script uses `diskutil image`, which older releases of macOS do not have. It has only been run on macOS 27.
 * **Windows sound needs Test Mode.** Windows guests are silent by default, because no Microsoft-signed driver exists for Apple's virtual sound device. `openvmctl audio enable <vm> --test-mode` installs a third-party test-signed driver, then you restart the VM. Test Mode weakens driver signature checks, trusts a third party's certificate in the guest, and shows a desktop watermark. `openvmctl audio disable <vm>` and a restart undo it.
 * **Windows guests use a private Apple API.** They need `_setPerformanceMonitoringUnitEmulationEnabled:`, which Apple could remove in any macOS release. It also keeps openVM off the Mac App Store. Linux guests do not use it.
@@ -143,7 +142,6 @@ Run `openvmctl` with no arguments to see every command.
 ## Roadmap
 
 * Dragging files out of a guest, straight from its window (files can be sent with "Send to Mac" today)
-* Restarting a Windows VM after a reboot from inside the guest
 * Microphone
 * Windows sound without Test Mode
 
