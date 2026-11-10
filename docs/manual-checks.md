@@ -24,8 +24,8 @@ A failure goes back as a bug with the step that showed it.
 
 ## Clipboard
 
-- [ ] Copy text in a Mac app, click into the VM window, paste in the guest.
-- [ ] Copy in the guest, click out to the Mac, paste.
+- [ ] Copy text in a Mac app, click into the VM window, paste in the guest. Windows: works (2026-11-10). Linux: only tried on Omarchy, which has no openVM tools; an openVM Linux guest is still to try.
+- [ ] Copy in the guest, click out to the Mac, paste. Same as above.
 - [ ] Copy from a password manager, click into the VM: nothing arrives, and the window subtitle
       says the clipboard was marked private.
 - [ ] Untick Devices ▸ Share Clipboard: nothing moves either way.
