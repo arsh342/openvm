@@ -111,7 +111,7 @@ Use **New Virtual Machine ▸ Another Linux, from an ISO** in the app, or:
 
 The ISO must be an ARM64 (aarch64) build that boots by UEFI: Macs with Apple silicon cannot run Intel and AMD builds. Ubuntu, Debian, Fedora and Kali publish these. Official Arch Linux is x86-64 only, and Omarchy is built on it, so only a community ARM64 build of Omarchy can work.
 
-These guests run without openVM's guest tools, so clipboard, drag and drop, Send to Mac, shared-folder mounting, printing and clock sync do not work in them yet. When a guest restarts itself the VM stops; press Start.
+These guests run without openVM's guest tools, so drag and drop, Send to Mac, shared-folder mounting, printing and clock sync do not work in them yet. The clipboard can be shared if you turn it on in the VM's settings and install `spice-vdagent` in the guest. It works on X11 desktops, not on most Wayland ones such as Omarchy, and it shares everything you copy, passwords too. When a guest restarts itself the VM stops; press Start.
 
 ## Using a guest
 

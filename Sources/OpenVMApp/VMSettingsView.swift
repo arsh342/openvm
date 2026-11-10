@@ -24,11 +24,14 @@ struct VMSettingsView: View {
             }
             Form {
                 resources
-                // These work through the guest agent: a guest installed from its own ISO has none.
+                // These work through the guest agent: a guest installed from its own ISO has none, and can
+                // only share the clipboard, through macOS's own Spice agent.
                 if model.vm.bootMode.hasAgent {
                     timeZone
                     clipboardSection
                     sharedFolders
+                } else if model.vm.bootMode == .linuxISO {
+                    clipboardSection
                 }
                 if model.vm.bootMode == .windows { sound }
             }
@@ -80,12 +83,22 @@ struct VMSettingsView: View {
     private var clipboardSection: some View {
         Section("Clipboard and files") {
             Toggle("Share the clipboard with this VM", isOn: $model.clipboardSync)
-            Text("Text only. Passwords copied from a password manager are never shared.")
-                .font(.callout).foregroundStyle(.secondary)
-            Toggle("Accept files this VM sends to the Mac", isOn: $model.outbox)
-            Text("Files arrive in Downloads/openVM/\(model.vm.name), marked as downloaded from the internet.")
-                .font(.callout).foregroundStyle(.secondary)
+            Text(clipboardNote).font(.callout).foregroundStyle(.secondary)
+            if model.vm.bootMode.hasAgent {
+                Toggle("Accept files this VM sends to the Mac", isOn: $model.outbox)
+                Text("Files arrive in Downloads/openVM/\(model.vm.name), marked as downloaded from the internet.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
         }
+    }
+
+    private var clipboardNote: String {
+        guard model.vm.bootMode == .linuxISO else {
+            return "Text only. Passwords copied from a password manager are never shared."
+        }
+        return "This VM has no openVM tools, so it uses macOS's own clipboard sharing. It needs spice-vdagent "
+            + "installed in the guest, which works on X11 desktops but not on most Wayland ones. Everything you "
+            + "copy is shared, passwords too. Applied the next time the VM starts."
     }
 
     private var sharedFolders: some View {

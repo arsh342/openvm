@@ -15,7 +15,7 @@ enum GuestLinuxISO {
     @MainActor
     static func configuration(
         diskURL: URL, iso: URL?, variableStoreURL: URL, consoleURL: URL, cpus: Int, memoryMB: Int,
-        machineIdentifier: Data?, directorySharing: VZDirectorySharingDeviceConfiguration
+        machineIdentifier: Data?, directorySharing: VZDirectorySharingDeviceConfiguration, sharesClipboard: Bool = false
     ) throws -> VZVirtualMachineConfiguration {
         let platform = VZGenericPlatformConfiguration()
         if let machineIdentifier, let id = VZGenericMachineIdentifier(dataRepresentation: machineIdentifier) {
@@ -54,6 +54,7 @@ enum GuestLinuxISO {
         config.keyboards = [VZUSBKeyboardConfiguration()]
         config.pointingDevices = [VZUSBScreenCoordinatePointingDeviceConfiguration()]
         config.directorySharingDevices = [directorySharing]
+        config.consoleDevices = clipboardConsoles(shared: sharesClipboard)
         let disk = try VZDiskImageStorageDeviceAttachment(url: diskURL, readOnly: false)
         config.storageDevices = [VZVirtioBlockDeviceConfiguration(attachment: disk)]
         if let iso {
@@ -63,11 +64,27 @@ enum GuestLinuxISO {
         return config
     }
 
+    /// The clipboard of a guest without openVM's tools: the framework's own Spice agent port. The guest needs
+    /// `spice-vdagent`, which shares the clipboard on X11 desktops. Unlike openVM's agent this has no
+    /// filter, so whatever is copied (passwords too) is shared; it is only added when the VM's setting asks.
+    @available(macOS 13.0, *)
+    static func clipboardConsoles(shared: Bool) -> [VZConsoleDeviceConfiguration] {
+        guard shared else { return [] }
+        let port = VZVirtioConsolePortConfiguration()
+        port.name = VZSpiceAgentPortAttachment.spiceAgentPortName
+        let attachment = VZSpiceAgentPortAttachment()
+        attachment.sharesClipboard = true
+        port.attachment = attachment
+        let device = VZVirtioConsoleDeviceConfiguration()
+        device.ports[0] = port
+        return [device]
+    }
+
     @available(macOS 13.0, *)
     @MainActor
     static func boot(
         cpus: Int, memoryMB: Int, consoleURL: URL, diskURL: URL?, vmUUID: String, variableStorePath: String?,
-        shares: [VmShare], installMediaPath: String?, machineIdentifier: Data?,
+        shares: [VmShare], installMediaPath: String?, machineIdentifier: Data?, sharesClipboard: Bool,
         publish: @MainActor (LiveGuest?) -> Void
     ) async throws -> LiveGuest {
         guard let diskURL else { throw GuestBootError.failure("this VM has no disk") }
@@ -87,7 +104,8 @@ enum GuestLinuxISO {
             diskURL: diskURL, iso: iso, variableStoreURL: store, consoleURL: consoleURL, cpus: cpus,
             memoryMB: memoryMB, machineIdentifier: machineIdentifier,
             directorySharing: SharedFolders.device(
-                for: shares, drops: try dropRoot(vmUUID, create: true), outbox: try outboxRoot(vmUUID, create: true)))
+                for: shares, drops: try dropRoot(vmUUID, create: true), outbox: try outboxRoot(vmUUID, create: true)),
+            sharesClipboard: sharesClipboard)
         try config.validate()
         let vm = VZVirtualMachine(configuration: config)
         let guest = LiveGuest(vm: vm, uuid: vmUUID, hasAgent: false)

@@ -47,9 +47,10 @@ enum MachineMenuLogic {
             return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode == .linux, checked: scaled)
         // These work through the guest agent, so a guest without one has nothing to offer.
         case .shareFolder: return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode.hasAgent)
+        // A guest from its own ISO can share it through the framework's Spice agent instead (next start).
         case .clipboard:
-            return MachineMenuItem(
-                title: defaultTitle(command), enabled: vm.bootMode.hasAgent, checked: vm.bootMode.hasAgent && vm.clipboardSync)
+            let offered = vm.bootMode.hasAgent || vm.bootMode == .linuxISO
+            return MachineMenuItem(title: defaultTitle(command), enabled: offered, checked: offered && vm.clipboardSync)
         case .outbox:
             return MachineMenuItem(
                 title: defaultTitle(command), enabled: vm.bootMode.hasAgent, checked: vm.bootMode.hasAgent && vm.outbox)

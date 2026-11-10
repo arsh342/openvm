@@ -242,10 +242,18 @@ struct IsoGuestMenuTests {
     }
 
     @Test func whatNeedsTheAgentIsOff() {
-        for command in [MachineCommand.clipboard, .outbox, .shareFolder, .retinaBest, .retinaScaled] {
+        for command in [MachineCommand.outbox, .shareFolder, .retinaBest, .retinaScaled] {
             #expect(!MachineMenuLogic.item(command, for: vm("running")).enabled, "\(command)")
         }
-        #expect(!MachineMenuLogic.item(.clipboard, for: vm("running")).checked)  // not ticked as if it worked
+    }
+
+    /// The clipboard can be shared through the framework's own Spice agent instead. It is off unless chosen.
+    @Test func clipboardIsOfferedButOffUntilChosen() {
+        let item = MachineMenuLogic.item(.clipboard, for: vm("running"))
+        #expect(item.enabled)
+        #expect(!item.checked)
+        let on = VmSummary(row: FakeTransport.row("w", state: "running", bootMode: "linux-iso", clipboardSync: true))!
+        #expect(MachineMenuLogic.item(.clipboard, for: on).checked)
     }
 
     @Test func powerStillWorks() {

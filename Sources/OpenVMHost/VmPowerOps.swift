@@ -130,7 +130,7 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
                 variableStorePath: record.variableStorePath,
                 artifactToken: artifactToken, shares: record.shares ?? [],
                 installMediaPath: record.installMediaPath,
-                machineIdentifier: machineIdentifier,
+                machineIdentifier: machineIdentifier, sharesClipboard: record.syncsClipboard,
                 publish: { guest in
                     if let guest { liveVMs.add(record.uuid, guest) } else { _ = liveVMs.take(record.uuid) }
                 })

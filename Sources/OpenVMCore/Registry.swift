@@ -40,8 +40,9 @@ public nonisolated struct VmRecord: Codable, Sendable, Equatable {
     public var createdAt: String  // ISO8601; the registry stays human-readable
 
     /// Whether the clipboard is shared with this VM. A record from before the setting existed
-    /// has none, and that means on.
-    public var syncsClipboard: Bool { clipboardSync ?? true }
+    /// has none, and that means on, except for a guest installed from its own ISO: its clipboard goes
+    /// through the framework's Spice agent, which shares passwords too, so it waits to be asked.
+    public var syncsClipboard: Bool { clipboardSync ?? (bootMode != .linuxISO) }
 
     /// The VM boots openVM's own Alpine netboot path: it needs the Linux files, and the host serves them.
     public var usesNetboot: Bool { (bootMode ?? .linux) == .linux }

@@ -402,3 +402,21 @@ extension RegistryTests {
         #expect(try reg.resolve("live").state == .running)
     }
 }
+
+extension RegistryTests {
+    /// A guest installed from its own ISO shares the clipboard only through the framework's Spice agent,
+    /// which has no filter for passwords, so it is off until someone turns it on.
+    @Test func isoGuestsDoNotShareTheClipboardUnlessAsked() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        let json = """
+            {"vms":[{"uuid":"U","name":"iso","state":"stopped","cpus":2,"memoryMB":1024,"bootMode":"linux-iso","createdAt":"2026-01-01T00:00:00Z"},
+            {"uuid":"V","name":"alpine","state":"stopped","cpus":2,"memoryMB":1024,"createdAt":"2026-01-01T00:00:00Z"}]}
+            """
+        try json.write(to: home.appendingPathComponent("vms.json"), atomically: true, encoding: .utf8)
+        #expect(try !reg.resolve("iso").syncsClipboard)
+        #expect(try reg.resolve("alpine").syncsClipboard)
+        try reg.set("iso", clipboardSync: true)
+        #expect(try reg.resolve("iso").syncsClipboard)
+    }
+}

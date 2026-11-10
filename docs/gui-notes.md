@@ -429,6 +429,12 @@ There is no per-distribution code. Any ARM64 build that boots by UEFI should wor
   and every channel op answers "this guest has no openVM tools" at once. The controls that need the agent
   are off or hidden. Resizing is the framework's own (`automaticallyReconfiguresDisplay`), which depends
   on the guest's display driver and desktop.
+* **Clipboard, by choice.** The clipboard switch (Settings, or Devices ▸ Share Clipboard) is off for these
+  guests until someone turns it on, and takes effect at the next start. On, the VM gets the framework's Spice
+  agent port (`VZSpiceAgentPortAttachment`), and the guest needs `spice-vdagent`. That program shares the
+  clipboard on X11 desktops only; Omarchy's Hyprland and most Wayland desktops are not covered. Unlike
+  openVM's agent it has no filter, so passwords are shared too, which is why it is not on by default. Not yet
+  seen working on a real guest.
 * **Stopping.** There is no agent to ask, so the guest gets the framework's stop request and 120 seconds.
   A guest that ignores the request is then forced off.
 * **After the install.** The firmware's variable store is kept, so the installer's boot entry survives. A

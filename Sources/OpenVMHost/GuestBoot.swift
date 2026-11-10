@@ -219,7 +219,7 @@ enum GuestBoot {
         cpus: Int, memoryMB: Int, consoleURL: URL, diskURL: URL?, vmUUID: String, artifactPort: UInt16,
         timezone: String? = nil, bootMode: BootMode = .linux, variableStorePath: String? = nil,
         artifactToken: String? = nil, shares: [VmShare] = [], installMediaPath: String? = nil,
-        machineIdentifier: Data? = nil,
+        machineIdentifier: Data? = nil, sharesClipboard: Bool = false,
         publish: @MainActor (LiveGuest?) -> Void = { _ in }
     ) async throws -> LiveGuest {
         if bootMode == .linuxISO {
@@ -227,7 +227,7 @@ enum GuestBoot {
             return try await GuestLinuxISO.boot(
                 cpus: cpus, memoryMB: memoryMB, consoleURL: consoleURL, diskURL: diskURL, vmUUID: vmUUID,
                 variableStorePath: variableStorePath, shares: shares, installMediaPath: installMediaPath,
-                machineIdentifier: machineIdentifier, publish: publish)
+                machineIdentifier: machineIdentifier, sharesClipboard: sharesClipboard, publish: publish)
         }
         if bootMode == .windows {
             if #available(macOS 13.0, *) {

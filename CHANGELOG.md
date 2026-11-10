@@ -15,4 +15,5 @@ First public version.
 * Files sent from a guest to the Mac land in Downloads/openVM, marked as downloaded
 * A guest that restarts itself comes back
 * Any other ARM64 Linux can be installed from its own ISO, with its own installer; these guests have no openVM tools yet
+* Those guests can share the clipboard through macOS's own Spice agent, if you turn it on and install `spice-vdagent`
 * The wizard asks for the Windows user name and password, and whether to sign in automatically

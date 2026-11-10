@@ -60,7 +60,7 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
         if case .bool(let sync)? = fields.first(where: { $0.key == "clipboardSync" })?.value {
             self.clipboardSync = sync
         } else {
-            self.clipboardSync = true
+            self.clipboardSync = bootMode != .linuxISO  // as `VmRecord.syncsClipboard`
         }
         if case .bool(let box)? = fields.first(where: { $0.key == "outbox" })?.value {
             self.outbox = box
