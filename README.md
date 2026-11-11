@@ -98,6 +98,25 @@ The ISO must be an ARM64 (aarch64) build that boots by UEFI: Macs with Apple sil
 
 These guests run without openVM's guest tools, so drag and drop, Send to Mac, shared folders, printing and clock sync do not work in them yet. The clipboard can be shared if you turn it on in the VM's settings and install `spice-vdagent` in the guest. It works on X11 desktops, not on most Wayland ones such as Omarchy, and it shares everything you copy, passwords too. When a guest restarts itself the VM stops; press Start.
 
+**If the guest makes no sound.** Most current desktops play through PipeWire, which drives the VM's sound device in chunks too small for it, so nothing is heard. Put this in `~/.config/wireplumber/wireplumber.conf.d/51-openvm-sound.conf` in the guest (the file is also in this repository, `tools/guest/pipewire/`):
+
+```
+monitor.alsa.rules = [
+  {
+    matches = [ { node.name = "~alsa_output.*" } ]
+    actions = {
+      update-props = {
+        api.alsa.period-size = 1024
+        api.alsa.period-num = 4
+        api.alsa.headroom = 1024
+      }
+    }
+  }
+]
+```
+
+then run `systemctl --user restart wireplumber pipewire pipewire-pulse`. This is for WirePlumber 0.5 and later (`wireplumber --version`). Sound from the VM reaches the Mac about a tenth of a second late, so it suits music and video better than games and calls.
+
 ## Using a guest
 
 ```sh

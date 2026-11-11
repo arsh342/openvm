@@ -52,7 +52,7 @@ A failure goes back as a bug with the step that showed it.
       guest. Paper or a real PDF comes out.
 - [ ] **Default printer.** Change the Mac's default; the guest's default follows. If not, find why
       and fix it test-first in `PrinterBridge.swift`.
-- [ ] **Sound.** Linux from an ISO: works (Omarchy, 2026-11-10). Windows: not yet checked. Play a sound in each guest; note the latency. On Windows this needs Test Mode
+- [ ] **Sound.** Linux from an ISO: works once the guest has the PipeWire setting in the README (Omarchy, 2026-11-11; silent without it). Windows: not yet checked. Play a sound in each guest; note the latency. On Windows this needs Test Mode
       (Settings, Sound, with the warning).
 - [ ] **Screen recording** of the integration features, for the docs.
 

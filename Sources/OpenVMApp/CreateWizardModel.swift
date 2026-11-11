@@ -279,6 +279,7 @@ final class CreateWizardModel: ObservableObject {
                 "The VM starts from your ISO, and you finish the distribution's own installer in its window.",
                 "When the installer asks to restart, the VM stops. Press Start. If the installer starts again, use Devices ▸ Eject Installer ISO first.",
                 "Clipboard, file drops and Send to Mac need openVM's guest tools, which these guests do not have yet.",
+                "If the guest makes no sound, its PipeWire needs a setting for larger buffers: see \"If the guest makes no sound\" in openVM's README.",
             ]
         }
     }

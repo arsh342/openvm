@@ -5,7 +5,7 @@ marked **measured** (with how) or **to check**.
 
 **A note on "Linux guest" below.** Until 2026-11-11 openVM made its own Alpine Linux guest, with
 openVM's agent, and most Linux measurements here were taken on it. That guest is gone: Linux now
-installs from the distribution's own ISO, with no openVM tools (see "Another Linux, from an ISO").
+installs from the distribution's own ISO, with no openVM tools (see "Linux, from an ISO").
 What was measured on the Alpine guest is kept as a record, and says so where it matters.
 
 ## The window
@@ -412,9 +412,9 @@ in use),  but softer than a Retina display can show,
 and there is no Retina Resolution menu. `openvmctl display set` is not held, so it can still
 scramble. Retina sizes for Windows need the cause found.
 
-## Another Linux, from an ISO
+## Linux, from an ISO
 
-`--boot-mode linux-iso` (the wizard's "Another Linux, from an ISO") is a plain UEFI machine: firmware, a
+`--boot-mode linux-iso` (the wizard's "Linux, from an ISO") is a plain UEFI machine: firmware, a
 blank virtio disk, and the ISO on a USB stick, with the distribution's own installer in the VM window.
 There is no per-distribution code. Any ARM64 build that boots by UEFI should work.
 
@@ -431,6 +431,13 @@ There is no per-distribution code. Any ARM64 build that boots by UEFI should wor
   clipboard on X11 desktops only; Omarchy's Hyprland and most Wayland desktops are not covered. Unlike
   openVM's agent it has no filter, so passwords are shared too, which is why it is not on by default. Not yet
   seen working on a real guest.
+* **Sound.** The VM has Apple's virtio-sound device. It plays silence when the guest writes periods of 5 ms
+  or less, and it needs more than two periods buffered (measured: `docs/evidence/linux-iso-sound-2026-11-11.md`).
+  PipeWire's default drives it with 2.5 ms periods, so a PipeWire desktop such as Omarchy is silent until the
+  guest gets `tools/guest/pipewire/51-openvm-sound.conf` (README, "If the guest makes no sound"). With it,
+  PipeWire held 10.7 ms periods and a 43 ms buffer, and the guest was heard. openVM cannot set this from the
+  host: the device has no period setting, and these guests have no agent. Sound arrives about 115 to 137 ms
+  after the guest plays it (measured with an 85 ms guest buffer); a native Mac app measured 13 ms.
 * **Stopping.** There is no agent to ask, so the guest gets the framework's stop request and 120 seconds.
   A guest that ignores the request is then forced off.
 * **After the install.** The firmware's variable store is kept, so the installer's boot entry survives. A
@@ -442,5 +449,5 @@ There is no per-distribution code. Any ARM64 build that boots by UEFI should wor
 check and booted; its installer took keyboard and pointer input; the picture filled the window, correct
 at the view's size. Asked to stop from the host, that guest did not stop within 120 seconds and was forced
 off, so shut these guests down from inside. Alpine's ARM64 and x86_64 virt ISOs were told apart by the
-check, and a cut-off file was refused. Not yet seen on a real guest: starting an installed system from its
-disk after a restart, live resizing, and any distribution other than Omarchy.
+check, and a cut-off file was refused. An installed Omarchy 7.3 started from its disk and was used on
+2026-11-11. Not yet seen on a real guest: live resizing, and any distribution other than Omarchy.

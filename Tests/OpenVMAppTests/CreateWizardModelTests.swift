@@ -659,5 +659,6 @@ struct WizardLinuxISOTests {
         let (model, _) = await wizard([("usable", .bool(true))])
         #expect(model.summaryNotes.contains { $0.contains("Eject Installer ISO") })
         #expect(model.summaryNotes.contains { $0.contains("guest tools") })
+        #expect(model.summaryNotes.contains { $0.contains("no sound") && $0.contains("README") })
     }
 }
