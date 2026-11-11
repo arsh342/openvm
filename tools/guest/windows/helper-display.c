@@ -81,7 +81,59 @@ static unsigned long helper_scale(unsigned long scale, char *why, size_t why_cap
     return 0;
 }
 
+/* Switches off every active display that is not on the virtio GPU, when one that is stays on (see
+ * display_choose_kept). Saved to the display database, as Settings does, so it lasts across restarts.
+ * Returns how many displays it switched off, or -1 if Windows refused. */
+static int helper_virtio_only(void) {
+    static DISPLAYCONFIG_PATH_INFO path[8], kept_path[8];
+    static DISPLAYCONFIG_MODE_INFO mode[32], kept_mode[32];
+    static int is_virtio[8], keep[8];
+    UINT32 paths = 8, modes = 32;
+    if (QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &paths, path, &modes, mode, NULL) !=
+        ERROR_SUCCESS)
+        return 0;
+    for (UINT32 i = 0; i < paths; i++) {
+        DISPLAYCONFIG_ADAPTER_NAME name;
+        ovmc_memset_zero(&name, sizeof name);
+        name.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADAPTER_NAME;
+        name.header.size = sizeof name;
+        name.header.adapterId = path[i].targetInfo.adapterId;
+        char ascii[128];
+        size_t n = 0;
+        if (DisplayConfigGetDeviceInfo(&name.header) == ERROR_SUCCESS)
+            for (; n + 1 < sizeof ascii && name.adapterDevicePath[n] != 0; n++)
+                ascii[n] = name.adapterDevicePath[n] < 0x80 ? (char)name.adapterDevicePath[n] : '?';
+        ascii[n] = '\0';
+        is_virtio[i] = display_is_virtio_adapter(ascii);
+    }
+    size_t count = display_choose_kept(is_virtio, paths, keep);
+    if (count == 0)
+        return 0;
+    /* The kept paths, with only the modes they use, renumbered. */
+    UINT32 kp = 0, km = 0;
+    for (UINT32 i = 0; i < paths; i++) {
+        if (!keep[i])
+            continue;
+        kept_path[kp] = path[i];
+        UINT32 src = path[i].sourceInfo.modeInfoIdx, tgt = path[i].targetInfo.modeInfoIdx;
+        if (src != DISPLAYCONFIG_PATH_MODE_IDX_INVALID && src < modes) {
+            kept_mode[km] = mode[src];
+            kept_path[kp].sourceInfo.modeInfoIdx = km++;
+        }
+        if (tgt != DISPLAYCONFIG_PATH_MODE_IDX_INVALID && tgt < modes) {
+            kept_mode[km] = mode[tgt];
+            kept_path[kp].targetInfo.modeInfoIdx = km++;
+        }
+        kp++;
+    }
+    LONG result = SetDisplayConfig(kp, kept_path, km, kept_mode,
+                                   SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_ALLOW_CHANGES |
+                                       SDC_SAVE_TO_DATABASE);
+    return result == ERROR_SUCCESS ? (int)(paths - kp) : -1;
+}
+
 static int helper_display(unsigned long width, unsigned long height, unsigned long scale) {
+    int switched_off = helper_virtio_only();
     DEVMODEW want;
     ovmc_memset_zero(&want, sizeof want);
     want.dmSize = sizeof want;
@@ -130,8 +182,13 @@ static int helper_display(unsigned long width, unsigned long height, unsigned lo
             return helper_fail();
         }
     }
-    int n = snprintf(line, sizeof line, "%lux%lu@%lu", (unsigned long)now.dmPelsWidth,
-                     (unsigned long)now.dmPelsHeight, held_scale);
+    /* Anything after the mode is for the agent's log; the host reads only the mode. */
+    int n = snprintf(
+        line, sizeof line, "%lux%lu@%lu%s", (unsigned long)now.dmPelsWidth,
+        (unsigned long)now.dmPelsHeight, held_scale,
+        switched_off > 0
+            ? " (switched off the Basic Display)"
+            : (switched_off < 0 ? " (Windows refused to switch off the Basic Display)" : ""));
     DWORD did = 0;
     WriteFile(GetStdHandle(STD_OUTPUT_HANDLE), line, (DWORD)n, &did, NULL);
     return 0;

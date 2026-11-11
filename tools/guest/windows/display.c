@@ -5,6 +5,45 @@
  * one asked for. */
 static uint64_t g_displayW = 1920, g_displayH = 1080, g_displayScale = 0;
 
+/* Windows also drives openVM's boot frame buffer through the Basic Display Driver, as a second display
+ * nobody can see (docs/evidence/windows-second-display-2026-11-11.md). The helper switches it off, but
+ * only while the virtio display is active: if viogpudo has failed, the Basic Display is all there is. */
+
+/* Whether an adapter's device path names the virtio GPU, PCI 1af4:1050. ASCII, any case. */
+static int display_is_virtio_adapter(const char *path) {
+    static const char want[] = "VEN_1AF4&DEV_1050";
+    if (path == NULL)
+        return 0;
+    for (size_t i = 0; path[i] != '\0'; i++) {
+        size_t k = 0;
+        while (want[k] != '\0') {
+            char c = path[i + k];
+            if (c >= 'a' && c <= 'z')
+                c = (char)(c - 'a' + 'A');
+            if (c != want[k])
+                break;
+            k++;
+        }
+        if (want[k] == '\0')
+            return 1;
+    }
+    return 0;
+}
+
+/* Given which active displays are on the virtio GPU, marks the ones to keep. Returns how many to keep,
+ * or 0 when nothing should change: no virtio display is active, or nothing else is. */
+static size_t display_choose_kept(const int *is_virtio, size_t count, int *keep) {
+    size_t virtio = 0;
+    for (size_t i = 0; i < count; i++)
+        if (is_virtio[i])
+            virtio++;
+    if (virtio == 0 || virtio == count)
+        return 0;
+    for (size_t i = 0; i < count; i++)
+        keep[i] = is_virtio[i] ? 1 : 0;
+    return virtio;
+}
+
 static void display_reply(SOCKET fd, uint64_t cid, const char *error) {
     static struct ovmc_out w;
     ovmc_out_init(&w);
@@ -116,7 +155,8 @@ static void handle_display(SOCKET fd, const uint8_t *body, const struct ovmc_pai
     g_displayW = held_w;
     g_displayH = held_h;
     g_displayScale = held_scale;
-    agent_log("display holds %lux%lu at scale %lu", held_w, held_h, held_scale);
+    agent_log("display holds %lux%lu at scale %lu (%s)", held_w, held_h, held_scale,
+              (const char *)said);
     display_reply(fd, cid, NULL);
 #else
     display_reply(fd, cid, "display needs the real Win32 build");

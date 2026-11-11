@@ -33,4 +33,12 @@ This is not the cause of the scramble (`docs/evidence/viogpudo-mode-change-trace
 * Stop advertising the boot frame buffer: no, Windows Boot Manager needs it to draw.
 * Disable `BasicDisplay`: no, it is Windows' fallback if `viogpudo` fails.
 * Have the agent keep only the VirtIO display active at sign-in (what Settings > Display > "Show only on"
-  does), and only while the VirtIO display is up, so the fallback stays. Not built yet.
+  does), and only while the VirtIO display is up, so the fallback stays. Built (`helper_virtio_only` in
+  `tools/guest/windows/helper-display.c`).
+
+## The fix, measured
+
+The test agent was swapped in on `win-lab`, then `openvmctl display set win-lab --width 1024 --height 768`.
+Afterwards `EnumDisplayDevices` gave `\\.\DISPLAY1` (Basic Display Driver) flags 0x0 with no current mode, and
+`\\.\DISPLAY2` (VirtIO) flags 0x5 at 1024x768, (0,0). Settings > Display read "Show only on 2". After a restart
+from the Start menu it still read "Show only on 2". Not exercised: a guest where `viogpudo` has failed.

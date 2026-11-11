@@ -317,7 +317,7 @@ acceptance run still need a person. Three bugs are known and open:
 
 1. Reverse Scrolling has no effect on a trackpad (below).
 2. A Windows guest is held at 1024 pixels wide, because other widths scramble (below).
-3. New Windows installs have an invisible second display (below). Hiding it by hand works; nothing does it automatically.
+3. Windows guests installed before the agent fix have an invisible second display (below). The agent now switches it off.
 
 ## Known fault: Reverse Scrolling has no effect on a trackpad
 
@@ -409,8 +409,13 @@ it and restarting, with no live stop.
 `openvm-framebuffer.efi` makes in reserved RAM. Windows hands a boot display over to a PCI driver whose device
 memory holds it, and the virtio-gpu device holds no frame-buffer memory, so the hand-over never happens. Windows
 can move to it: a window dragged off the right edge is lost. Settings > Display > "Show only on" the VirtIO
-display hides it, and that survives a restart. It is not the cause of the scramble. Fix, not built: the agent
-keeps only the VirtIO display active at sign-in, while that display is up.
+display hides it, and that survives a restart. It is not the cause of the scramble. The agent now does that
+itself: before each mode change (the first comes when the guest is ready) its display helper switches off every
+active display not on the virtio GPU, provided a virtio display stays on, and saves it as Settings does. If
+`viogpudo` has failed, the Basic Display is left alone. Measured on `win-lab`: the Basic Display went inactive
+(`EnumDisplayDevices` flags 0x0, no mode), Settings read "Show only on 2" (the VirtIO display), and it stayed
+so after a restart from the Start menu. Settings still lists the second monitor, inactive, because Windows lists
+every connected monitor. Guests installed before this keep the second display until they get the new agent.
 
 **Stopgap.** The app holds a Windows guest at 1024 pixels wide, with the height following the window
 (`DisplayFit.windowsMode`), so the picture stays correct (measured: three clean captures at 1024x643, 1024x590 and 1024x640, across a restart and

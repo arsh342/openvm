@@ -38,7 +38,8 @@ static void test_good(void) {
 
 static void test_bad_names(void) {
     char out[1024];
-    const char *bad[] = {"..\\x", "a/b", "C:evil", "f.txt:stream", "NUL", "con.txt", "line\nbreak", "", "dot.", "tab\t"};
+    const char *bad[] = {"..\\x",   "a/b",         "C:evil", "f.txt:stream", "NUL",
+                         "con.txt", "line\nbreak", "",       "dot.",         "tab\t"};
     for (size_t i = 0; i < sizeof bad / sizeof bad[0]; i++) {
         const char *one[] = {bad[i]};
         assert(parse(one, 1, out, sizeof out) == 0);
@@ -102,7 +103,49 @@ static void test_malformed_cbor(void) {
     assert(drop_item_lines(buf, len, out, sizeof out) > 0);
 }
 
+/* Which displays the agent keeps. Windows drives openVM's boot frame buffer through the Basic Display
+ * Driver as a second, invisible display (docs/evidence/windows-second-display-2026-11-11.md). The agent
+ * switches that off, but only while the virtio display is active, so Windows' fallback stays if viogpudo
+ * fails. */
+static void test_virtio_adapter_names(void) {
+    assert(display_is_virtio_adapter(
+        "\\\\?\\PCI#VEN_1AF4&DEV_1050&SUBSYS_00501AF4&REV_01#3&11583659&0&48#{5b45201d}"));
+    assert(
+        display_is_virtio_adapter("\\\\?\\pci#ven_1af4&dev_1050&subsys_00501af4&rev_01#3&1#{x}"));
+    assert(!display_is_virtio_adapter("\\\\?\\ROOT#BasicDisplay#0000#{5b45201d}"));
+    assert(!display_is_virtio_adapter(
+        "\\\\?\\PCI#VEN_1AF4&DEV_1041#3&1#{x}")); /* virtio-net, not the GPU */
+    assert(!display_is_virtio_adapter(""));
+    assert(!display_is_virtio_adapter(NULL));
+}
+
+static void test_which_displays_to_keep(void) {
+    int keep[4];
+    /* Basic Display beside the virtio display: keep only the virtio one. */
+    int both[] = {0, 1};
+    assert(display_choose_kept(both, 2, keep) == 1);
+    assert(keep[0] == 0 && keep[1] == 1);
+    /* virtio first in the list makes no difference */
+    int other_order[] = {1, 0};
+    assert(display_choose_kept(other_order, 2, keep) == 1);
+    assert(keep[0] == 1 && keep[1] == 0);
+    /* viogpudo failed: only the Basic Display is active, so nothing changes */
+    int fallback[] = {0};
+    assert(display_choose_kept(fallback, 1, keep) == 0);
+    /* already only the virtio display: nothing to change */
+    int alone[] = {1};
+    assert(display_choose_kept(alone, 1, keep) == 0);
+    /* nothing active */
+    assert(display_choose_kept(NULL, 0, keep) == 0);
+    /* two virtio paths and one other: both virtio paths stay */
+    int three[] = {1, 0, 1};
+    assert(display_choose_kept(three, 3, keep) == 2);
+    assert(keep[0] == 1 && keep[1] == 0 && keep[2] == 1);
+}
+
 int main(void) {
+    test_virtio_adapter_names();
+    test_which_displays_to_keep();
     test_good();
     test_bad_names();
     test_counts_and_room();

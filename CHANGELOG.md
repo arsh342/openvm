@@ -18,5 +18,6 @@ First public version.
 * A Windows guest that restarts itself comes back
 * Any ARM64 Linux can be installed from its own ISO, with its own installer; these guests have no openVM tools yet
 * Those guests can share the clipboard through macOS's own Spice agent, if you turn it on and install `spice-vdagent`
+* Windows guests no longer have an invisible second display: the guest tools keep only the VirtIO display on, and leave Windows' fallback display alone if the VirtIO one fails
 * A PipeWire setting for those guests, without which they are silent: the VM's sound device plays nothing in the small chunks PipeWire uses by default
 * The wizard asks for the Windows user name and password, and whether to sign in automatically
