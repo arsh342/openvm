@@ -353,13 +353,16 @@ Those patterns are what reading each row at 1024 pixels gives when the rows are 
 itself is right: a capture inside the guest at 2496x1496 was a clean desktop while its window was
 scrambled. The guest accepts every size tried. Turning off the 5120x2880 registration did not stop it.
 
-**The likely cause, read from the `viogpudo` source.** On a mode change it calls
-`DestroyFrameBufferObj(FALSE, FALSE)`, which unrefs the resource that is still on the scanout and does not
-clear the scanout. It then recreates the resource at once with the same id (the id goes through a FIFO free
-list with nothing else in it), and it only logs a failed command. So if the Mac's GPU keeps a resource that
-is on the scanout, the create fails and later transfers land in the first resource, which is 1024 wide
-(`CreateResource` even carries a `FIXME`). That the create fails is inferred: the reply was never seen. The
-trial below supports this, but it is not the whole fault.
+**The cause, measured (2026-11-11).** A trace of the signed `viogpudo` 0.1.302, recorded in the guest
+with Windows' own `logman` and decoded with the driver's published symbols, shows the device's reply to
+every command (`docs/evidence/viogpudo-mode-change-trace-2026-11-11.md`). On a mode change the driver
+unrefs the resource that is still on the scanout, and Apple's device refuses (`ERR_INVALID_PARAMETER`).
+The driver then creates the new mode under the same id, and that is refused too
+(`ERR_INVALID_RESOURCE_ID`). So the resource on screen stays the 1024x768 one made at boot, with the new
+mode's memory attached to it. Scanouts and transfers wider than that are refused, and the Mac reads the
+wider memory at 1024 pixels a row. A 1024-wide mode fits the old resource, which is why it is the only
+clean width. The fix belongs in the driver: create the new mode under a fresh id, point the scanout at
+it, then free the old resource. Not built yet.
 
 **Tried, and did not help:**
 
@@ -400,11 +403,14 @@ which is the virtqueue notify. `setupapi.dev.log` ends at `{Restarting Devices}`
 when the notify happens is inferred. A driver can still be changed safely by pointing the service's `ImagePath` at
 it and restarting, with no live stop.
 
-**The second display.** Windows also shows an invisible display: Microsoft Basic Display Driver at
-1920x1080, over the boot framebuffer `openvm-framebuffer.efi` makes in reserved RAM. The likely reason is
-that the memory belongs to no PCI device, so Windows has nothing to hand over to `viogpudo`. Windows can
-move to it: a window dragged off the right edge is lost. Settings ▸ Display ▸ Show only on 2 hides it, and
-that survives a restart. It is not the cause of the scramble.
+**The second display.** Windows also shows an invisible display, measured
+(`docs/evidence/windows-second-display-2026-11-11.md`): the Microsoft Basic Display Driver, root-enumerated
+(`ROOT\BasicDisplay`), at 1920x1080 to the right of the VirtIO display, over the boot frame buffer
+`openvm-framebuffer.efi` makes in reserved RAM. Windows hands a boot display over to a PCI driver whose device
+memory holds it, and the virtio-gpu device holds no frame-buffer memory, so the hand-over never happens. Windows
+can move to it: a window dragged off the right edge is lost. Settings > Display > "Show only on" the VirtIO
+display hides it, and that survives a restart. It is not the cause of the scramble. Fix, not built: the agent
+keeps only the VirtIO display active at sign-in, while that display is up.
 
 **Stopgap.** The app holds a Windows guest at 1024 pixels wide, with the height following the window
 (`DisplayFit.windowsMode`), so the picture stays correct (measured: three clean captures at 1024x643, 1024x590 and 1024x640, across a restart and
