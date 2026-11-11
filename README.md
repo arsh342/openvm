@@ -14,39 +14,37 @@ Built in Swift and C, on Apple's own `Virtualization.framework`.
 
 * **Built on Apple's hypervisor.** ARM guests run directly on your Mac's CPU, with no translation layer.
 * **Deep integration.** The connection between macOS and the guest is the product, not an add-on.
-* **Automatic installs.** Linux installs itself on first start, and Windows installs unattended from your own ISO.
-* **Retina ready on Linux.** A Linux guest's desktop scales to 2x and 3x, at your Mac's native resolution. A Windows guest is held at 1024 pixels wide in its window for now.
+* **Your own installers.** Windows installs unattended from your own ISO, and any ARM64 Linux installs from its own ISO with its own installer.
 * **Free and open.** Apache 2.0 licensed, with no account and no subscription.
 
 ## Features
 
-| Feature | Linux | Windows |
+| Feature | Windows | Linux, from an ISO |
 | --- | --- | --- |
-| Clipboard | Yes | Yes |
-| File transfer | Yes | Yes |
-| Shared folders | Yes | Yes |
-| A window for each VM, with keyboard and mouse | Yes | Yes, at 1024 pixels wide for now |
-| Clipboard follows focus (text; passwords are never shared) | Yes | Yes |
-| Drag files into a guest | Yes | Yes |
-| Send files from a guest to your Mac | Yes | Yes |
-| A guest that restarts itself comes back | Yes | Yes |
-| Print to your Mac's printers | Yes | Yes |
-| Resize the display, 1x to 3x scale | Yes | Not in its window yet |
-| Sound through your Mac | Yes | Opt-in, see below |
-| Clock and time zone follow your Mac | Yes | Yes |
+| A window for each VM, with keyboard and mouse | Yes, at 1024 pixels wide for now | Yes |
+| Resizing with the window | Not yet (held at 1024 wide) | Yes, if the distribution's display driver supports it |
+| Clipboard | Yes, following focus (text; passwords are never shared) | Opt-in, through `spice-vdagent` on X11 desktops (passwords are shared too) |
+| File transfer and shared folders | Yes | Not yet |
+| Drag files into a guest | Yes | Not yet |
+| Send files from a guest to your Mac | Yes | Not yet |
+| A guest that restarts itself comes back | Yes | No: the VM stops, press Start |
+| Print to your Mac's printers | Yes | Not yet |
+| Sound through your Mac | Opt-in, see below | Depends on the distribution |
+| Clock and time zone follow your Mac | Yes | The guest keeps its own |
 | Safe pause when your Mac sleeps | Yes | Yes |
 
-Guests are Alpine Linux ARM64 with an XFCE desktop, and Windows 11 ARM64, and these features are for those two. You can also install any other ARM64 Linux from its own ISO (see below).
+Windows guests run openVM's guest tools, which carry clipboard, files, printing and the rest. Linux guests are installed from the distribution's own ISO and have no openVM tools yet.
 
 ## Requirements
 
 * An Apple Silicon Mac, on macOS 14 or later
 * Swift 6, from Xcode or the Command Line Tools
-* For Windows guests: your own Windows 11 ARM64 ISO. Nothing else to install: openVM builds the install media itself, using `wimlib` from Homebrew if the Mac has it, and otherwise a short-lived Alpine helper VM that carries its own copy (it needs the Linux guest files, below). `zig` and `lld` are only needed to build openVM's payload from source
+* For Windows guests: your own Windows 11 ARM64 ISO. Nothing else to install: openVM builds the install media itself, using `wimlib` from Homebrew if the Mac has it, and otherwise a short-lived helper VM that fetches its own copy (it needs a small download first, below). `zig` and `lld` are only needed to build openVM's payload from source
+* For Linux guests: the ARM64 (aarch64) ISO of the distribution you want
 
 ## Get started
 
-Build openVM, the guest payload (the files a guest is built from), and the daemon's signature, which gives it the Virtualization entitlement:
+Build openVM, the payload (the files Windows install media is built from), and the daemon's signature, which gives it the Virtualization entitlement:
 
 ```sh
 make check
@@ -67,20 +65,7 @@ make app
 open .build/openvm.app
 ```
 
-The app's wizard creates Linux and Windows guests for you: it fetches what Linux needs, checks and converts your Windows ISO, and installs. The commands below do the same by hand.
-
-### Create a Linux guest
-
-Fetch the Linux files once, then create and start a guest:
-
-```sh
-.build/debug/openvmctl task start fetch-linux        # prints a task id
-.build/debug/openvmctl task status <task-id>         # progress, until state=done
-.build/debug/openvmctl create lin
-.build/debug/openvmctl start lin     # first start installs Alpine, and takes a few minutes
-```
-
-`tools/build/fetch-linux.sh` does the same fetch by hand, but needs a C compiler; the task uses the unpacker shipped in the payload instead.
+The app's wizard creates Windows and Linux guests for you: it checks your ISO, converts a Windows one into install media, and installs. The commands below do the same by hand.
 
 ### Create a Windows guest
 
@@ -94,13 +79,13 @@ Check that the ISO is one openVM can use, then build the install media (about a 
 .build/debug/openvmctl start win     # first start installs Windows
 ```
 
-Without `wimlib` on the Mac, fetch the Linux files first (`openvmctl task start fetch-linux`): the media is then built in a helper VM. The media needs about 22 GB of disk while it exists.
+Without `wimlib` on the Mac, fetch the helper VM's files first (`openvmctl task start fetch-linux`, about 40 MB): the media is then built in a short-lived helper VM, which installs its own copy of wimlib. The media needs about 22 GB of disk while it exists.
 
 From the wizard you choose the Windows user name and password. Built by hand, the guest has an administrator account `openvm` with the password `openvm`, so change it if the guest matters to you.
 
-### Install another Linux from its ISO
+### Create a Linux guest
 
-Use **New Virtual Machine ▸ Another Linux, from an ISO** in the app, or:
+Use **New Virtual Machine ▸ Linux, from an ISO** in the app, or:
 
 ```sh
 .build/debug/openvmctl linux-iso check ~/Downloads/distro-arm64.iso
@@ -111,12 +96,13 @@ Use **New Virtual Machine ▸ Another Linux, from an ISO** in the app, or:
 
 The ISO must be an ARM64 (aarch64) build that boots by UEFI: Macs with Apple silicon cannot run Intel and AMD builds. Ubuntu, Debian, Fedora and Kali publish these. Official Arch Linux is x86-64 only, and Omarchy is built on it, so only a community ARM64 build of Omarchy can work.
 
-These guests run without openVM's guest tools, so drag and drop, Send to Mac, shared-folder mounting, printing and clock sync do not work in them yet. The clipboard can be shared if you turn it on in the VM's settings and install `spice-vdagent` in the guest. It works on X11 desktops, not on most Wayland ones such as Omarchy, and it shares everything you copy, passwords too. When a guest restarts itself the VM stops; press Start.
+These guests run without openVM's guest tools, so drag and drop, Send to Mac, shared folders, printing and clock sync do not work in them yet. The clipboard can be shared if you turn it on in the VM's settings and install `spice-vdagent` in the guest. It works on X11 desktops, not on most Wayland ones such as Omarchy, and it shares everything you copy, passwords too. When a guest restarts itself the VM stops; press Start.
 
 ## Using a guest
 
 ```sh
 openvmctl list                                       # your VMs
+# the rest need openVM's guest tools, so a Windows guest for now:
 openvmctl clipboard push win                         # send your clipboard to the guest
 openvmctl file push win report.pdf                   # copy a file in
 openvmctl share add win ~/Projects                   # share a folder
@@ -130,6 +116,7 @@ Run `openvmctl` with no arguments to see every command.
 
 ## Before you rely on it
 
+* **Alpine guests from earlier versions no longer start.** openVM used to make its own Alpine Linux guest. It now installs Linux from the distribution's ISO instead. An Alpine VM made before stays in the list and can be deleted, which deletes its disk; copy the disk file first if you want it.
 * **A Windows guest runs at 1024 pixels wide in its window for now.** Any other width scrambles the picture, so the app holds that width and scales it up, which looks softer than your display can show. See [docs/gui-notes.md](docs/gui-notes.md).
 * **Scrolling in a guest can run the opposite way to your Mac on a trackpad.** View ▸ Reverse Scrolling is meant to switch it, but it has no effect on a trackpad yet.
 * **Windows shows an extra, invisible display on new installs.** A window dragged off the right edge can get lost there. In Windows, Settings ▸ System ▸ Display ▸ Show only on 2 hides it, and that survives a restart.
@@ -141,6 +128,7 @@ Run `openvmctl` with no arguments to see every command.
 
 ## Roadmap
 
+* openVM's guest tools in a Linux guest installed from its ISO (clipboard, files, printing, clock)
 * Dragging files out of a guest, straight from its window (files can be sent with "Send to Mac" today)
 * Microphone
 * Windows sound without Test Mode
@@ -149,7 +137,7 @@ Run `openvmctl` with no arguments to see every command.
 
 ```sh
 make check                                       # build, Swift tests, guest agent tests
-OPENVM_SMOKE_REAL=1 tools/test/daemon-smoke.sh   # real Linux install, about 10 minutes
+tools/test/daemon-smoke.sh                       # the daemon and CLI, no guest, seconds
 make windows-smoke ISO=<windows-iso>             # real Windows install, about 30 minutes
 ```
 

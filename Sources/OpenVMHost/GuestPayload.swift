@@ -1,8 +1,8 @@
 // GuestPayload — the files the host needs to build a guest, shipped with the app rather
-// than found on the developer's machine: the install overlay a first boot fetches, and the
-// helpers that fetching the Linux files and building Windows media use.
+// than found on the developer's machine: the overlay the helper VM boots with, and the
+// helpers that fetching its files and building Windows media use.
 //
-//   guest/linux/openvm.apkovl.tar.gz    the overlay: installs Alpine and starts the agent
+//   guest/linux/openvm.apkovl.tar.gz    the overlay: carries the helper VM's job script
 //   guest/linux/fetch-linux.sh          fetches the pinned Alpine kernel, initramfs and modloop
 //   guest/linux/openvm-zboot            unpacks the kernel (so the Mac needs no C compiler)
 import Foundation
@@ -37,7 +37,7 @@ nonisolated enum GuestPayload {
             currentDirectory: URL(fileURLWithPath: FileManager.default.currentDirectoryPath))
     }
 
-    /// The install overlay, only if the payload really has it.
+    /// The overlay, only if the payload really has it.
     static func overlay(in root: URL?) -> URL? {
         guard let file = root?.appendingPathComponent("linux/\(overlayName)"),
             FileManager.default.fileExists(atPath: file.path)

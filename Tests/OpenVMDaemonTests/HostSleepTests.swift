@@ -20,8 +20,8 @@ import Testing
     func selectsRunningLiveGuests() throws {
         let (registry, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        let running = try registry.create(name: "running")
-        let stopped = try registry.create(name: "stopped")
+        let running = try registry.create(name: "running", bootMode: .windows)
+        let stopped = try registry.create(name: "stopped", bootMode: .windows)
         _ = try registry.start(running.uuid)
 
         let picked = guestsForHostSleep(try registry.list(), liveUUIDs: [running.uuid, stopped.uuid])
@@ -32,7 +32,7 @@ import Testing
     func skipsUserSuspendedGuests() throws {
         let (registry, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        let vm = try registry.create(name: "vm")
+        let vm = try registry.create(name: "vm", bootMode: .windows)
         _ = try registry.start(vm.uuid)
         _ = try registry.suspend(vm.uuid)
 
@@ -43,7 +43,7 @@ import Testing
     func skipsRunningGuestsWithoutALiveChannel() throws {
         let (registry, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        let vm = try registry.create(name: "vm")
+        let vm = try registry.create(name: "vm", bootMode: .windows)
         _ = try registry.start(vm.uuid)
 
         #expect(guestsForHostSleep(try registry.list(), liveUUIDs: []).isEmpty)

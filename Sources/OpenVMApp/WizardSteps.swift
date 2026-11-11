@@ -11,8 +11,8 @@ struct WizardStep: Equatable, Identifiable {
 }
 
 enum WizardSteps {
-    /// Only Windows has an account to choose: Linux guests come with theirs.
-    static func all(for page: CreateWizardModel.Page, os: CreateWizardModel.OS = .linux) -> [WizardStep] {
+    /// Only Windows has an account to choose: a Linux installer asks for its own.
+    static func all(for page: CreateWizardModel.Page, os: CreateWizardModel.OS = .linuxISO) -> [WizardStep] {
         var steps: [(title: String, symbol: String, page: CreateWizardModel.Page)] = [
             ("System", "desktopcomputer", .os), ("Source", "opticaldisc", .source), ("Resources", "cpu", .resources),
         ]

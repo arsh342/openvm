@@ -42,8 +42,8 @@ this is the mechanism here is inferred, not measured.
 Forcing remains the last resort and is logged. If no agent answers, the stop still
 ends in a forced power-off.
 
-Linux guests had the same fault, hidden by ext4's journal: logging forced stops
-showed every one was forced. The agent runs `poweroff` for the same request (3-4 s).
+openVM's former Alpine guests had the same fault, hidden by ext4's journal: logging forced stops
+showed every one was forced. The Linux agent runs `poweroff` for the same request (3-4 s).
 
 ## viosock: accept(), select() and FIONBIO
 

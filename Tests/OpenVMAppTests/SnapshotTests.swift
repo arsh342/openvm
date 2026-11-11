@@ -92,9 +92,9 @@ struct SnapshotTests {
     @Test(.enabled(if: Snapshot.enabled))
     func listWithMixedStates() async {
         let model = await model([
-            FakeTransport.row("ubuntu-lab", state: "running"),
+            FakeTransport.row("ubuntu-lab", state: "running", bootMode: "linux-iso"),
             FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
-            FakeTransport.row("scratch", state: "stopped"),
+            FakeTransport.row("scratch", state: "stopped", bootMode: "linux-iso"),
         ])
         Snapshot.check("list-mixed-states", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 900, height: 560)
     }
@@ -108,7 +108,7 @@ struct SnapshotTests {
     @Test(.enabled(if: Snapshot.enabled))
     func actionError() async {
         let host = FakeTransport()
-        host.rows = [FakeTransport.row("scratch", state: "stopped")]
+        host.rows = [FakeTransport.row("scratch", state: "stopped", bootMode: "linux-iso")]
         let model = VMListModel(transport: host)
         await model.refresh()
         model.lastError = "scratch is busy: start"
@@ -149,12 +149,20 @@ extension SnapshotTests {
             ("maxCpus", .uint(8)), ("maxMemoryMB", .uint(16384)), ("freeDiskMB", .uint(500_000)),
             ("linuxReady", .bool(linuxReady)), ("hostWimlib", .bool(false)),
         ])
+        if !host.answers("linux-iso-check") { host.respond("linux-iso-check", with: [("usable", .bool(true))]) }
         let model = CreateWizardModel(transport: host, existingNames: ["lab"], pollInterval: .milliseconds(1))
         await model.load()
         return model
     }
 
     private func wizardView(_ model: CreateWizardModel) -> CreateWizardView { CreateWizardView(model: model, close: {}) }
+
+    /// The wizard opens on Linux from an ISO; a person chooses one on the source page.
+    private func toResources(_ model: CreateWizardModel) async {
+        model.next()  // source
+        await model.chooseISO("/Users/me/Downloads/ubuntu-24.04-arm64.iso")
+        model.next()  // resources
+    }
 
     @Test(.enabled(if: Snapshot.enabled))
     func wizardChoosesTheSystem() async {
@@ -179,8 +187,7 @@ extension SnapshotTests {
     @Test(.enabled(if: Snapshot.enabled))
     func wizardSizesTheVm() async {
         let model = await wizardModel()
-        model.next()  // source (Linux files are ready)
-        model.next()
+        await toResources(model)
         Snapshot.check("wizard-resources", wizardView(model), width: 600, height: 540)
     }
 
@@ -193,8 +200,9 @@ extension SnapshotTests {
             return []
         }
         let model = await wizardModel(host)
+        await toResources(model)
         model.name = "demo"
-        model.next(); model.next(); model.next()
+        model.next()  // summary
         let run = Task { await model.create() }
         _ = await eventually { host.calls.contains("start") }
         Snapshot.check("wizard-working", wizardView(model), width: 600, height: 540)
@@ -207,8 +215,9 @@ extension SnapshotTests {
         host.respond("create", with: [])
         host.fail("start", with: HostError.remote("guest did not reach boot readiness with a responding openvm-tools agent; console tail:\nrandom: crng init done"))
         let model = await wizardModel(host)
+        await toResources(model)
         model.name = "demo"
-        model.next(); model.next(); model.next()
+        model.next()  // summary
         await model.create()
         Snapshot.check("wizard-failed", wizardView(model), width: 600, height: 540)
     }
@@ -218,9 +227,9 @@ extension SnapshotTests {
     @Test(.enabled(if: Snapshot.enabled))
     func librarySidebar() async {
         let model = await model([
-            FakeTransport.row("ubuntu-lab", state: "running"),
+            FakeTransport.row("ubuntu-lab", state: "running", bootMode: "linux-iso"),
             FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
-            FakeTransport.row("scratch", state: "stopped"),
+            FakeTransport.row("scratch", state: "stopped", bootMode: "linux-iso"),
         ])
         let nav = LibraryNav()
         nav.selection = .vm("uuid-ubuntu-lab")
@@ -243,8 +252,7 @@ extension SnapshotTests {
     @Test(.enabled(if: Snapshot.enabled))
     func wizardSidebarOnTheResourcesStep() async {
         let wizard = CreateWizardModel(transport: FakeTransport(), existingNames: [], openWindow: { _ in })
-        wizard.os = .linux
-        wizard.next()
+        wizard.os = .windows
         wizard.next()
         Snapshot.check("wizard-sidebar", WizardSidebarView(model: wizard), width: 240, height: 360)
     }

@@ -1,11 +1,11 @@
 #!/bin/sh
-# mk-payload.sh — assemble the guest payload: the files the host needs to build a guest, so a
+# mk-payload.sh — assemble the guest payload: the files the host needs to build Windows install media, so a
 # Mac with no developer tools can still make one.
 #
 #   usage: mk-payload.sh <out-dir>
 #
-#   <out-dir>/linux/openvm.apkovl.tar.gz   the install overlay (installs Alpine, starts the agent)
-#   <out-dir>/linux/fetch-linux.sh         fetches the pinned Alpine kernel, initramfs and modloop
+#   <out-dir>/linux/openvm.apkovl.tar.gz   the overlay the helper VM boots with (its job script)
+#   <out-dir>/linux/fetch-linux.sh         fetches the helper VM's pinned Alpine kernel, initramfs and modloop
 #   <out-dir>/linux/openvm-zboot           unpacks the kernel; prebuilt, so the Mac needs no cc
 #
 #   <out-dir>/windows/mk-windows-media.sh  builds Windows install media from the user's ISO

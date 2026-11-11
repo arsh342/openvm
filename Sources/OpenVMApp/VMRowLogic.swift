@@ -41,9 +41,19 @@ enum VMRowLogic {
         }
     }
 
+    /// What a VM runs, in a word or two. An Alpine guest is one an earlier openVM made, and it says so,
+    /// because it can no longer be started.
+    static func system(for vm: VmSummary) -> String {
+        switch vm.bootMode {
+        case .windows: return "Windows"
+        case .linuxISO: return "Linux"
+        case .alpine: return "Alpine Linux (no longer supported)"
+        }
+    }
+
     /// "Linux · 4 CPUs · 4 GB memory · 32 GB disk"
     static func subtitle(for vm: VmSummary) -> String {
-        var parts = [vm.bootMode == .windows ? "Windows" : "Linux"]
+        var parts = [system(for: vm)]
         parts.append(vm.cpus == 1 ? "1 CPU" : "\(vm.cpus) CPUs")
         parts.append("\(memory(vm.memoryMB)) memory")
         if let disk = vm.diskBytes { parts.append("\(size(disk)) disk") }
@@ -53,7 +63,7 @@ enum VMRowLogic {
     /// The facts shown for a VM in the library, in order.
     static func details(for vm: VmSummary) -> [(label: String, value: String)] {
         var rows: [(label: String, value: String)] = [
-            ("System", vm.bootMode == .windows ? "Windows" : "Linux"),
+            ("System", system(for: vm)),
             ("CPUs", "\(vm.cpus)"),
             ("Memory", memory(vm.memoryMB)),
         ]

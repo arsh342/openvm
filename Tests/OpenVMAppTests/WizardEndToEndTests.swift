@@ -1,9 +1,8 @@
 // The creation wizard against a real host: the cleanup promises, checked on disk.
 //
-// Opt-in (OPENVM_E2E=1): each test starts a real openvmd on a throwaway home and boots real VMs
-// or builds real media. The Windows test needs the ISO at windowsImage/*.iso in the repository.
-//   OPENVM_E2E=1 make test            the two cancel tests (about a minute)
-//   OPENVM_E2E_FULL=1 OPENVM_E2E=1    also installs Linux from the wizard to the end (about 10 minutes)
+// Opt-in (OPENVM_E2E=1): the test starts a real openvmd on a throwaway home and builds real media.
+// It needs the Windows ISO at windowsImage/*.iso in the repository.
+//   OPENVM_E2E=1 make test            cancelling a Windows media build (about 10 s)
 import Foundation
 import OpenVMCore
 import Testing
@@ -97,31 +96,6 @@ struct WizardEndToEndTests {
         model.next(); model.next(); model.next()
     }
 
-    @Test func cancellingALinuxInstallLeavesNothing() async throws {
-        let host = try RealHost()
-        let model = CreateWizardModel(transport: host.client, existingNames: [], pollInterval: .milliseconds(500)) { _ in }
-        await model.load()
-        #expect(model.host?.linuxReady == true, "fetch the Linux files first")
-        model.os = .linux
-        model.name = "e2elin"
-        summary(model)
-        #expect(model.page == .summary)
-
-        let run = Task { await model.create() }
-        // The install boot is under way: the host reports the VM as starting.
-        let booting = await waitUntil(90) {
-            ((try? await host.client.listVMs()) ?? []).contains { $0.name == "e2elin" && $0.activity == "start" }
-        }
-        #expect(booting, "the VM never showed as starting")
-        await model.cancel()
-        await run.value
-
-        #expect(model.page == .os)
-        #expect(((try? await host.client.listVMs()) ?? []).isEmpty, "the VM is still listed")
-        #expect(host.diskFolders.isEmpty, "its disk folder is still there: \(host.diskFolders)")
-        #expect(model.createdName == nil)
-    }
-
     @Test func cancellingAWindowsMediaBuildLeavesNothing() async throws {
         let iso = try FileManager.default.contentsOfDirectory(atPath: repo.appendingPathComponent("windowsImage").path)
             .first { $0.lowercased().hasSuffix(".iso") }
@@ -160,26 +134,5 @@ struct WizardEndToEndTests {
         #expect(attachedImages().count == before, "images left attached")
         #expect(((try? await host.client.listVMs()) ?? []).isEmpty)
         #expect(host.diskFolders.isEmpty)
-    }
-
-    @Test(.enabled(if: ProcessInfo.processInfo.environment["OPENVM_E2E_FULL"] == "1"))
-    func aLinuxVmIsInstalledFromTheWizardToTheEnd() async throws {
-        let host = try RealHost()
-        let opened = OpenedBox()
-        let model = CreateWizardModel(transport: host.client, existingNames: [], pollInterval: .seconds(1)) { name in
-            opened.names.append(name)
-        }
-        await model.load()
-        model.os = .linux
-        model.name = "e2efull"
-        summary(model)
-        await model.create()
-        #expect(model.page == .finished, "\(model.page)")
-        #expect(opened.names == ["e2efull"])
-        let vms = (try? await host.client.listVMs()) ?? []
-        #expect(vms.first?.state == .running)
-        // and the agent really answers
-        _ = try? await host.client.send("ping", [("id", .text("e2efull"))])
-        _ = try? await host.client.send("stop", [("id", .text("e2efull"))])
     }
 }

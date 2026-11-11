@@ -37,6 +37,7 @@ struct CreateWizardModelTests {
         opened: OpenedBox = OpenedBox(), cancelWait: Duration = .seconds(60)
     ) async -> (CreateWizardModel, FakeTransport) {
         host.respond("host-info", with: info ?? hostInfo())
+        if !host.answers("linux-iso-check") { host.respond("linux-iso-check", with: [("usable", .bool(true))]) }
         let model = CreateWizardModel(
             transport: host, existingNames: existing, pollInterval: .milliseconds(1), cancelWait: cancelWait
         ) { name in opened.names.append(name) }
@@ -44,11 +45,18 @@ struct CreateWizardModelTests {
         return (model, host)
     }
 
+    /// Linux from an ISO is the plain flow (no account page, nothing to build), so it is the one the
+    /// tests of names, sizes, cancelling and failing go through.
+    private func toResources(_ model: CreateWizardModel) async {
+        model.os = .linuxISO
+        model.next()  // source
+        await model.chooseISO("/x/linux-arm64.iso")
+        model.next()  // resources
+    }
+
     /// Goes through the pages the way a person would, to the summary.
     private func toSummary(_ model: CreateWizardModel) async {
-        model.os = .linux
-        model.next()  // source
-        model.next()  // resources
+        await toResources(model)
         model.next()  // summary
     }
 
@@ -57,9 +65,10 @@ struct CreateWizardModelTests {
     @Test func pagesFollowTheOsChoice() async {
         let (model, _) = await wizard()
         #expect(model.page == .os)
-        model.os = .linux
+        model.os = .linuxISO
         model.next()
         #expect(model.page == .source)
+        await model.chooseISO("/x/linux-arm64.iso")
         model.next()
         #expect(model.page == .resources)
         model.next()
@@ -75,26 +84,27 @@ struct CreateWizardModelTests {
 
     @Test func defaultsFollowTheOs() async {
         let (model, _) = await wizard()
-        model.os = .linux
-        #expect((model.cpus, model.memoryMB, model.diskGB) == (4, 4096, 32))
+        #expect(model.os == .linuxISO)  // what the wizard opens on
+        #expect((model.cpus, model.memoryMB, model.diskGB) == (4, 4096, 64))
+        #expect(model.name == "linux-vm")
         model.os = .windows
         #expect((model.cpus, model.memoryMB, model.diskGB) == (4, 8192, 64))
         #expect(model.name == "windows-11")
-        model.os = .linux
-        #expect(model.name == "linux")
+        model.os = .linuxISO
+        #expect(model.name == "linux-vm")
     }
 
     @Test func aDefaultNameThatIsTakenGetsASuffix() async {
-        let (model, _) = await wizard(existing: ["linux", "linux-2"])
-        model.os = .linux
-        #expect(model.name == "linux-3")
+        let (model, _) = await wizard(existing: ["linux-vm", "linux-vm-2"])
+        #expect(model.name == "linux-vm-3")
+        model.os = .windows
+        model.os = .linuxISO
+        #expect(model.name == "linux-vm-3")
     }
 
     @Test func badNameBlocksNext() async {
         let (model, _) = await wizard()
-        model.os = .linux
-        model.next()
-        model.next()  // resources
+        await toResources(model)
         for bad in ["", "bad name", "-x", "a/b", String(repeating: "a", count: 65), "é"] {
             model.name = bad
             #expect(model.problem != nil, "\(bad.debugDescription)")
@@ -107,9 +117,7 @@ struct CreateWizardModelTests {
 
     @Test func duplicateNameBlocksNext() async {
         let (model, _) = await wizard(existing: ["lab"])
-        model.os = .linux
-        model.next()
-        model.next()
+        await toResources(model)
         model.name = "lab"
         #expect(model.problem?.contains("already exists") == true)
     }
@@ -126,17 +134,13 @@ struct CreateWizardModelTests {
         #expect(windows.page == .resources)
         #expect(windows.problem?.contains("GB") == true)
         let (linux, _) = await wizard(info: hostInfo(freeMB: 30 * 1024))  // plenty for Linux
-        linux.os = .linux
-        linux.next()
-        linux.next()
+        await toResources(linux)
         #expect(linux.problem == nil)
     }
 
     @Test func resourcesStayWithinWhatTheMacAllows() async {
         let (model, _) = await wizard()
-        model.os = .linux
-        model.next()
-        model.next()
+        await toResources(model)
         model.cpus = 64
         #expect(model.problem?.contains("8") == true)
         model.cpus = 4
@@ -188,15 +192,17 @@ struct CreateWizardModelTests {
         #expect(model.page == .resources)
     }
 
-    /// With no wimlib on the Mac the helper VM builds the media, and that is an Alpine guest.
-    @Test func windowsWithoutWimlibOrLinuxFilesNeedsThemFirst() async {
+    /// With no wimlib on the Mac the helper VM builds the media, and it needs its files fetched.
+    @Test func windowsWithoutWimlibOrTheHelperFilesNeedsThemFirst() async {
         let host = FakeTransport()
         host.respond("windows-iso-check", with: [("usable", .bool(true))])
         let (model, _) = await wizard(host: host, info: hostInfo(linuxReady: false, wimlib: false))
         model.os = .windows
         model.next()
         await model.chooseISO("/Users/me/Win.iso")
-        #expect(model.problem?.contains("Linux") == true)
+        #expect(model.problem?.contains("helper download") == true)
+        model.next()
+        #expect(model.page == .source)
         host.respond("task-start", with: [("taskId", .text("f1"))])
         host.respond("task-status", with: [("state", .text("done")), ("progress", .text(""))])
         host.respond("host-info", with: hostInfo(linuxReady: true, wimlib: false))
@@ -205,32 +211,13 @@ struct CreateWizardModelTests {
         #expect(model.problem == nil)
     }
 
-    @Test func linuxNeedsItsFilesFirst() async {
-        let host = FakeTransport()
-        let (model, _) = await wizard(host: host, info: hostInfo(linuxReady: false))
-        model.os = .linux
-        model.next()
-        #expect(model.problem?.contains("Download") == true)
-        model.next()
-        #expect(model.page == .source)
-        host.respond("task-start", with: [("taskId", .text("f1"))])
-        host.respond("task-status", inSequence: [
-            [("state", .text("running")), ("progress", .text("50% of 16 MB"))],
-            [("state", .text("done")), ("progress", .text(""))],
-        ])
-        host.respond("host-info", with: hostInfo(linuxReady: true))
-        await model.fetchLinux()
-        #expect(model.fetch == .done)
-        #expect(model.problem == nil)
-        model.next()
-        #expect(model.page == .resources)
-    }
-
     @Test func aFailedDownloadSaysWhy() async {
         let host = FakeTransport()
-        let (model, _) = await wizard(host: host, info: hostInfo(linuxReady: false))
-        model.os = .linux
+        host.respond("windows-iso-check", with: [("usable", .bool(true))])
+        let (model, _) = await wizard(host: host, info: hostInfo(linuxReady: false, wimlib: false))
+        model.os = .windows
         model.next()
+        await model.chooseISO("/Users/me/Win.iso")
         host.respond("task-start", with: [("taskId", .text("f1"))])
         host.respond("task-status", with: [
             ("state", .text("failed")), ("progress", .text("curl: (6) Could not resolve host")),
@@ -247,7 +234,7 @@ struct CreateWizardModelTests {
 
     // MARK: running
 
-    @Test func linuxFlowCreatesAndStarts() async {
+    @Test func theIsoFlowCreatesAndStarts() async {
         let opened = OpenedBox()
         let (model, host) = await wizard(opened: opened)
         await toSummary(model)
@@ -261,7 +248,8 @@ struct CreateWizardModelTests {
         #expect(host.arg("create", "cpus") == .uint(2))
         #expect(host.arg("create", "memoryMB") == .uint(2048))
         #expect(host.arg("create", "diskSizeMB") == .uint(16 * 1024))
-        #expect(host.arg("create", "boot-mode") == nil)  // Linux is the default
+        #expect(host.arg("create", "boot-mode") == .text("linux-iso"))  // every create says which
+        #expect(host.arg("create", "install-media") == .text("/x/linux-arm64.iso"))
         #expect(host.arg("start", "id") == .text("lab"))
         #expect(host.calls.firstIndex(of: "create")! < host.calls.firstIndex(of: "start")!)
         #expect(opened.names == ["lab"])  // the window opens so the install can be watched
@@ -309,7 +297,7 @@ struct CreateWizardModelTests {
         model.os = .windows
         model.accountName = "arsh"
         #expect(model.summaryNotes.contains { $0.contains("arsh") && $0.contains("password") })
-        model.os = .linux
+        model.os = .linuxISO
         #expect(!model.summaryNotes.contains { $0.contains("password") })
     }
 

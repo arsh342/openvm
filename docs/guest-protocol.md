@@ -1,7 +1,8 @@
 # Guest protocol (OVMC)
 
 Version 1. This document is the contract for the OVMC channel between the host
-daemon (`openvmd`) and the guest agent (`openvm-tools`). The framing and message
+daemon (`openvmd`) and the guest agent (`openvm-tools`). Only Windows guests run an agent today;
+the Linux agent is kept, with its tests, for a later change that installs it in a Linux guest. The framing and message
 contract are transport-independent. The current guest transport is Apple's
 `Virtualization.framework` virtio-socket device: the guest agent listens on
 vsock port 52 and the host connects to it. The conformance suite in this
@@ -213,7 +214,7 @@ the channel before the reply. Only the opener sends requests, `hello`, and
   round-trips, header-rejection cases, message rules.
 * `tools/test/conformance.sh` — pipes golden byte streams through the built mock
   guest and hex-compares the replies.
-* The Linux guest agent carries the implemented channel messages over a vsock
+* The Linux guest agent (not installed in any guest today) carries the implemented channel messages over a vsock
   listener on port 52; the host daemon connects through
   `VZVirtioSocketDevice.connect(toPort:)`. The host clipboard CLI and daemon
   request path use clipboard message types 8 and 9. File push/pull uses

@@ -5,7 +5,7 @@ to paper. These are the checks left for that reason. Do them with `make app && o
 and write what you saw in `docs/evidence/manual-checks-<date>.md` (pass or fail, and a line on why).
 A failure goes back as a bug with the step that showed it.
 
-## In the VM window (both guests)
+## In the VM window (Windows, and a Linux from its ISO)
 
 - [x] **Keyboard.** Type letters, digits and symbols; a non-US layout key (an accented letter, a
       dead key); hold a key to repeat it.
@@ -24,7 +24,7 @@ A failure goes back as a bug with the step that showed it.
 
 ## Clipboard
 
-- [ ] Copy text in a Mac app, click into the VM window, paste in the guest. Windows: works (2026-11-10). Linux: only tried on Omarchy, which has no openVM tools; an openVM Linux guest is still to try.
+- [ ] Copy text in a Mac app, click into the VM window, paste in the guest. Windows: works (2026-11-10). Linux guests have no openVM tools; with the Spice clipboard on and `spice-vdagent` in an X11 guest, still to try.
 - [ ] Copy in the guest, click out to the Mac, paste. Same as above.
 - [ ] Copy from a password manager, click into the VM: nothing arrives, and the window subtitle
       says the clipboard was marked private.
@@ -36,8 +36,6 @@ A failure goes back as a bug with the step that showed it.
 - [ ] **Drop in.** Drag from Finder onto the window: one file, a folder, a file with a non-Latin
       name, a photo from Photos, a 1 GiB file. The guest keeps answering while it copies. Mouse input
       still works over the whole screen.
-- [ ] **Send out, Linux.** In Thunar, right-click a file, "Send to Mac". It appears in
-      `~/Downloads/openVM/<vm>/`, and the window says so.
 - [ ] **Send out, Windows.** In Explorer, right-click a file, Send to, "Send to Mac".
 - [ ] **A 12 x 200 MB tree** from Windows: bytes match on the Mac (compare with `cmp` or `shasum`).
 - [ ] **Outbox off.** Settings, turn off "Accept files this VM sends to the Mac": a send is not
@@ -45,24 +43,23 @@ A failure goes back as a bug with the step that showed it.
 
 ## Restart
 
-- [x] **Linux.** Run `reboot` in a guest with its window open. It comes back by itself.
-      Run `poweroff`: it stays stopped.
+- [x] **Linux (from an ISO).** Restart from inside the guest (passed on Omarchy, 2026-11-10). openVM does not restart these guests itself; what happened that day is not recorded in detail, so watch whether the VM stayed Running or stopped. Shut it down from inside: it stays stopped.
 - [x] **Windows.** Restart from the Start menu. It comes back by itself (2026-11-10).
 
 ## Printing and sound (moved here from M3)
 
-- [ ] **Print, Linux and Windows.** Add a real printer (or a PDF queue) to the Mac, print from each
+- [ ] **Print, Windows.** Add a real printer (or a PDF queue) to the Mac, print from the
       guest. Paper or a real PDF comes out.
 - [ ] **Default printer.** Change the Mac's default; the guest's default follows. If not, find why
       and fix it test-first in `PrinterBridge.swift`.
-- [ ] **Sound.** Linux: works (2026-11-10). Windows: not yet checked. Play a sound in each guest; note the latency. On Windows this needs Test Mode
+- [ ] **Sound.** Linux from an ISO: works (Omarchy, 2026-11-10). Windows: not yet checked. Play a sound in each guest; note the latency. On Windows this needs Test Mode
       (Settings, Sound, with the warning).
 - [ ] **Screen recording** of the integration features, for the docs.
 
 ## The app
 
 - [x] **Windows account.** Create a Windows VM with your own user name and password; `net localgroup administrators` lists it, and Run as administrator works. Try it once with automatic sign-in off.
-- [x] **Wizard.** Create a Linux VM and a Windows VM from the wizard alone. Cancel one install at
+- [x] **Wizard.** Create a Linux VM (from an ISO) and a Windows VM from the wizard alone. Cancel one install at
       each stage and check nothing is left in `~/.openvm` or the list. The ISO chooser accepts only
       `.iso`; closing the window mid-run asks first.
 - [x] **Menus, library and Settings.** Every menu item does what it says, for the current VM, in the menu bar and under the icon; CPU and memory are locked while a VM

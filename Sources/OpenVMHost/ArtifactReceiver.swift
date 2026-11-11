@@ -1,15 +1,12 @@
-// A small HTTP endpoint on the host: guests upload their installed kernel, and fetch the pinned modules.
+// A small HTTP endpoint on the host: the helper VM fetches its modules and its overlay from it.
 import Darwin
 import Foundation
 import OpenVMCore
-import Security
 
-/// Receives the matching installed-kernel and mkinitfs artifacts from Alpine
-/// over the VM's NAT network during first-boot disk installation, and serves the
-/// pinned modloop to netboot guests. The modloop must match the pinned kernel
-/// exactly, and Alpine's mirror replaces it with every kernel update.
+/// Serves two fixed files to the helper VM over its NAT network: the pinned modloop, which must match
+/// the pinned kernel exactly (Alpine's mirror replaces it with every kernel update), and the overlay
+/// that carries the job script. Both are public bytes, and nothing a guest sends names a file.
 nonisolated final class ArtifactReceiver: @unchecked Sendable {
-    private let registry: VmRegistry
     private let port: UInt16
     private let allowsPeer: @Sendable ([UInt8]) -> Bool
     private let overlay: @Sendable () -> URL?
@@ -18,57 +15,23 @@ nonisolated final class ArtifactReceiver: @unchecked Sendable {
     /// system choose).
     private(set) var boundPort: UInt16 = 0
     private var listener: Int32 = -1
-    /// Per-boot upload tokens, keyed by lowercase VM uuid. The receiver must
-    /// listen on every interface (the vmnet gateway only exists once the guest
-    /// is up), so the token is what makes it safe: the daemon hands it to the
-    /// guest on the kernel command line and nothing else knows it. Without it,
-    /// a LAN peer who knew a VM's uuid could replace the kernel it boots next.
-    private var tokens: [String: String] = [:]
-    /// The vmnet shared-network subnet the guest uploads from.
+    /// The vmnet shared-network subnet a guest fetches from.
     static let guestSubnetPrefix: [UInt8] = [192, 168, 64]
 
     init(
-        registry: VmRegistry, port: UInt16 = 8124,
+        port: UInt16 = 8124,
         allowsPeer: @escaping @Sendable ([UInt8]) -> Bool = ArtifactReceiver.isGuestPeer,
         overlay: @escaping @Sendable () -> URL? = { GuestPayload.overlay }
     ) {
-        self.registry = registry
         self.port = port
         self.allowsPeer = allowsPeer
         self.overlay = overlay
     }
 
-    /// Whether an address (as four bytes) belongs to the guest network. Defence in depth behind
-    /// the upload token: only a guest may talk to this endpoint.
+    /// Whether an address (as four bytes) belongs to the guest network: only a guest may talk to
+    /// this endpoint.
     static func isGuestPeer(_ address: [UInt8]) -> Bool {
         address.count == 4 && Array(address.prefix(3)) == guestSubnetPrefix
-    }
-
-    /// Issue (or replace) the upload token for one VM's next install boot.
-    func issueToken(for uuid: String) -> String {
-        var bytes = [UInt8](repeating: 0, count: 16)
-        _ = SecRandomCopyBytes(kSecRandomDefault, bytes.count, &bytes)
-        let token = bytes.map { String(format: "%02x", $0) }.joined()
-        lock.lock()
-        defer { lock.unlock() }
-        tokens[uuid.lowercased()] = token
-        return token
-    }
-
-    private func token(for uuid: String) -> String? {
-        lock.lock()
-        defer { lock.unlock() }
-        return tokens[uuid.lowercased()]
-    }
-
-    /// Constant-time comparison, so a wrong token leaks nothing through timing.
-    static func tokensMatch(_ a: String, _ b: String) -> Bool {
-        let x = Array(a.utf8)
-        let y = Array(b.utf8)
-        guard x.count == y.count else { return false }
-        var diff: UInt8 = 0
-        for i in 0..<x.count { diff |= x[i] ^ y[i] }
-        return diff == 0
     }
 
     func start() throws {
@@ -162,93 +125,18 @@ nonisolated final class ArtifactReceiver: @unchecked Sendable {
         }
         let fields = firstLine.split(separator: " ")
         // Two fixed paths, each to bytes that are public (Alpine's modules, and openVM's own
-        // install overlay), so no token. The host picks the file; nothing the guest sends names one.
+        // overlay). The host picks the file; nothing the guest sends names one.
         if fields.count == 3, fields[0] == "GET" {
             if fields[1] == "/" + Self.modloopName {
                 serveFile(fd, GuestBoot.pinnedModloop(), label: "the pinned modloop")
                 return
             }
             if fields[1] == "/" + Self.overlayName {
-                serveFile(fd, overlay(), label: "the install overlay")
+                serveFile(fd, overlay(), label: "the overlay")
                 return
             }
         }
-        guard fields.count == 3, fields[0] == "POST",
-            fields[1].hasPrefix("/install/"), fields[2] == "HTTP/1.1"
-        else {
-            respond(fd, status: "404 Not Found")
-            return
-        }
-        let path = String(fields[1]).split(separator: "/")
-        guard path.count == 3,
-            let count = text.components(separatedBy: "\r\n")
-                .dropFirst().first(where: { $0.lowercased().hasPrefix("content-length:") })
-                .flatMap({ Int($0.dropFirst("content-length:".count).trimmingCharacters(in: .whitespaces)) }),
-            count > 0, count <= 512 * 1024 * 1024
-        else {
-            respond(fd, status: "400 Bad Request")
-            return
-        }
-        let uuid = String(path[1])
-        let kind = String(path[2])
-        let presented = text.components(separatedBy: "\r\n").dropFirst()
-            .first(where: { $0.lowercased().hasPrefix("x-openvm-token:") })
-            .map { $0.dropFirst("x-openvm-token:".count).trimmingCharacters(in: .whitespaces) }
-        guard let expected = token(for: uuid), let presented,
-            Self.tokensMatch(expected, presented)
-        else {
-            respond(fd, status: "403 Forbidden")
-            return
-        }
-        guard kind == "kernel" || kind == "initramfs",
-            let record = try? registry.resolve(uuid), let diskPath = record.diskPath
-        else {
-            respond(fd, status: "404 Not Found")
-            return
-        }
-        let destination = URL(fileURLWithPath: diskPath)
-            .appendingPathExtension("openvm-\(kind)").path
-        let temporary = destination + ".tmp"
-        let out = open(temporary, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR)
-        guard out >= 0 else {
-            respond(fd, status: "500 Internal Server Error")
-            return
-        }
-        defer {
-            Darwin.close(out)
-            try? FileManager.default.removeItem(atPath: temporary)
-        }
-        var remaining = count
-        var buffer = [UInt8](repeating: 0, count: 64 * 1024)
-        while remaining > 0 {
-            let amount = min(remaining, buffer.count)
-            let n = buffer.withUnsafeMutableBytes { raw in
-                Darwin.read(fd, raw.baseAddress!, amount)
-            }
-            guard n > 0 else {
-                respond(fd, status: "400 Bad Request")
-                return
-            }
-            var written = 0
-            while written < n {
-                let w = buffer.withUnsafeBytes { raw in
-                    Darwin.write(out, raw.baseAddress!.advanced(by: written), n - written)
-                }
-                guard w > 0 else {
-                    respond(fd, status: "500 Internal Server Error")
-                    return
-                }
-                written += w
-            }
-            remaining -= n
-        }
-        guard fsync(out) == 0,
-            rename(temporary, destination) == 0
-        else {
-            respond(fd, status: "500 Internal Server Error")
-            return
-        }
-        respond(fd, status: "201 Created")
+        respond(fd, status: "404 Not Found")
     }
 
     private func respond(_ fd: Int32, status: String) {

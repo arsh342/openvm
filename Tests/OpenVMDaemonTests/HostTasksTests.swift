@@ -1,4 +1,4 @@
-// Long jobs the host runs for a client (fetching the Linux files, building Windows media): a
+// Long jobs the host runs for a client (fetching the helper VM's files, building Windows media): a
 // fixed list, never a command a client names, with progress and a way to stop them.
 import Darwin
 import Foundation
@@ -328,15 +328,15 @@ extension HostTasksTests {
         #expect(none.description.contains("wimlib"))
     }
 
-    /// The helper VM is an Alpine guest, so it needs the Linux files and the overlay.
-    @Test func theHelperNeedsTheLinuxFiles() throws {
+    /// The helper VM boots from its fetched files and the overlay, so it needs both.
+    @Test func theHelperNeedsItsFiles() throws {
         let f = try fixture()
         defer { f.cleanup() }
         guard case .failure(let error) = mediaPlan(f, wimlib: nil, helper: "/x/openvm", helperReady: false) else {
             Issue.record("expected a refusal")
             return
         }
-        #expect(error.description.contains("Linux"))
+        #expect(error.description.contains("fetch-linux"))
     }
 
     @Test func aBadIsoIsRefused() throws {

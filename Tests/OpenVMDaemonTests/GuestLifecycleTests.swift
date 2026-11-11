@@ -17,7 +17,7 @@ import Testing
     func guestInitiatedStopReapsOnce() throws {
         let (registry, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        let vm = try registry.create(name: "w")
+        let vm = try registry.create(name: "w", bootMode: .windows)
         _ = try registry.start(vm.uuid)
 
         markStopped(registry, vm.uuid)
@@ -39,10 +39,10 @@ import Testing
     func orphanedRecordsAreReconciled() throws {
         let (registry, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        let running = try registry.create(name: "running")
-        let suspended = try registry.create(name: "suspended")
-        let stopped = try registry.create(name: "stopped")
-        let held = try registry.create(name: "held")
+        let running = try registry.create(name: "running", bootMode: .windows)
+        let suspended = try registry.create(name: "suspended", bootMode: .windows)
+        let stopped = try registry.create(name: "stopped", bootMode: .windows)
+        let held = try registry.create(name: "held", bootMode: .windows)
         _ = try registry.start(running.uuid)
         _ = try registry.start(suspended.uuid)
         _ = try registry.suspend(suspended.uuid)

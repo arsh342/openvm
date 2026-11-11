@@ -60,6 +60,6 @@ struct WindowsWizardStepsTests {
     }
 
     @Test func linuxHasNone() {
-        #expect(!WizardSteps.all(for: .os, os: .linux).map(\.title).contains("Account"))
+        #expect(!WizardSteps.all(for: .os, os: .linuxISO).map(\.title).contains("Account"))
     }
 }

@@ -40,10 +40,7 @@ struct CreateWizardView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("What do you want to run?").font(.title2.weight(.semibold))
             choice(
-                .linux, symbol: "terminal", title: "Linux",
-                detail: "Alpine Linux with a desktop. It installs itself in a few minutes, and needs no download from you.")
-            choice(
-                .linuxISO, symbol: "opticaldisc", title: "Another Linux, from an ISO",
+                .linuxISO, symbol: "opticaldisc", title: "Linux, from an ISO",
                 detail: "Ubuntu, Fedora, Debian, Kali, Omarchy or any other ARM64 build. You finish its own installer in the VM's window.")
             choice(
                 .windows, symbol: "macwindow", title: "Windows 11",
@@ -77,7 +74,7 @@ struct CreateWizardView: View {
 
     private var sourcePage: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(model.os == .windows ? "Your Windows ISO" : (model.os == .linuxISO ? "Your Linux ISO" : "Linux files"))
+            Text(model.os == .windows ? "Your Windows ISO" : "Your Linux ISO")
                 .font(.title2.weight(.semibold))
             if model.os == .linuxISO {
                 Text("Download the ARM64 (aarch64) ISO of the distribution you want, and choose it here. Macs with Apple silicon cannot run Intel and AMD (x86_64) builds.")
@@ -101,8 +98,8 @@ struct CreateWizardView: View {
                 }
                 isoStatus
             }
-            if model.os == .linux || (model.os == .windows && !(model.host?.hostWimlib ?? false)) {
-                linuxFiles
+            if model.os == .windows && !(model.host?.hostWimlib ?? false) {
+                helperFiles
             }
         }
     }
@@ -120,14 +117,12 @@ struct CreateWizardView: View {
         }
     }
 
-    @ViewBuilder private var linuxFiles: some View {
+    @ViewBuilder private var helperFiles: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if model.os == .windows {
-                Text("This Mac has no wimlib, so a short-lived helper VM prepares the installer. It needs the Linux files.")
-                    .foregroundStyle(.secondary)
-            }
+            Text("This Mac has no wimlib, so a short-lived helper VM prepares the installer. It needs a small download.")
+                .foregroundStyle(.secondary)
             if model.host?.linuxReady == true || model.fetch == .done {
-                Label("Linux files are ready", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                Label("The helper files are ready", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
             } else {
                 switch model.fetch {
                 case .running(let line):
@@ -140,8 +135,8 @@ struct CreateWizardView: View {
                         .fixedSize(horizontal: false, vertical: true)
                     Button("Try Again") { Task { await model.fetchLinux() } }
                 case .idle, .done:
-                    Button("Download Linux Files") { Task { await model.fetchLinux() } }
-                    Text("About 40 MB from Alpine's mirror.").font(.callout).foregroundStyle(.secondary)
+                    Button("Download Helper Files") { Task { await model.fetchLinux() } }
+                    Text("About 40 MB: a small Linux system from Alpine's mirror, used only to build the installer.").font(.callout).foregroundStyle(.secondary)
                 }
             }
         }
@@ -201,7 +196,6 @@ struct CreateWizardView: View {
     private var systemLabel: String {
         switch model.os {
         case .windows: return "Windows 11 (ARM64)"
-        case .linux: return "Alpine Linux"
         case .linuxISO: return model.isoPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "Linux"
         }
     }

@@ -28,10 +28,10 @@ import Testing
 }
 
 @Suite struct LinuxISOBootModeTests {
-    @Test func onlyAnIsoGuestHasNoAgent() {
-        #expect(BootMode.linux.hasAgent)
+    @Test func onlyAWindowsGuestHasTheAgent() {
         #expect(BootMode.windows.hasAgent)
         #expect(!BootMode.linuxISO.hasAgent)
+        #expect(!BootMode.alpine.hasAgent)  // it never runs, so it has nothing to offer
     }
 
     @Test func aRecordKeepsItsBootMode() throws {

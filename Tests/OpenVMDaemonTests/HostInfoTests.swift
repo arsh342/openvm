@@ -84,3 +84,31 @@ extension HostInfoTests {
         #expect(message.contains("Test Mode"))  // not "not found"
     }
 }
+
+/// openVM no longer makes its own Alpine guests: a VM is Windows, or a Linux from its own ISO.
+/// These refusals come before the host touches its registry or makes a disk.
+struct CreateModeTests {
+    private func refusal(_ args: [(key: String, value: CBOR)]) -> String? {
+        let reply = vmOp("create", args, Envelope(type: .vmRequest, correlationId: 9))
+        guard case .map(let body) = reply.body,
+            case .text("error")? = body.first(where: { $0.key == "status" })?.value,
+            case .map(let result)? = body.first(where: { $0.key == "result" })?.value,
+            case .text(let message)? = result.first(where: { $0.key == "message" })?.value
+        else { return nil }
+        return message
+    }
+
+    @Test func createMustSayWhichSystem() {
+        #expect(refusal([("name", .text("no-mode-given"))]) == "create needs --boot-mode windows or linux-iso")
+    }
+
+    @Test func anAlpineGuestIsRefusedWithWhatToDoInstead() {
+        let message = refusal([("name", .text("old-style")), ("boot-mode", .text("linux"))])
+        #expect(message?.contains("no longer makes Alpine guests") == true)
+        #expect(message?.contains("linux-iso") == true)
+    }
+
+    @Test func anUnknownModeIsRefused() {
+        #expect(refusal([("name", .text("odd")), ("boot-mode", .text("bsd"))]) == "boot-mode must be windows or linux-iso")
+    }
+}

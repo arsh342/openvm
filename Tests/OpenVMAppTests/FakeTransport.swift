@@ -27,6 +27,8 @@ nonisolated final class FakeTransport: HostTransport, @unchecked Sendable {
     func respond(_ op: String, with fields: [(key: String, value: CBOR)]) {
         lock.withLock { _responses[op] = fields }
     }
+    /// Whether a test has already said what an op answers.
+    func answers(_ op: String) -> Bool { lock.withLock { _responses[op] != nil || _handlers[op] != nil } }
     /// Runs code for an op, which may wait: how a test makes `start` block until `stop` arrives.
     func handle(_ op: String, _ handler: @escaping Handler) { lock.withLock { _handlers[op] = handler } }
 
@@ -73,7 +75,7 @@ nonisolated final class FakeTransport: HostTransport, @unchecked Sendable {
     }
 
     static func row(
-        _ name: String, state: String = "stopped", activity: String? = nil, bootMode: String = "linux",
+        _ name: String, state: String = "stopped", activity: String? = nil, bootMode: String = "windows",
         cpus: UInt64 = 4, memoryMB: UInt64 = 4096, timezone: String? = nil, clipboardSync: Bool? = nil, outbox: Bool? = nil
     ) -> CBOR {
         var fields: [(key: String, value: CBOR)] = [
@@ -87,7 +89,7 @@ nonisolated final class FakeTransport: HostTransport, @unchecked Sendable {
         return .map(fields)
     }
 
-    static func summary(_ name: String = "w", state: String = "stopped", bootMode: String = "linux", cpus: UInt64 = 4, memoryMB: UInt64 = 4096, timezone: String? = nil, clipboardSync: Bool? = nil, outbox: Bool? = nil) -> VmSummary {
+    static func summary(_ name: String = "w", state: String = "stopped", bootMode: String = "windows", cpus: UInt64 = 4, memoryMB: UInt64 = 4096, timezone: String? = nil, clipboardSync: Bool? = nil, outbox: Bool? = nil) -> VmSummary {
         VmSummary(row: row(name, state: state, bootMode: bootMode, cpus: cpus, memoryMB: memoryMB, timezone: timezone, clipboardSync: clipboardSync, outbox: outbox))!
     }
 

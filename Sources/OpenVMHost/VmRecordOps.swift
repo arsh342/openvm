@@ -18,7 +18,7 @@ nonisolated func vmRow(_ rec: VmRecord) -> [(key: String, value: CBOR)] {
             row.append(("diskBytes", .uint(size.uint64Value)))
         }
     }
-    row.append(("bootMode", .text((rec.bootMode ?? .linux).rawValue)))
+    row.append(("bootMode", .text(rec.mode.rawValue)))
     if let tz = rec.timezone { row.append(("timezone", .text(tz))) }
     if let busy = activity.current(rec.uuid) { row.append(("activity", .text(busy))) }
     if installs.contains(rec.uuid) { row.append(("installing", .bool(true))) }
@@ -67,10 +67,14 @@ nonisolated func createVm(_ r: VmRequest) throws -> Envelope {
         guard n >= 1024, n <= 1_048_576 else { return r.fail("diskSizeMB must be between 1024 and 1048576") }
         diskSizeMB = Int(n)
     }
-    var bootMode: BootMode = .linux
-    if case .text(let mode)? = r.arg("boot-mode") {
-        guard let m = BootMode(rawValue: mode) else { return r.fail("boot-mode must be linux, windows or linux-iso") }
-        bootMode = m
+    guard case .text(let modeText)? = r.arg("boot-mode") else {
+        return r.fail("create needs --boot-mode windows or linux-iso")
+    }
+    guard let bootMode = BootMode(rawValue: modeText), BootMode.offered.contains(bootMode) else {
+        return r.fail(
+            modeText == BootMode.alpine.rawValue
+                ? "openVM no longer makes Alpine guests: install Linux from its own ISO with --boot-mode linux-iso"
+                : "boot-mode must be windows or linux-iso")
     }
     var variableStorePath: String?
     if case .text(let path)? = r.arg("variable-store-path") {
@@ -78,7 +82,6 @@ nonisolated func createVm(_ r: VmRequest) throws -> Envelope {
     }
     var installMediaPath: String?
     if case .text(let path)? = r.arg("install-media") {
-        guard bootMode != .linux else { return r.fail("--install-media applies to --boot-mode windows or linux-iso") }
         guard FileManager.default.fileExists(atPath: path) else {
             return r.fail("install media not found: \(path)")
         }
@@ -193,7 +196,9 @@ nonisolated func setVm(_ r: VmRequest) throws -> Envelope {
     }
     var bootMode: BootMode?
     if case .text(let mode)? = r.arg("boot-mode") {
-        guard let m = BootMode(rawValue: mode) else { return r.fail("boot-mode must be linux or windows") }
+        guard let m = BootMode(rawValue: mode), BootMode.offered.contains(m) else {
+            return r.fail("boot-mode must be windows or linux-iso")
+        }
         bootMode = m
     }
     var variableStorePath: String?
@@ -212,6 +217,8 @@ nonisolated func setVm(_ r: VmRequest) throws -> Envelope {
     }
     if let problem = validateResources(cpus: cpus, memoryMB: memoryMB, limits: .current) { return r.fail(problem) }
     let record = try registry.resolve(id)
+    // An Alpine disk does not become another system by renaming its mode.
+    if bootMode != nil, record.isRetiredAlpine { return r.fail(record.retiredAlpineMessage) }
     // CPUs, memory and the boot setup are read at boot; the time zone and the clipboard policy
     // are not, so they can change while the VM runs.
     if cpus != nil || memoryMB != nil || bootMode != nil || variableStorePath != nil {

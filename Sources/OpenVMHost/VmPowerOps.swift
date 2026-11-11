@@ -80,36 +80,13 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
     guard record.state == .stopped else {
         return r.fail("start requires a stopped VM (state=\(record.state.rawValue))")
     }
-    // For Windows VMs, we don't need Linux artifacts; the EFI boot loader handles it.
-    if record.usesNetboot {
-        guard GuestBoot.supportArtifacts() != nil else {
-            // No guest bits: keep the registry-only transition so plain
-            // lifecycle use works without artifacts installed.
-            _ = try registry.start(record.uuid)
-            return r.ok([
-                ("message", .text("started \(record.name) (no guest: run tools/build/fetch-linux.sh)"))
-            ])
-        }
-    }
-    var artifactToken: String?
-    // Netboot fetches the pinned modloop from here, with or without a disk.
-    if record.usesNetboot, GuestBoot.pinnedModloop() != nil || GuestPayload.overlay != nil {
-        try artifactReceiver.start()
-    }
-    if let diskPath = record.diskPath, record.usesNetboot {
-        let diskURL = URL(fileURLWithPath: diskPath)
-        let installRecord = diskURL.appendingPathExtension("openvm-installed")
-        if !FileManager.default.fileExists(atPath: installRecord.path) {
-            try artifactReceiver.start()
-            artifactToken = artifactReceiver.issueToken(for: record.uuid)
-        }
-    }
-    // Boot first, registry transition second: a failure (or a daemon kill)
+    guard !record.isRetiredAlpine else { return r.fail(record.retiredAlpineMessage) }
+    // Boot first, registry transition second    // Boot first, registry transition second: a failure (or a daemon kill)
     // mid-boot leaves a clean `stopped` record. Other clients do see `stopped`
     // while the boot runs; the row's `activity` ("start") says what is happening.
-    // UEFI guests: one machine identifier for the VM's lifetime.
+    // One machine identifier for the VM's lifetime.
     var machineIdentifier: Data?
-    if !record.usesNetboot {
+    do {
         if let stored = record.machineIdentifier, let data = Data(base64Encoded: stored) {
             machineIdentifier = data
         } else if #available(macOS 13.0, *) {
@@ -126,9 +103,8 @@ nonisolated func startVm(_ r: VmRequest) throws -> Envelope {
                 consoleURL: home.appendingPathComponent("\(record.name).console.log"),
                 diskURL: record.diskPath.map { URL(fileURLWithPath: $0) },
                 vmUUID: record.uuid, artifactPort: artifactPort,
-                timezone: record.timezone, bootMode: record.bootMode ?? .linux,
-                variableStorePath: record.variableStorePath,
-                artifactToken: artifactToken, shares: record.shares ?? [],
+                timezone: record.timezone, bootMode: record.mode,
+                variableStorePath: record.variableStorePath, shares: record.shares ?? [],
                 installMediaPath: record.installMediaPath,
                 machineIdentifier: machineIdentifier, sharesClipboard: record.syncsClipboard,
                 publish: { guest in

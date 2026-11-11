@@ -1,6 +1,6 @@
 # Architecture
 
-openVM has three kinds of program: a daemon on the Mac, a command-line client, and an agent inside each guest.
+openVM has four kinds of program: the app and a headless daemon on the Mac (either one hosts the VMs), a command-line client, and an agent inside each Windows guest.
 
 ```
 openvmctl ──Unix socket──▶ openvmd ──vsock port 52──▶ guest agent
@@ -16,7 +16,7 @@ openvmctl ──Unix socket──▶ openvmd ──vsock port 52──▶ guest 
 | `openvmctl` | `Sources/openvmctl` | Turns commands into daemon requests and prints the replies |
 | `OpenVMCore` | `Sources/OpenVMCore` | Code the host, the CLI and the app share: the wire protocol, the VM registry, the client (`DaemonClient`), and the rules for each feature |
 | `OpenVMWindows` | `Sources/OpenVMWindows` | The Virtualization.framework configuration for Windows guests |
-| Linux agent | `tools/guest/openvm-tools.c` | Answers the host inside a Linux guest |
+| Linux agent | `tools/guest/openvm-tools.c` | The same for Linux. Kept and tested, but no guest installs it: Linux guests come from their own ISO, with no openVM tools yet |
 | Windows agent | `tools/guest/openvm-tools-win.c` | The same, as a Windows service |
 
 ## How a request flows
@@ -48,5 +48,6 @@ A guest is not trusted. Every value from a guest is checked before the host acts
 
 ## Boot
 
-* **Linux:** the kernel boots directly. The first start installs Alpine to the disk from the install overlay in the guest payload (built by `tools/build/mk-payload.sh`, which runs `tools/build/mk-guest-overlay.sh`), which the host serves to the guest, and later starts boot the installed system.
+* **Linux:** a plain UEFI machine with the distribution's ISO on a USB stick. The person runs the distribution's own installer in the VM window, then ejects the ISO (`GuestLinuxISO.swift`). There is no agent, so readiness is the firmware having the machine, and the clipboard, if turned on, goes through the framework's Spice agent.
+* **The helper VM:** a short-lived Alpine netboot guest that builds Windows media when the Mac has no wimlib (`WimHelperVM.swift`). It boots the kernel fetched by `fetch-linux` with the overlay from `tools/build/mk-guest-overlay.sh`, runs one job on two shared folders and powers off. It is not a VM anyone can create or open.
 * **Windows:** the firmware loads `tools/uefi/openvm-efi.c`, which provides a framebuffer and starts Windows Boot Manager. The first start runs an unattended install from media built by `tools/build/mk-windows-media.sh`.

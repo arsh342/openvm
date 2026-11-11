@@ -59,7 +59,7 @@ nonisolated final class PrinterBridge: @unchecked Sendable {
     private func pass() {
         guard let records = try? registry.list() else { return }
         let running = records.filter {
-            $0.state == .running && ($0.bootMode ?? .linux).hasAgent && liveVMs.peek($0.uuid) != nil
+            $0.state == .running && $0.mode.hasAgent && liveVMs.peek($0.uuid) != nil
         }
         // By live machine, not by `running`: a suspended guest keeps its queues, and
         // forgetting them made every resume re-run a sync that holds the agent.

@@ -23,7 +23,7 @@ import Testing
     @Test func createPersistsAndLists() throws {
         let (reg, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        let vm = try reg.create(name: "box-a", cpus: 2, memoryMB: 2048)
+        let vm = try reg.create(name: "box-a", cpus: 2, memoryMB: 2048, bootMode: .windows)
         #expect(vm.name == "box-a")
         #expect(vm.state == .stopped)
         #expect(vm.cpus == 2)
@@ -37,7 +37,7 @@ import Testing
     @Test func setTimezonePersists() throws {
         let (reg, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "tzbox")
+        _ = try reg.create(name: "tzbox", bootMode: .windows)
         let updated = try reg.set("tzbox", timezone: "Europe/Berlin")
         #expect(updated.timezone == "Europe/Berlin")
         let again = try VmRegistry(path: home.appendingPathComponent("vms.json")).list()
@@ -47,7 +47,7 @@ import Testing
     @Test func setTimezoneLeavesOtherFieldsAlone() throws {
         let (reg, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "tzbox2", cpus: 2, memoryMB: 2048)
+        _ = try reg.create(name: "tzbox2", cpus: 2, memoryMB: 2048, bootMode: .windows)
         let updated = try reg.set("tzbox2", timezone: "UTC")
         #expect(updated.cpus == 2)
         #expect(updated.memoryMB == 2048)
@@ -67,10 +67,39 @@ import Testing
         #expect(vms[0].timezone == nil)
     }
 
+    /// openVM used to make its own Alpine guests. Their records must still load, and be told apart.
+    @Test func anAlpineRecordStillDecodesAndIsRetired() throws {
+        let (reg, home) = try makeRegistry()
+        defer { try? FileManager.default.removeItem(at: home) }
+        let json = """
+            {"vms":[
+            {"uuid":"11111111-2222-3333-4444-555555555555","name":"oldest","state":"stopped","cpus":4,"memoryMB":4096,"createdAt":"2026-01-01T00:00:00Z"},
+            {"uuid":"22222222-2222-3333-4444-555555555555","name":"srv1","state":"stopped","cpus":4,"memoryMB":4096,"diskPath":"/tmp/srv1/disk.raw","bootMode":"linux","createdAt":"2026-01-01T00:00:00Z"},
+            {"uuid":"33333333-2222-3333-4444-555555555555","name":"win","state":"stopped","cpus":4,"memoryMB":4096,"bootMode":"windows","createdAt":"2026-01-01T00:00:00Z"},
+            {"uuid":"44444444-2222-3333-4444-555555555555","name":"iso","state":"stopped","cpus":4,"memoryMB":4096,"bootMode":"linux-iso","createdAt":"2026-01-01T00:00:00Z"}
+            ]}
+            """
+        try Data(json.utf8).write(to: home.appendingPathComponent("vms.json"))
+        let vms = try reg.list()
+        #expect(vms.map(\.mode) == [.alpine, .alpine, .windows, .linuxISO])
+        #expect(vms.map(\.isRetiredAlpine) == [true, true, false, false])
+        // The message names the disk, because deleting the VM removes it.
+        #expect(vms[1].retiredAlpineMessage.contains("/tmp/srv1/disk.raw"))
+        #expect(vms[1].retiredAlpineMessage.contains("no longer runs"))
+        #expect(!vms[0].retiredAlpineMessage.contains("copy"))
+        // It can still be deleted.
+        _ = try reg.delete("srv1")
+        #expect(try reg.list().count == 3)
+    }
+
+    @Test func nobodyIsOfferedAnAlpineGuest() {
+        #expect(BootMode.offered == [.windows, .linuxISO])
+    }
+
     @Test func defaults() throws {
         let (reg, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        let vm = try reg.create(name: "dflt")
+        let vm = try reg.create(name: "dflt", bootMode: .windows)
         #expect(vm.cpus == 4)
         #expect(vm.memoryMB == 4096)
         #expect(vm.diskPath == nil)
@@ -80,7 +109,7 @@ import Testing
         let (reg, _) = try makeRegistry()
         for bad in ["", "-lead", "_us", "has space", String(repeating: "a", count: 65)] {
             await #expect(throws: VmRegistryError.nameInvalid) {
-                try reg.create(name: bad)
+                try reg.create(name: bad, bootMode: .windows)
             }
         }
     }
@@ -88,16 +117,16 @@ import Testing
     @Test func nameCollisionRejected() async throws {
         let (reg, home) = try makeRegistry("collide.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "dup")
+        _ = try reg.create(name: "dup", bootMode: .windows)
         await #expect(throws: VmRegistryError.nameExists) {
-            try reg.create(name: "dup")
+            try reg.create(name: "dup", bootMode: .windows)
         }
     }
 
     @Test func resolveByNameAndUUID() throws {
         let (reg, home) = try makeRegistry("resolve.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        let vm = try reg.create(name: "findme")
+        let vm = try reg.create(name: "findme", bootMode: .windows)
         #expect(try reg.resolve("findme").uuid == vm.uuid)
         #expect(try reg.resolve(vm.uuid).name == vm.name)
     }
@@ -112,7 +141,7 @@ import Testing
     @Test func startStopTransitions() throws {
         let (reg, home) = try makeRegistry("life.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "life")
+        _ = try reg.create(name: "life", bootMode: .windows)
         #expect(try reg.start("life").state == .running)
         #expect(try reg.stop("life").state == .stopped)
         #expect(try reg.resolve("life").state == .stopped)
@@ -121,7 +150,7 @@ import Testing
     @Test func badTransitionsRejected() async throws {
         let (reg, home) = try makeRegistry("transition.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "one-way")
+        _ = try reg.create(name: "one-way", bootMode: .windows)
         await #expect(throws: VmRegistryError.badTransition) {
             try reg.stop("one-way")
         }
@@ -134,7 +163,7 @@ import Testing
     @Test func deleteRemovesRecordAndPersists() async throws {
         let (reg, home) = try makeRegistry("delete.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        let vm = try reg.create(name: "doomed")
+        let vm = try reg.create(name: "doomed", bootMode: .windows)
         #expect(try reg.delete("doomed").uuid == vm.uuid)
         #expect(try reg.list().isEmpty)
         await #expect(throws: VmRegistryError.notFound) {
@@ -145,7 +174,7 @@ import Testing
     @Test func deleteRejectedWhileNotStopped() async throws {
         let (reg, home) = try makeRegistry("deletelive.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "busy")
+        _ = try reg.create(name: "busy", bootMode: .windows)
         _ = try reg.start("busy")
         await #expect(throws: VmRegistryError.badTransition) {
             try reg.delete("busy")
@@ -155,7 +184,7 @@ import Testing
     @Test func suspendTransitions() async throws {
         let (reg, home) = try makeRegistry("suspend.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "nap")
+        _ = try reg.create(name: "nap", bootMode: .windows)
         await #expect(throws: VmRegistryError.badTransition) {
             try reg.suspend("nap")  // only running may suspend
         }
@@ -171,7 +200,7 @@ import Testing
     @Test func resumeTransitions() async throws {
         let (reg, home) = try makeRegistry("resume.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "wake")
+        _ = try reg.create(name: "wake", bootMode: .windows)
         _ = try reg.start("wake")
         await #expect(throws: VmRegistryError.badTransition) {
             try reg.resume("wake")  // running may not resume
@@ -183,7 +212,7 @@ import Testing
     @Test func stopAcceptsSuspendedRecord() async throws {
         let (reg, home) = try makeRegistry("stopsusp.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "out")
+        _ = try reg.create(name: "out", bootMode: .windows)
         _ = try reg.start("out")
         _ = try reg.suspend("out")
         #expect(try reg.stop("out").state == .stopped)
@@ -195,7 +224,7 @@ import Testing
     @Test func setAppliesAndPersists() async throws {
         let (reg, home) = try makeRegistry("set.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "cfg", cpus: 4, memoryMB: 4096)
+        _ = try reg.create(name: "cfg", cpus: 4, memoryMB: 4096, bootMode: .windows)
         let updated = try reg.set("cfg", cpus: 8, memoryMB: 8192)
         #expect(updated.cpus == 8)
         #expect(updated.memoryMB == 8192)
@@ -208,7 +237,7 @@ import Testing
     @Test func setLeavesUntouchedFieldsAlone() async throws {
         let (reg, home) = try makeRegistry("set-partial.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "part", cpus: 2, memoryMB: 2048)
+        _ = try reg.create(name: "part", cpus: 2, memoryMB: 2048, bootMode: .windows)
         let updated = try reg.set("part", memoryMB: 4096)
         #expect(updated.cpus == 2)
         #expect(updated.memoryMB == 4096)
@@ -217,7 +246,7 @@ import Testing
     @Test func setRejectedWhileNotStopped() async throws {
         let (reg, home) = try makeRegistry("setrun.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "live")
+        _ = try reg.create(name: "live", bootMode: .windows)
         _ = try reg.start("live")
         await #expect(throws: VmRegistryError.badTransition) {
             try reg.set("live", cpus: 2)
@@ -227,7 +256,7 @@ import Testing
     @Test func addSharePersists() throws {
         let (reg, home) = try makeRegistry("shares.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "sharer")
+        _ = try reg.create(name: "sharer", bootMode: .windows)
         let updated = try reg.addShare("sharer", hostPath: "/host/docs", guestPath: "/mnt/docs")
         #expect(updated.shares?.count == 1)
         #expect(updated.shares?[0].hostPath == "/host/docs")
@@ -239,7 +268,7 @@ import Testing
     @Test func addShareReplacesTheGuestPathForTheSameHostPath() throws {
         let (reg, home) = try makeRegistry("sharerep.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "sharer2")
+        _ = try reg.create(name: "sharer2", bootMode: .windows)
         _ = try reg.addShare("sharer2", hostPath: "/host/docs", guestPath: "/mnt/docs")
         let updated = try reg.addShare("sharer2", hostPath: "/host/docs", guestPath: "/mnt/other")
         #expect(updated.shares?.count == 1)
@@ -249,7 +278,7 @@ import Testing
     @Test func removeShareDropsOnlyThatShare() throws {
         let (reg, home) = try makeRegistry("sharerem.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "sharer3")
+        _ = try reg.create(name: "sharer3", bootMode: .windows)
         _ = try reg.addShare("sharer3", hostPath: "/host/a", guestPath: "/mnt/a")
         _ = try reg.addShare("sharer3", hostPath: "/host/b", guestPath: "/mnt/b")
         let updated = try reg.removeShare("sharer3", hostPath: "/host/a")
@@ -260,7 +289,7 @@ import Testing
     @Test func sharesWorkWhileTheVMRuns() throws {
         let (reg, home) = try makeRegistry("sharerun.json")
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "sharer4")
+        _ = try reg.create(name: "sharer4", bootMode: .windows)
         _ = try reg.start("sharer4")
         // a share can be added while the guest runs: the daemon mounts it live
         #expect(
@@ -292,7 +321,7 @@ import Testing
     @Test func everyOperationAcceptsAUUIDInAnyCase() throws {
         let (reg, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        let vm = try reg.create(name: "case-box")
+        let vm = try reg.create(name: "case-box", bootMode: .windows)
         let lower = vm.uuid.lowercased()
         #expect(try reg.resolve(lower).uuid == vm.uuid)
         #expect(try reg.start(lower).state == .running)
@@ -313,7 +342,7 @@ extension RegistryTests {
         defer { try? FileManager.default.removeItem(at: home) }
         let group = DispatchGroup()
         for i in 0..<16 {
-            DispatchQueue.global().async(group: group) { _ = try? reg.create(name: "box-\(i)") }
+            DispatchQueue.global().async(group: group) { _ = try? reg.create(name: "box-\(i)", bootMode: .windows) }
         }
         group.wait()
         #expect(try reg.list().count == 16)
@@ -322,7 +351,7 @@ extension RegistryTests {
     @Test func concurrentTransitionsOfDifferentVmsAreAllKept() throws {
         let (reg, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        for i in 0..<8 { _ = try reg.create(name: "vm-\(i)") }
+        for i in 0..<8 { _ = try reg.create(name: "vm-\(i)", bootMode: .windows) }
         let group = DispatchGroup()
         for i in 0..<8 {
             DispatchQueue.global().async(group: group) { _ = try? reg.start("vm-\(i)") }
@@ -337,7 +366,7 @@ extension RegistryTests {
     @Test func clipboardSyncAndTimezoneChangeWhileRunning() throws {
         let (reg, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "live")
+        _ = try reg.create(name: "live", bootMode: .windows)
         _ = try reg.start("live")
         #expect(try reg.set("live", timezone: "Europe/Berlin").timezone == "Europe/Berlin")
         let updated = try reg.set("live", clipboardSync: false)
@@ -350,7 +379,7 @@ extension RegistryTests {
     @Test func resourcesStillNeedAStoppedVm() throws {
         let (reg, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        _ = try reg.create(name: "busy")
+        _ = try reg.create(name: "busy", bootMode: .windows)
         _ = try reg.start("busy")
         #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", cpus: 2) }
         #expect(throws: VmRegistryError.badTransition) { try reg.set("busy", memoryMB: 2048) }
@@ -392,7 +421,7 @@ extension RegistryTests {
     @Test func outboxSwitchChangesWhileRunningAndMissingMeansOn() throws {
         let (reg, home) = try makeRegistry()
         defer { try? FileManager.default.removeItem(at: home) }
-        let fresh = try reg.create(name: "live")
+        let fresh = try reg.create(name: "live", bootMode: .windows)
         #expect(fresh.outbox == nil)
         #expect(fresh.acceptsOutbox)
         _ = try reg.start("live")

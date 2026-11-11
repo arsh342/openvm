@@ -1,4 +1,4 @@
-// HostTasks — long jobs the host runs for a client: fetching the Linux guest files, and later
+// HostTasks — long jobs the host runs for a client: fetching the helper VM's files, and
 // building Windows media. A job is one of a fixed list (`plan(kind:)`), never a command a client
 // names, so the socket cannot be used to run anything. Each runs as a child in its own process
 // group, so cancelling stops it and everything it started (a fetch runs curl).
@@ -24,7 +24,7 @@ nonisolated struct TaskInputs {
     var wimlib: String?
     /// The program that runs a helper VM job (this host's own executable).
     var helper: String?
-    /// The helper VM is an Alpine guest: it needs the Linux files and the install overlay.
+    /// The helper VM has what it boots from: its fetched files and the overlay.
     var helperReady = false
 }
 
@@ -49,9 +49,9 @@ nonisolated enum TaskError: Error, CustomStringConvertible {
         case .noWindowsSupport:
             return "this build cannot build Windows media: its payload has no Windows part (building that needs zig, clang and lld; see tools/build/mk-payload.sh)"
         case .needsWimlib:
-            return "building Windows media needs wimlib on this Mac (brew install wimlib), or the Linux guest files, which let openVM use a helper VM instead"
+            return "building Windows media needs wimlib on this Mac (brew install wimlib), or the helper VM's files, which let openVM do without it (task fetch-linux)"
         case .needsLinuxFiles:
-            return "this Mac has no wimlib, so openVM uses a helper VM, which needs the Linux guest files: fetch them first (task fetch-linux)"
+            return "this Mac has no wimlib, so openVM uses a helper VM, which needs its files fetched first (task fetch-linux)"
         }
     }
 }

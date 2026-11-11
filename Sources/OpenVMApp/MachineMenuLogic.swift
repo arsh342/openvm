@@ -4,7 +4,7 @@ import Foundation
 import OpenVMCore
 
 enum MachineCommand: CaseIterable {
-    case power, restart, pause, fullScreen, reverseScrolling, retinaBest, retinaScaled, shareFolder, clipboard
+    case power, restart, pause, fullScreen, reverseScrolling, shareFolder, clipboard
     case outbox, ejectInstaller
     case settings
 }
@@ -25,7 +25,7 @@ enum MachineMenuLogic {
 
     /// `vm` is nil when there are no VMs: then nothing is live.
     static func item(
-        _ command: MachineCommand, for vm: VmSummary?, scaled: Bool = false, fullScreen: Bool = false
+        _ command: MachineCommand, for vm: VmSummary?, fullScreen: Bool = false
     ) -> MachineMenuItem {
         guard let vm else { return MachineMenuItem(title: defaultTitle(command), enabled: false) }
         let state = VMToolbarLogic.state(for: vm)
@@ -39,12 +39,6 @@ enum MachineMenuLogic {
                 title: fullScreen ? "Exit Full Screen" : "Enter Full Screen", enabled: state.fullScreenEnabled)
         case .reverseScrolling:
             return MachineMenuItem(title: defaultTitle(command), enabled: true, checked: ScrollFlip.isReversed())
-        // Only openVM's own Linux guest takes a size from these. A Windows guest is held at one width for
-        // now (DisplayFit.windowsMode), and a guest from an ISO sizes itself through the framework.
-        case .retinaBest:
-            return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode == .linux, checked: !scaled)
-        case .retinaScaled:
-            return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode == .linux, checked: scaled)
         // These work through the guest agent, so a guest without one has nothing to offer.
         case .shareFolder: return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode.hasAgent)
         // A guest from its own ISO can share it through the framework's Spice agent instead (next start).
@@ -85,8 +79,6 @@ enum MachineMenuLogic {
         case .pause: return "Pause"
         case .fullScreen: return "Enter Full Screen"
         case .reverseScrolling: return "Reverse Scrolling"
-        case .retinaBest: return "Best for Retina Display"
-        case .retinaScaled: return "Scaled"
         case .shareFolder: return "Share Folder…"
         case .clipboard: return "Share Clipboard"
         case .outbox: return "Accept Files from the VM"
@@ -104,20 +96,4 @@ extension PowerButton {
         default: return title
         }
     }
-}
-
-/// Per VM: draw at the display's full pixel density, or at one pixel per point (larger, softer, and
-/// a much smaller guest screen).
-struct DisplayPreference {
-    let defaults: UserDefaults
-
-    init(defaults: UserDefaults = .standard) { self.defaults = defaults }
-
-    private func key(_ uuid: String) -> String { "display-scaled-\(uuid)" }
-
-    func isScaled(_ uuid: String) -> Bool { defaults.bool(forKey: key(uuid)) }
-    func setScaled(_ scaled: Bool, for uuid: String) { defaults.set(scaled, forKey: key(uuid)) }
-
-    /// The backing scale to fit the guest with.
-    func backingScale(for uuid: String, actual: CGFloat) -> CGFloat { isScaled(uuid) ? 1 : actual }
 }

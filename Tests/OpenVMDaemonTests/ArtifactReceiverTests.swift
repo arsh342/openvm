@@ -18,9 +18,7 @@ nonisolated struct ArtifactReceiverTests {
     private func startReceiver(
         overlay: URL?, allowsPeer: @escaping @Sendable ([UInt8]) -> Bool = { _ in true }
     ) throws -> ArtifactReceiver {
-        let registryHome = FileManager.default.temporaryDirectory.appendingPathComponent("rh-\(UUID().uuidString).json")
-        let receiver = ArtifactReceiver(
-            registry: VmRegistry(path: registryHome), port: 0, allowsPeer: allowsPeer, overlay: { overlay })
+        let receiver = ArtifactReceiver(port: 0, allowsPeer: allowsPeer, overlay: { overlay })
         try receiver.start()
         return receiver
     }
@@ -98,6 +96,16 @@ nonisolated struct ArtifactReceiverTests {
         defer { cleanup() }
         let receiver = try startReceiver(overlay: file)
         #expect(request("/openvm.apkovl.tar.gz", port: receiver.boundPort, method: "PUT").status != "HTTP/1.1 200 OK")
+    }
+
+    /// A guest used to upload its installed kernel here. Nothing is taken from a guest any more.
+    @Test func nothingCanBeUploaded() throws {
+        let (file, cleanup) = try makeOverlay()
+        defer { cleanup() }
+        let receiver = try startReceiver(overlay: file)
+        for path in ["/install/11111111-2222-3333-4444-555555555555/kernel", "/install/x/initramfs"] {
+            #expect(request(path, port: receiver.boundPort, method: "POST").status == "HTTP/1.1 404 Not Found", "\(path)")
+        }
     }
 
     @Test func onlyTheGuestSubnetIsAGuestPeer() {

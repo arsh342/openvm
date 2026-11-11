@@ -63,7 +63,7 @@ format:
 ## Everything that can be checked on this machine without booting a guest.
 check: build test guest-tests
 
-## The guest payload in .build/payload: what a checkout's openvmd serves to guests it installs.
+## The payload in .build/payload: what a checkout's openvmd builds Windows install media from.
 payload:
 	sh tools/build/mk-payload.sh .build/payload
 

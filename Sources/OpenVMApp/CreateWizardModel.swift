@@ -1,5 +1,5 @@
 // CreateWizardModel — making a VM without the command line: choose Linux or Windows, get what it
-// needs (the Linux files, or the install media built from the person's own ISO), pick a size, and
+// needs (an ISO, or the install media built from the person's own ISO), pick a size, and
 // start it. Everything it does is something `openvmctl` can do; what it adds is the order, the
 // checks before each step, and the cleanup when a run is cancelled or fails.
 //
@@ -13,7 +13,7 @@ import OpenVMCore
 
 @MainActor
 final class CreateWizardModel: ObservableObject {
-    enum OS: Equatable { case linux, windows, linuxISO }
+    enum OS: Equatable { case windows, linuxISO }
     enum Page: Equatable { case os, source, resources, account, summary, working, finished, failed(String) }
     enum ISOState: Equatable { case none, checking, usable, problem(String) }
     enum FetchState: Equatable { case idle, running(String), done, failed(String) }
@@ -29,7 +29,7 @@ final class CreateWizardModel: ObservableObject {
     private struct Cancelled: Error {}
 
     @Published private(set) var page: Page = .os
-    @Published var os: OS = .linux {
+    @Published var os: OS = .linuxISO {
         didSet {
             guard os != oldValue else { return }
             applyDefaults()
@@ -88,10 +88,10 @@ final class CreateWizardModel: ObservableObject {
 
     // MARK: sizes and names
 
-    /// A Linux install needs little, a Windows one a lot: 22 GB for the media while it is built,
+    /// A Windows install needs a lot: 22 GB for the media while it is built,
     /// and about 20 GB for what is installed.
-    static let minDiskGB: [OS: Int] = [.linux: 4, .windows: 40, .linuxISO: 16]
-    static let freeNeededMB: [OS: UInt64] = [.linux: 4 * 1024, .windows: (22 + 20) * 1024, .linuxISO: 16 * 1024]
+    static let minDiskGB: [OS: Int] = [.windows: 40, .linuxISO: 16]
+    static let freeNeededMB: [OS: UInt64] = [.windows: (22 + 20) * 1024, .linuxISO: 16 * 1024]
 
     static func nameProblem(_ name: String, existing: Set<String>) -> String? {
         if name.isEmpty { return "Give the VM a name." }
@@ -113,7 +113,7 @@ final class CreateWizardModel: ObservableObject {
     }
 
     private func defaultName(for os: OS) -> String {
-        let base = os == .windows ? "windows-11" : (os == .linuxISO ? "linux-vm" : "linux")
+        let base = os == .windows ? "windows-11" : "linux-vm"
         guard existingNames.contains(base) else { return base }
         var n = 2
         while existingNames.contains("\(base)-\(n)") { n += 1 }
@@ -123,7 +123,7 @@ final class CreateWizardModel: ObservableObject {
     private func applyDefaults() {
         cpus = 4
         memoryMB = os == .windows ? 8192 : 4096
-        diskGB = os == .linux ? 32 : 64
+        diskGB = 64
         // A name the person typed is theirs; only the one this wizard suggested is replaced.
         if name.isEmpty || name == lastDefaultName {
             name = defaultName(for: os)
@@ -158,8 +158,8 @@ final class CreateWizardModel: ObservableObject {
         }
     }
 
-    /// Fetches the Linux files, with progress. Windows needs them too when the Mac has no wimlib,
-    /// because the helper VM that builds the media is an Alpine guest.
+    /// Fetches the helper VM's files, with progress. Windows needs them when the Mac has no wimlib,
+    /// because the helper VM builds the media then.
     func fetchLinux() async {
         if case .running = fetch { return }
         fetch = .running("Starting…")
@@ -201,7 +201,8 @@ final class CreateWizardModel: ObservableObject {
 
     // MARK: what each page needs
 
-    private var haveLinuxFiles: Bool { host?.linuxReady == true || fetch == .done }
+    /// The helper VM's files: it builds the Windows installer when the Mac has no wimlib.
+    private var haveHelperFiles: Bool { host?.linuxReady == true || fetch == .done }
 
     /// Why Next is blocked on this page, or nil when it is not.
     var problem: String? {
@@ -225,9 +226,6 @@ final class CreateWizardModel: ObservableObject {
 
     private var sourceProblem: String? {
         switch os {
-        case .linux:
-            if haveLinuxFiles { return nil }
-            return downloadProblem ?? "Download the Linux files to continue."
         case .linuxISO:
             switch iso {
             case .none: return "Choose an ARM64 Linux ISO."
@@ -242,10 +240,10 @@ final class CreateWizardModel: ObservableObject {
             case .problem(let why): return why
             case .usable: break
             }
-            // The media needs wimlib: the Mac's own, or the helper VM's, which is an Alpine guest.
-            if host?.hostWimlib != true && !haveLinuxFiles {
+            // The media needs wimlib: the Mac's own, or the helper VM's.
+            if host?.hostWimlib != true && !haveHelperFiles {
                 return downloadProblem
-                    ?? "Windows setup needs the Linux files on this Mac, because they carry the tool that prepares the installer. Download them to continue."
+                    ?? "Windows setup needs a small helper download on this Mac, because it carries the tool that prepares the installer. Download it to continue."
             }
             return nil
         }
@@ -276,8 +274,6 @@ final class CreateWizardModel: ObservableObject {
                     : "Windows will ask for the password of the administrator account \(accountName) at every start. Clipboard, file drops and resizing wait until you sign in.",
                 "Setup takes about 15 to 30 minutes. You can watch it in the VM's window.",
             ]
-        case .linux:
-            return ["Alpine Linux installs itself on first start, with an XFCE desktop. This takes a few minutes."]
         case .linuxISO:
             return [
                 "The VM starts from your ISO, and you finish the distribution's own installer in its window.",

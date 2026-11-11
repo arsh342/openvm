@@ -3,7 +3,7 @@ import Foundation
 
 let usage = """
     Usage:
-      openvmctl create <name> [--cpus N] [--memoryMB N] [--diskSizeMB N] [--boot-mode linux|windows|linux-iso] [--variable-store-path PATH] [--install-media MEDIA.raw|FILE.iso]
+      openvmctl create <name> [--cpus N] [--memoryMB N] [--diskSizeMB N] --boot-mode windows|linux-iso [--variable-store-path PATH] [--install-media MEDIA.raw|FILE.iso]
       openvmctl list
       openvmctl info <name|uuid>
       openvmctl start <name|uuid>
@@ -11,7 +11,7 @@ let usage = """
       openvmctl stop <name|uuid> [--no-wait]
       openvmctl stop-all
       openvmctl host-info
-      openvmctl task start fetch-linux
+      openvmctl task start fetch-linux        (the helper VM that builds Windows media without wimlib)
       openvmctl task start windows-media --iso <file.iso> --name <name>
       openvmctl windows-iso check <file.iso>
       openvmctl linux-iso check <file.iso>
@@ -20,7 +20,7 @@ let usage = """
       openvmctl delete <name|uuid>
       openvmctl suspend <name|uuid>
       openvmctl resume <name|uuid>
-      openvmctl set <name|uuid> [--cpus N] [--memoryMB N] [--tz Zone] [--boot-mode linux|windows] [--variable-store-path PATH] [--clipboard-sync on|off]
+      openvmctl set <name|uuid> [--cpus N] [--memoryMB N] [--tz Zone] [--boot-mode windows|linux-iso] [--variable-store-path PATH] [--clipboard-sync on|off]
       openvmctl clipboard push|pull <name|uuid>
       openvmctl file push <name|uuid> <host-path> [guest-name]
       openvmctl file pull <name|uuid> <guest-name> <host-path>

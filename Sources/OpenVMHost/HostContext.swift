@@ -8,4 +8,3 @@ nonisolated let sockPath = OVMPaths.socket
 nonisolated let registry = VmRegistry()
 nonisolated let liveVMs = LiveVMs()
 nonisolated let artifactPort = UInt16(ProcessInfo.processInfo.environment["OPENVM_ARTIFACT_PORT"] ?? "8124") ?? 8124
-nonisolated let artifactReceiver = ArtifactReceiver(registry: registry, port: artifactPort)

@@ -94,7 +94,7 @@ import Testing
         let old = VmSummary(row: row())
         #expect(old?.name == "win")
         #expect(old?.state == .running)
-        #expect(old?.bootMode == .linux)  // an older host sends no bootMode
+        #expect(old?.bootMode == .alpine)  // an older host sends no bootMode, and its guests were Alpine
         #expect(old?.activity == nil)
         let new = VmSummary(
             row: row([

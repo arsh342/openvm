@@ -7,7 +7,7 @@ import Testing
 
 struct VMRowLogicTests {
     private func vm(
-        _ name: String = "w", state: String = "stopped", activity: String? = nil, bootMode: String = "linux",
+        _ name: String = "w", state: String = "stopped", activity: String? = nil, bootMode: String = "linux-iso",
         cpus: UInt64 = 4, memoryMB: UInt64 = 4096, diskBytes: UInt64? = 32 << 30
     ) -> VmSummary {
         var fields: [(key: String, value: CBOR)] = [
@@ -52,7 +52,9 @@ struct VMRowLogicTests {
 
     @Test func subtitleDescribesTheMachine() {
         #expect(
-            VMRowLogic.subtitle(for: vm(bootMode: "linux")) == "Linux · 4 CPUs · 4 GB memory · 32 GB disk")
+            VMRowLogic.subtitle(for: vm(bootMode: "linux-iso")) == "Linux · 4 CPUs · 4 GB memory · 32 GB disk")
+        // one an earlier openVM made says that it cannot run any more
+        #expect(VMRowLogic.subtitle(for: vm(bootMode: "linux")).hasPrefix("Alpine Linux (no longer supported) · "))
         #expect(
             VMRowLogic.subtitle(for: vm(bootMode: "windows", cpus: 1, memoryMB: 512, diskBytes: 64 << 30))
                 == "Windows · 1 CPU · 512 MB memory · 64 GB disk")

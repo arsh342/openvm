@@ -3,6 +3,11 @@
 What was measured about the VM window, and what is still to be checked by hand. Facts are
 marked **measured** (with how) or **to check**.
 
+**A note on "Linux guest" below.** Until 2026-11-11 openVM made its own Alpine Linux guest, with
+openVM's agent, and most Linux measurements here were taken on it. That guest is gone: Linux now
+installs from the distribution's own ISO, with no openVM tools (see "Another Linux, from an ISO").
+What was measured on the Alpine guest is kept as a record, and says so where it matters.
+
 ## The window
 
 * **Measured.** `VZVirtualMachineView` shows a guest only if the live `VZVirtualMachine` is in the
@@ -19,7 +24,7 @@ marked **measured** (with how) or **to check**.
 
 ## Reported by the owner
 
-* **Reported 2026-11-06, Linux guest (srv1), Retina Mac.** Typing and the pointer work inside the
+* **Reported 2026-11-06, the Alpine guest (srv1), Retina Mac.** Typing and the pointer work inside the
   window. A screenshot from the owner shows the guest's XFCE desktop filling the window,
   titled with the VM's name. Not yet covered: non-US layouts and Option-key characters,
   pointer accuracy measured against targets, and anything on a Windows guest.
@@ -45,7 +50,7 @@ and write the result next to each line.
 
 ## Resize and scale
 
-* **Measured 2026-11-06, Linux guest, Retina Mac.** A guest started under a 1280 x 720 point
+* **Measured 2026-11-06, the Alpine guest, Retina Mac.** A guest started under a 1280 x 720 point
   window came up at 2560 x 1440 pixels, read from the guest's own screen capture
   (`openvmctl display capture`, then `file pull`): the window's size in points times the
   backing scale of 2.
@@ -135,9 +140,9 @@ menu-bar icon brings a window back; host sleep with a window open pauses and res
 * **View, Actions and Devices** are in the menu bar and, as submenus, under the menu-bar icon. One
   piece of code (`MachineMenus`) feeds both, so they cannot disagree.
   * View: Enter or Exit Full Screen, Reverse Scrolling (no effect on a trackpad yet, see "Known fault: Reverse Scrolling"; on by default: scrolling in both guests ran the
-    opposite way to the Mac's), and Retina Resolution (Best for Retina Display, or Scaled).
-    Scaled asks for one pixel per point: a larger, softer picture and a much smaller guest screen.
-    The choice is kept per VM.
+    opposite way to the Mac's).
+    Retina Resolution (Best for Retina Display, or Scaled) was removed with the Alpine guest, the only
+    guest that took a size from it; it comes back with Retina sizes for Windows.
   * Actions: Start or Shut Down (or Cancel Start), Restart, Pause or Resume, and Settings.
   * Devices: Share Clipboard and Accept Files from the VM (ticked when on), and Share Folder.
   * They act on the **current VM**: the one last in front or last chosen under the icon, else a live
@@ -189,20 +194,20 @@ memory of a stopped VM takes effect at its next start.
 File > New Virtual Machine (Cmd+N), or "New VM…" in the library. It does nothing a person could not
 do with `openvmctl`; what it adds is the order, the checks before each step, and the cleanup.
 
-1. **System.** Linux or Windows 11. Choosing resets the defaults: Linux 4 CPUs, 4 GB, 32 GB disk;
-   Windows 4 CPUs, 8 GB, 64 GB disk. The suggested name is taken only if it is free
-   (`linux`, `linux-2`, …).
-2. **Source.** Linux: the Linux files, fetched with live progress if they are not there yet. Windows:
-   the person's own ISO, checked at once by `windows-iso-check` (an x64 ISO, a Linux ISO or an ISO
-   with `install.esd` is refused with the reason, and Continue stays off). With no wimlib on the Mac
-   the media is built in a helper VM, which needs the Linux files, so those are offered here too.
-3. **Size.** Name (valid, and not already used), CPUs and memory within what this Mac allows, disk.
+1. **System.** Linux from an ISO (where the wizard opens) or Windows 11. Choosing resets the
+   defaults: Linux 4 CPUs, 4 GB, 64 GB disk; Windows 4 CPUs, 8 GB, 64 GB disk. The suggested name is
+   taken only if it is free (`linux-vm`, `linux-vm-2`, …; `windows-11`, …).
+2. **Source.** The person's own ISO. Linux: checked at once by `linux-iso-check` (an x86-64 ISO is
+   refused with the reason). Windows: checked by `windows-iso-check` (an x64 ISO, a Linux ISO or an
+   ISO with `install.esd` is refused, and Continue stays off). With no wimlib on the Mac the Windows
+   media is built in a helper VM, which needs a small download, so that is offered here too.
+3. **Resources.** Name (valid, and not already used), CPUs and memory within what this Mac allows, disk.
    Continue is off, with the reason, if the disk is too small for the system, or the Mac does not
    have the free space: Windows needs about 42 GB (22 GB for the media while it is built, about
-   20 GB for Windows), Linux about 4 GB.
-4. **Summary.** For Windows it says the guest has a local account `openvm` with the password
-   `openvm`, to be changed after setup.
-5. **Run.** Windows: build the media (progress is the build's last line), create the VM with it.
+   20 GB for Windows), Linux from an ISO about 16 GB.
+4. **Account** (Windows only). The user name, the password and whether to sign in automatically.
+5. **Summary.** What will happen, including what signing in means. The password is never shown.
+6. **Run.** Windows: build the media (progress is the build's last line), create the VM with it.
    Both: create, open the VM's window so the install can be watched, start. The wizard is not modal.
 
 **Cleanup is the point of the design.**
@@ -221,7 +226,7 @@ do with `openvmctl`; what it adds is the order, the checks before each step, and
 
 **Measured on real hosts** (`OPENVM_E2E=1 make test`; these start a real `openvmd`):
 
-* Cancelling a Linux install while it boots left no VM and no disk folder (1 s).
+* Cancelling an Alpine install while it booted left no VM and no disk folder (1 s; that test went with the Alpine guest).
 * Cancelling a Windows media build with the real ISO, while the image existed and the ISO and image
   were mounted, left no media file, no attached image and no VM (4 s).
 * Killing the media script used to leave the ISO and the image attached. It now stops on SIGTERM and
@@ -278,9 +283,10 @@ photo from Photos, and a 1 GiB file on each guest; the guest must keep answering
 mouse input must still work over the whole screen. Not yet measured: whether the view reports
 drag events while the guest has the pointer captured.
 
-## Sending files from a guest (Linux)
+## Sending files from a guest
 
-A guest sends files through the VM's `outbox` share (writable, present from boot). `openvm-send`
+Measured first on the Alpine guest, which is gone; Windows works the same way (`docs/windows-guests.md`,
+"Sending files to the Mac"). A guest sends files through the VM's `outbox` share (writable, present from boot). `openvm-send`
 (run by the desktop user, from Thunar's "Send to Mac" or `openvmctl drag send`) builds a set under a
 hidden name, writes `.ready` last, and renames it into place; the host reacts to that one event, vets
 the set (`OutboxRules`), moves it to `~/Downloads/openVM/<vm>/` and marks it quarantined.
@@ -293,22 +299,12 @@ the next run and the cause is not found.
 
 ## A guest that restarts itself
 
-The framework reports a guest's restart as a stop, so without help a VM that restarts (an update,
-`reboot`) would end up Stopped. For Linux guests the host now starts it again, so the window stays on
-a running VM.
+The framework reports a guest's restart as a stop. The Alpine guest worked around that: its agent
+printed `going down: reboot` on the console and the host started it again. That went with the Alpine
+guest (record: `docs/evidence/linux-smoke-restart-2026-11-06.txt`). A Linux guest from an ISO has no
+agent, so a restart from inside may stop the VM; press Start.
 
-* **How it knows.** The kernel's own `reboot: Restarting system` / `Power down` lines never reach the
-  console before the machine is gone (measured: the log ends at OpenRC's "Terminating remaining
-  processes"). So the guest agent, when OpenRC stops it, reads OpenRC's softlevel (`reboot` or
-  `shutdown`) and prints `openvm-tools: going down: <level>` on the console, which the host keeps for
-  each boot. Measured on a real guest: a shutdown prints `going down: shutdown` and is not restarted
-  (`docs/evidence/linux-smoke-restart-2026-11-06.txt`).
-* **Not measured:** the `reboot` value, because nothing in the smoke can make a guest restart itself.
-  To check by hand: run `reboot` inside a Linux guest with its window open; it should come back
-  without anything being pressed.
-* **Never guessed.** A guest that says nothing, or a host-requested stop, is not restarted. At most
-  three automatic restarts in five minutes, so a guest that restarts the moment it boots cannot loop.
-* **Windows needs none of this.** A restart from the Start menu comes back by itself, with the VM never leaving
+* **Windows needs no help.** A restart from the Start menu comes back by itself, with the VM never leaving
   Running (owner, 2026-11-10; also seen on 2026-11-07 and 08, when Start-menu restarts and two crash reboots all
   kept the VM Running). This was earlier written down as a bug without being tried. Why Windows differs is
   not known; a likely reason is that it resets through the firmware, which the framework carries out as a reset
@@ -413,7 +409,7 @@ that survives a restart. It is not the cause of the scramble.
 **Stopgap.** The app holds a Windows guest at 1024 pixels wide, with the height following the window
 (`DisplayFit.windowsMode`), so the picture stays correct (measured: three clean captures at 1024x643, 1024x590 and 1024x640, across a restart and
 in use),  but softer than a Retina display can show,
-and the Retina Resolution menu is off for Windows. `openvmctl display set` is not held, so it can still
+and there is no Retina Resolution menu. `openvmctl display set` is not held, so it can still
 scramble. Retina sizes for Windows need the cause found.
 
 ## Another Linux, from an ISO

@@ -1,8 +1,7 @@
-// GuestBoot — the proven alpine netboot boot path,
-// moved into the daemon for `openvmd start`. Boots the alpine ARM64
-// kernel + initramfs directly (bootloaders only matter for ISO/disk installs),
-// waits for a boot marker on the guest serial console, and tracks live machines for
-// `stop`.
+// GuestBoot — starting a guest, and the table of the ones that are live.
+//
+// A Windows guest and a Linux guest from its own ISO both start through UEFI. The Alpine netboot
+// pieces here (the kernel command line, the fetched files) are what the helper VM boots from.
 //
 // Threading: Virtualization demands the main dispatch queue; all VZ work runs in
 // @MainActor boot(), while supportArtifacts is plain filesystem work so the
@@ -135,8 +134,6 @@ nonisolated enum GuestBootError: Error, CustomStringConvertible {
 }
 
 enum GuestBoot {
-    nonisolated static let markers = ["Welcome to Alpine", "OpenRC"]
-
     nonisolated static let cmdline =
         "console=ttyAMA0,115200n8 console=hvc0 ip=dhcp modules=loop,squashfs,sd-mod,usb-storage,ext4 "
         + "alpine_repo=https://dl-cdn.alpinelinux.org/alpine/v3.22/main " + "modloop=\(mirrorModloop)"
@@ -144,40 +141,26 @@ enum GuestBoot {
     nonisolated static let mirrorModloop =
         "https://dl-cdn.alpinelinux.org/alpine/v3.22/releases/aarch64/netboot/modloop-virt"
 
-    /// Netboot installs Alpine on first start. Persistent boots must use the
-    /// matching kernel/initramfs pair exported from that installed system.
-    nonisolated static func effectiveCmdline(
-        rootDevice: String?, installDisk: Bool, vmUUID: String, artifactPort: UInt16,
-        artifactToken: String? = nil, modloopPinned: Bool = false,
+    /// The kernel command line of a netboot: Alpine from RAM, set up by the overlay.
+    nonisolated static func netbootCmdline(
+        artifactPort: UInt16, modloopPinned: Bool = false,
         environment: [String: String] = ProcessInfo.processInfo.environment, payloadOverlay: Bool = false
     ) -> String {
         let url = environment["OPENVM_APKOVL_URL"] ?? ""
         var result = cmdline
-        // Only netboot uses the modloop. The mirror's copy is the fallback for a
-        // support directory from before it was pinned, and works only until
-        // Alpine's next kernel update.
-        if rootDevice == nil, modloopPinned {
+        // The mirror's copy of the modloop is the fallback for a support directory from before it
+        // was pinned, and works only until Alpine's next kernel update.
+        if modloopPinned {
             result = result.replacingOccurrences(
                 of: mirrorModloop, with: "http://192.168.64.1:\(artifactPort)/\(ArtifactReceiver.modloopName)"
             )
         }
-        // The overlay is what makes a first boot install Alpine and start the agent; without it the
-        // guest is stock Alpine (measured: no installer, no agent). An explicit URL wins, which is
-        // how the smoke serves its own; otherwise the host serves the one shipped in its payload.
-        if rootDevice == nil {
-            if !url.isEmpty {
-                result += " apkovl=\(url)"
-            } else if payloadOverlay {
-                result += " apkovl=http://192.168.64.1:\(artifactPort)/\(GuestPayload.overlayName)"
-            }
-        }
-        if let rootDevice {
-            result += " root=\(rootDevice) rootfstype=ext4 rw"
-        } else if installDisk {
-            result += " openvm.install=1 openvm.uuid=\(vmUUID) openvm.artifact-port=\(artifactPort)"
-            // The guest presents this in X-OpenVM-Token when it uploads the
-            // installed kernel/initramfs; ArtifactReceiver refuses anything else.
-            if let artifactToken { result += " openvm.artifact-token=\(artifactToken)" }
+        // Without the overlay the guest is stock Alpine, with no job script. An explicit URL wins,
+        // which is how a test serves its own; otherwise the host serves the one in its payload.
+        if !url.isEmpty {
+            result += " apkovl=\(url)"
+        } else if payloadOverlay {
+            result += " apkovl=http://192.168.64.1:\(artifactPort)/\(GuestPayload.overlayName)"
         }
         return result
     }
@@ -189,7 +172,7 @@ enum GuestBoot {
         return FileManager.default.fileExists(atPath: file.path) ? file : nil
     }
 
-    /// Where the fetched Linux guest files live: `OPENVM_SUPPORT`, else `~/openvm-support`.
+    /// Where the helper VM's fetched files live: `OPENVM_SUPPORT`, else `~/openvm-support`.
     nonisolated static func supportBase() -> URL {
         let env = ProcessInfo.processInfo.environment["OPENVM_SUPPORT"] ?? ""
         return env.isEmpty
@@ -197,9 +180,7 @@ enum GuestBoot {
             : URL(fileURLWithPath: env)
     }
 
-    /// nil when the alpine support artifacts are absent, so callers may fall
-    /// back to a registry-only transition (openvmctl stays usable without the
-    /// guest bits installed).
+    /// The helper VM's kernel and initramfs, or nil when they are not fetched yet.
     nonisolated static func supportArtifacts() -> (kernel: URL, initramfs: URL)? {
         let dir = supportBase().appendingPathComponent("linux-arm64")
         let kernel = dir.appendingPathComponent("vmlinuz")
@@ -210,15 +191,12 @@ enum GuestBoot {
         return (kernel, initramfs)
     }
 
-    /// Boots Alpine and returns the live machine after its first disk install
-    /// completes, or after persistent-root boot, with the agent listening. On marker
-    /// timeout the guest is stopped before throwing, so nothing keeps running.
-    /// The console file is truncated per boot.
-    @MainActor
+    /// Starts a guest in its record's mode and returns the live machine.
+        @MainActor
     static func boot(
         cpus: Int, memoryMB: Int, consoleURL: URL, diskURL: URL?, vmUUID: String, artifactPort: UInt16,
-        timezone: String? = nil, bootMode: BootMode = .linux, variableStorePath: String? = nil,
-        artifactToken: String? = nil, shares: [VmShare] = [], installMediaPath: String? = nil,
+        timezone: String? = nil, bootMode: BootMode, variableStorePath: String? = nil,
+        shares: [VmShare] = [], installMediaPath: String? = nil,
         machineIdentifier: Data? = nil, sharesClipboard: Bool = false,
         publish: @MainActor (LiveGuest?) -> Void = { _ in }
     ) async throws -> LiveGuest {
@@ -240,150 +218,7 @@ enum GuestBoot {
                 throw GuestBootError.failure("Windows boot requires macOS 13.0 or newer")
             }
         }
-        guard let artifacts = supportArtifacts() else {
-            throw GuestBootError.failure("run tools/build/fetch-linux.sh")
-        }
-        try? FileManager.default.removeItem(at: consoleURL)
-
-        let installRecordURL = diskURL?.appendingPathExtension("openvm-installed")
-        let installedRoot = installRecordURL.flatMap { try? String(contentsOf: $0, encoding: .utf8) }
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .flatMap { $0.hasPrefix("/dev/") ? $0 : nil }
-
-        let kernelURL: URL
-        let initramfsURL: URL
-        if installedRoot != nil, let diskURL {
-            let installedKernel = diskURL.appendingPathExtension("openvm-kernel")
-            let installedInitramfs = diskURL.appendingPathExtension("openvm-initramfs")
-            guard FileManager.default.fileExists(atPath: installedKernel.path),
-                FileManager.default.fileExists(atPath: installedInitramfs.path)
-            else {
-                throw GuestBootError.failure(
-                    "persistent boot artifacts are missing for this disk; first-boot mkinitfs export is required"
-                )
-            }
-            kernelURL = installedKernel
-            initramfsURL = installedInitramfs
-        } else {
-            kernelURL = artifacts.kernel
-            initramfsURL = artifacts.initramfs
-        }
-
-        let modloopPinned = pinnedModloop() != nil
-        if !modloopPinned, installedRoot == nil {
-            FileHandle.standardError.write(
-                Data(
-                    "openvmd: no pinned modloop; using Alpine's mirror, which breaks at its next kernel update (run tools/build/fetch-linux.sh)\n"
-                        .utf8))
-        }
-        let loader = VZLinuxBootLoader(kernelURL: kernelURL)
-        loader.initialRamdiskURL = initramfsURL
-        loader.commandLine = effectiveCmdline(
-            rootDevice: installedRoot,
-            installDisk: diskURL != nil && installedRoot == nil,
-            vmUUID: vmUUID, artifactPort: artifactPort,
-            artifactToken: artifactToken,
-            modloopPinned: modloopPinned, payloadOverlay: GuestPayload.overlay != nil)
-
-        let console = VZVirtioConsoleDeviceSerialPortConfiguration()
-        console.attachment = try VZFileSerialPortAttachment(url: consoleURL, append: false)
-
-        let nic = VZVirtioNetworkDeviceConfiguration()
-        nic.attachment = VZNATNetworkDeviceAttachment()
-
-        let config = VZVirtualMachineConfiguration()
-        config.bootLoader = loader
-        config.cpuCount = cpus
-        config.memorySize = UInt64(memoryMB) << 20
-        config.serialPorts = [console]
-        // Dedicated OVMC channel, on vsock rather than virtio-console:
-        // VZ never activates a FileHandle-attached second serial port — the guest
-        // sees both vports host-disconnected (ENXIO on open) — so the channel rides
-        // the first-class virtio-vsock device; the guest agent listens on port 52.
-        config.socketDevices = [VZVirtioSocketDeviceConfiguration()]
-        if let diskURL {
-            let attachment = try VZDiskImageStorageDeviceAttachment(url: diskURL, readOnly: false)
-            config.storageDevices = [VZVirtioBlockDeviceConfiguration(attachment: attachment)]
-        }
-        config.networkDevices = [nic]
-        config.platform = VZGenericPlatformConfiguration()
-        // Shared folders ride virtio-fs (tag "openvm"); the share set can be
-        // replaced while the VM runs (SharedFolders.apply).
-        config.directorySharingDevices = [
-            SharedFolders.device(
-                for: shares, drops: try dropRoot(vmUUID, create: true), outbox: try outboxRoot(vmUUID, create: true))
-        ]
-        // The display dynamic resolution acts on (DisplayControl.swift).
-        if #available(macOS 13.0, *) {
-            let display = VZVirtioGraphicsDeviceConfiguration()
-            display.scanouts = [
-                VZVirtioGraphicsScanoutConfiguration(widthInPixels: 1920, heightInPixels: 1080)
-            ]
-            config.graphicsDevices = [display]
-            config.keyboards = [VZUSBKeyboardConfiguration()]
-            config.pointingDevices = [VZUSBScreenCoordinatePointingDeviceConfiguration()]
-        }
-        config.audioDevices = [HostAudio.device()]
-        try config.validate()
-
-        let vm = VZVirtualMachine(configuration: config)
-        // Published before it starts, so a window can show the boot from its first frame.
-        let guest = LiveGuest(vm: vm, uuid: vmUUID)
-        publish(guest)
-        try await vm.start()
-
-        let timeoutSeconds = installedRoot == nil && diskURL != nil ? 1800 : 120
-        let deadline = Date().addingTimeInterval(Double(timeoutSeconds))
-        while Date() < deadline {
-            try await Task.sleep(nanoseconds: 500_000_000)
-            guard vm.state == .running || vm.state == .starting else {
-                throw GuestBootError.failure("the guest stopped during boot (state \(vm.state.rawValue))")
-            }
-            if let data = try? Data(contentsOf: consoleURL) {
-                let text = String(decoding: data, as: UTF8.self)
-                if installedRoot == nil, diskURL != nil,
-                    let root = installedRootMarker(in: text)
-                {
-                    guard let diskURL,
-                        FileManager.default.fileExists(
-                            atPath: diskURL.appendingPathExtension("openvm-kernel").path),
-                        FileManager.default.fileExists(
-                            atPath: diskURL.appendingPathExtension("openvm-initramfs").path)
-                    else {
-                        continue
-                    }
-                    guard await GuestChannel.responds(guest) else { continue }
-                    try Data(root.utf8).write(to: installRecordURL!, options: .atomic)
-                    await syncClock(guest, timezone: timezone)
-                    return guest
-                }
-                if installedRoot != nil,
-                    markers.contains(where: { text.contains($0) }),
-                    await GuestChannel.responds(guest)
-                {
-                    await syncClock(guest, timezone: timezone)
-                    return guest
-                }
-                if diskURL == nil,
-                    markers.contains(where: { text.contains($0) })
-                {
-                    await syncClock(guest, timezone: timezone)
-                    return guest
-                }
-            }
-        }
-
-        // Marker timeout: stop the guest so nothing keeps running, then fail.
-        try await GuestShutdown.stop(
-            isStopped: { vm.state == .stopped },
-            requestStop: { try vm.requestStop() },
-            forceStop: { try await vm.stop() })
-        let text = String(decoding: (try? Data(contentsOf: consoleURL)) ?? Data(), as: UTF8.self)
-        let reason =
-            text.contains("emergency recovery shell")
-            ? "guest is in the initramfs emergency recovery shell (boot media not mounted)"
-            : "guest did not reach boot readiness with a responding openvm-tools agent"
-        throw GuestBootError.failure("\(reason); console tail:\n\(String(text.suffix(400)))")
+        throw GuestBootError.failure("openVM no longer runs Alpine guests")
     }
 
     /// Boots a Windows guest. A disk that is not installed yet first runs the
@@ -519,14 +354,5 @@ enum GuestBoot {
         } catch {
             FileHandle.standardError.write("openvmd: guest timesync skipped: \(error)\n".data(using: .utf8)!)
         }
-    }
-
-    private static func installedRootMarker(in console: String) -> String? {
-        for line in console.split(separator: "\n").reversed() {
-            guard let range = line.range(of: "OPENVM_DISK_READY=/dev/") else { continue }
-            let candidate = line[range.upperBound...].prefix { $0.isLetter || $0.isNumber }
-            if !candidate.isEmpty { return "/dev/\(candidate)" }
-        }
-        return nil
     }
 }

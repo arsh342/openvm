@@ -6,7 +6,8 @@ public nonisolated struct HostInfo: Sendable, Equatable {
     public let maxCpus: Int
     public let maxMemoryMB: Int
     public let freeDiskMB: UInt64
-    /// The Linux guest files have been fetched.
+    /// The helper VM's files have been fetched. The key keeps its first name, from when they were also
+    /// what a Linux guest was built from.
     public let linuxReady: Bool
     /// The Mac has `wimlib-imagex`, which building Windows media prefers.
     public let hostWimlib: Bool

@@ -49,7 +49,7 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
         self.name = name
         self.state = state
         self.activity = text("activity")
-        self.bootMode = text("bootMode").flatMap(BootMode.init(rawValue:)) ?? .linux
+        self.bootMode = text("bootMode").flatMap(BootMode.init(rawValue:)) ?? .alpine
         self.cpus = Int(number("cpus") ?? 0)
         self.memoryMB = Int(number("memoryMB") ?? 0)
         self.diskBytes = number("diskBytes")

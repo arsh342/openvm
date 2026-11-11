@@ -16,7 +16,6 @@ struct MachineMenuActions {
     let toggleFullScreen: (VmSummary) -> Void
     let shareFolder: (VmSummary) -> Void
     /// The resolution choice changed: fit the guest again.
-    let displayChanged: (VmSummary) -> Void
     let isFullScreen: (String) -> Bool
     let lastUsed: () -> String?
     let use: (String) -> Void
@@ -26,16 +25,14 @@ struct MachineMenuActions {
 final class MachineMenus: NSObject, NSMenuDelegate {
     private let model: VMListModel
     private let actions: MachineMenuActions
-    private let preference: DisplayPreference
     /// Marks the rows at the top of the icon's menu, which are rebuilt each time it opens.
     private static let dynamicTag = 7001
     private var commands: [ObjectIdentifier: MachineCommand] = [:]
     private var statusRoot: NSMenu?
 
-    init(model: VMListModel, actions: MachineMenuActions, preference: DisplayPreference = DisplayPreference()) {
+    init(model: VMListModel, actions: MachineMenuActions) {
         self.model = model
         self.actions = actions
-        self.preference = preference
     }
 
     private var current: VmSummary? { MachineMenuLogic.current(in: model.vms, lastUsed: actions.lastUsed()) }
@@ -48,17 +45,6 @@ final class MachineMenus: NSObject, NSMenuDelegate {
         full.keyEquivalent = "f"
         full.keyEquivalentModifierMask = [.command, .control]
         add(.reverseScrolling, to: menu)
-        menu.addItem(.separator())
-        let retina = NSMenuItem(title: "Retina Resolution", action: nil, keyEquivalent: "")
-        retina.submenu = resolutionMenu()
-        menu.addItem(retina)
-        return menu
-    }
-
-    func resolutionMenu() -> NSMenu {
-        let menu = make("Retina Resolution")
-        add(.retinaBest, to: menu)
-        add(.retinaScaled, to: menu)
         return menu
     }
 
@@ -146,7 +132,7 @@ final class MachineMenus: NSObject, NSMenuDelegate {
     private func apply(_ command: MachineCommand, to item: NSMenuItem) {
         let vm = current
         let state = MachineMenuLogic.item(
-            command, for: vm, scaled: vm.map { preference.isScaled($0.uuid) } ?? false,
+            command, for: vm,
             fullScreen: vm.map { actions.isFullScreen($0.uuid) } ?? false)
         item.title = state.title
         item.isEnabled = state.enabled
@@ -205,9 +191,6 @@ final class MachineMenus: NSObject, NSMenuDelegate {
             }
         case .fullScreen: actions.toggleFullScreen(vm)
         case .reverseScrolling: ScrollFlip.setReversed(!ScrollFlip.isReversed())
-        case .retinaBest, .retinaScaled:
-            preference.setScaled(command == .retinaScaled, for: vm.uuid)
-            actions.displayChanged(vm)
         case .shareFolder: actions.shareFolder(vm)
         case .clipboard: await model.setClipboardSync(vm, !vm.clipboardSync)
         case .outbox: await model.setOutbox(vm, !vm.outbox)

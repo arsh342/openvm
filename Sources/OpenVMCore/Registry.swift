@@ -12,13 +12,20 @@ public nonisolated enum VmState: String, Codable, Sendable {
 
 /// Boot mode of the VM. Determines which boot loader and device model to use.
 public nonisolated enum BootMode: String, Codable, Sendable {
-    case linux, windows
+    /// openVM's own Alpine guest, which it no longer makes or runs. The value stays, spelt as it was
+    /// written, because a record with a value the reader does not know fails the whole registry read.
+    case alpine = "linux"
+    case windows
     /// Any ARM64 Linux, booted by UEFI from its own ISO, with its own installer.
     case linuxISO = "linux-iso"
 
-    /// Whether the guest runs openVM's agent. A distribution's own install has none, so nothing
-    /// that needs the guest channel (clipboard, drops, sending files, the clock) applies to it.
-    public var hasAgent: Bool { self != .linuxISO }
+    /// Whether the guest runs openVM's agent. Only Windows guests do: a distribution's own install has
+    /// none, so nothing that needs the guest channel (clipboard, drops, sending files, the clock)
+    /// applies to it, and an Alpine guest never runs.
+    public var hasAgent: Bool { self == .windows }
+
+    /// The modes a VM can be made in, or changed to.
+    public static let offered: [BootMode] = [.windows, .linuxISO]
 }
 
 /// One VM, as stored in vms.json. See docs/vm-records.md.
@@ -31,7 +38,7 @@ public nonisolated struct VmRecord: Codable, Sendable, Equatable {
     public var diskPath: String?
     public var timezone: String?  // IANA zone (e.g. "Europe/Berlin"); nil = guest default
     public var shares: [VmShare]?  // host folders exported into the guest; nil = none
-    public var bootMode: BootMode?  // linux (default) or windows
+    public var bootMode: BootMode?  // windows or linux-iso; absent in the oldest records, which were Alpine guests
     public var variableStorePath: String?  // Windows: EFI variable store path
     public var installMediaPath: String?  // Windows: media from tools/build/mk-windows-media.sh, used until installed
     public var machineIdentifier: String?  // Windows: base64 VZGenericMachineIdentifier, stable across boots
@@ -44,8 +51,18 @@ public nonisolated struct VmRecord: Codable, Sendable, Equatable {
     /// through the framework's Spice agent, which shares passwords too, so it waits to be asked.
     public var syncsClipboard: Bool { clipboardSync ?? (bootMode != .linuxISO) }
 
-    /// The VM boots openVM's own Alpine netboot path: it needs the Linux files, and the host serves them.
-    public var usesNetboot: Bool { (bootMode ?? .linux) == .linux }
+    /// The mode this VM boots in. A record written before the field existed has none, and those were
+    /// all Alpine guests.
+    public var mode: BootMode { bootMode ?? .alpine }
+
+    /// An Alpine guest from an earlier openVM. It stays in the list and can be deleted, but not started.
+    public var isRetiredAlpine: Bool { mode == .alpine }
+
+    /// What `start` and `set` say about such a VM.
+    public var retiredAlpineMessage: String {
+        "\(name) is an Alpine guest, which openVM no longer runs. Deleting it removes its disk"
+            + (diskPath.map { ", so copy \($0) first if you want to keep it" } ?? "")
+    }
 
     /// Whether files the guest sends are taken to the Mac. Missing means on.
     public var acceptsOutbox: Bool { outbox ?? true }
@@ -200,7 +217,7 @@ public nonisolated struct VmRegistry: Sendable {
     /// Adds a stopped VM. The name must be valid and unused.
     public func create(
         name: String, cpus: Int = 4, memoryMB: Int = 4096,
-        diskPath: String? = nil, bootMode: BootMode = .linux,
+        diskPath: String? = nil, bootMode: BootMode,
         variableStorePath: String? = nil, installMediaPath: String? = nil
     ) throws -> VmRecord {
         guard Self.validName(name) else { throw VmRegistryError.nameInvalid }

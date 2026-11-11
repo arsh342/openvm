@@ -1,4 +1,4 @@
-// The helper-VM boot script in the install overlay: a boot with `openvm.job=wim` runs one job
+// The helper-VM boot script in the overlay: a boot with `openvm.job=wim` runs one job
 // from a shared folder and powers off; any other boot is left alone. Run here against fake
 // `mount`, `apk` and `poweroff`, so every branch, including the failures, needs no VM.
 import Foundation
@@ -68,7 +68,7 @@ private final class Sandbox: @unchecked Sendable {
 }
 
 /// The overlay as the host builds it.
-private let overlay: (job: String, agent: String) = {
+private let overlay: (job: String, agent: String, files: [String]) = {
     let out = FileManager.default.temporaryDirectory.appendingPathComponent("job-overlay-\(UUID().uuidString)")
     defer { try? FileManager.default.removeItem(at: out) }
     let process = Process()
@@ -82,7 +82,14 @@ private let overlay: (job: String, agent: String) = {
     func read(_ path: String) -> String {
         (try? String(contentsOf: out.appendingPathComponent("stage/etc/local.d/\(path)"), encoding: .utf8)) ?? ""
     }
-    return (read("openvm-job.start"), read("openvm-tools.start"))
+    // Everything in the overlay that is not a directory, by path.
+    let stage = out.appendingPathComponent("stage")
+    var files: [String] = []
+    for case let path as String in FileManager.default.enumerator(atPath: stage.path) ?? FileManager.DirectoryEnumerator() {
+        let type = (try? FileManager.default.attributesOfItem(atPath: stage.appendingPathComponent(path).path))?[.type]
+        if type as? FileAttributeType != .typeDirectory { files.append(path) }
+    }
+    return (read("openvm-job.start"), read("openvm-tools.start"), files.sorted())
 }()
 
 /// Written to disk once, so each test runs the script from a file.
@@ -154,12 +161,9 @@ private func scriptFile(_ text: String, in sandbox: Sandbox, named name: String)
         #expect(sandbox.recorded.contains { $0.hasPrefix("poweroff") })
     }
 
-    @Test func theAgentScriptStandsDownForAJob() throws {
-        #expect(!overlay.agent.isEmpty)
-        let sandbox = try Sandbox(jobScript: "touch ran\n")
-        let script = try scriptFile(overlay.agent, in: sandbox, named: "tools.start")
-        let result = try sandbox.run(script, cmdline: sandbox.cmdline("openvm.job=wim"))
-        #expect(result.status == 0)
-        #expect(!result.output.contains("preparing virtio-vsock"))  // it did not start its own boot work
+    /// The overlay used to install Alpine and build the guest agent as well. Only the job is left.
+    @Test func theOverlayCarriesNothingButTheJob() {
+        #expect(overlay.agent.isEmpty)  // no agent start script
+        #expect(overlay.files == ["etc/.default_boot_services", "etc/local.d/openvm-job.start", "etc/runlevels/default/local"])
     }
 }

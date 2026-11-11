@@ -93,7 +93,7 @@ struct VMSettingsModelTests {
     }
 
     @Test func soundIsOnlyOfferedForARunningWindowsGuest() async {
-        let (linux, _) = await model(FakeTransport.summary(state: "running", bootMode: "linux"))
+        let (linux, _) = await model(FakeTransport.summary(state: "running", bootMode: "linux-iso"))
         let (stopped, _) = await model(FakeTransport.summary(state: "stopped", bootMode: "windows"))
         let (windows, _) = await model(FakeTransport.summary(state: "running", bootMode: "windows"))
         #expect(!linux.soundAvailable)

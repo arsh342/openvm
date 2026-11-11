@@ -53,9 +53,9 @@ enum WimHelperVM {
         artifactPort: UInt16, modloopPinned: Bool,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> String {
-        GuestBoot.effectiveCmdline(
-            rootDevice: nil, installDisk: false, vmUUID: "helper", artifactPort: artifactPort,
-            modloopPinned: modloopPinned, environment: environment, payloadOverlay: true)
+        GuestBoot.netbootCmdline(
+            artifactPort: artifactPort, modloopPinned: modloopPinned, environment: environment,
+            payloadOverlay: true)
             + " openvm.job=wim"
     }
 
@@ -64,16 +64,16 @@ enum WimHelperVM {
     static func run(jobDir: URL, isoRoot: URL, timeout: TimeInterval = 30 * 60) async throws {
         guard let artifacts = GuestBoot.supportArtifacts() else {
             throw HelperJobError.notReady(
-                "the Linux guest files are not fetched yet; the helper VM is an Alpine guest (run: openvmctl task start fetch-linux)")
+                "the helper VM's files are not fetched yet (run: openvmctl task start fetch-linux)")
         }
         guard GuestPayload.overlay != nil else {
-            throw HelperJobError.notReady("this build has no install overlay to boot the helper VM with")
+            throw HelperJobError.notReady("this build has no overlay to boot the helper VM with")
         }
         let status = jobDir.appendingPathComponent("status")
         let console = jobDir.appendingPathComponent("console.log")
         try? FileManager.default.removeItem(at: status)
 
-        let receiver = ArtifactReceiver(registry: VmRegistry(), port: 0)
+        let receiver = ArtifactReceiver(port: 0)
         do { try receiver.start() } catch { throw HelperJobError.cannotStart("\(error)") }
 
         let loader = VZLinuxBootLoader(kernelURL: artifacts.kernel)

@@ -39,7 +39,7 @@ case "create":
             args.append((key, .uint(v)))
         } else if key == "boot-mode" {
             let mode = argv[i + 1]
-            guard ["linux", "windows", "linux-iso"].contains(mode) else {
+            guard ["windows", "linux-iso", "linux"].contains(mode) else {  // the host says what replaced "linux"
                 print(usage)
                 exit(2)
             }
@@ -76,7 +76,7 @@ case "set":
             args.append((key, .text(argv[i + 1])))
         case "boot-mode":
             let mode = argv[i + 1]
-            guard ["linux", "windows", "linux-iso"].contains(mode) else {
+            guard ["windows", "linux-iso", "linux"].contains(mode) else {  // the host says what replaced "linux"
                 print(usage)
                 exit(2)
             }

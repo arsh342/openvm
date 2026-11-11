@@ -52,21 +52,6 @@ struct MachineMenuLogicTests {
         #expect(!MachineMenuLogic.item(.outbox, for: vm("running", outbox: false)).checked)
     }
 
-    @Test func exactlyOneResolutionIsTicked() {
-        let best = MachineMenuLogic.item(.retinaBest, for: vm("running"), scaled: false)
-        let scaled = MachineMenuLogic.item(.retinaScaled, for: vm("running"), scaled: false)
-        #expect(best.checked && !scaled.checked)
-        #expect(MachineMenuLogic.item(.retinaScaled, for: vm("running"), scaled: true).checked)
-        #expect(!MachineMenuLogic.item(.retinaBest, for: vm("running"), scaled: true).checked)
-    }
-
-    @Test func aWindowsGuestHasNoResolutionToChoose() {
-        let windows = VmSummary(row: FakeTransport.row("w", state: "running", bootMode: "windows"))!
-        #expect(!MachineMenuLogic.item(.retinaBest, for: windows).enabled)
-        #expect(!MachineMenuLogic.item(.retinaScaled, for: windows).enabled)
-        #expect(MachineMenuLogic.item(.retinaBest, for: vm("running")).enabled)
-    }
-
     @Test func settingsAndSharingAreAlwaysThereForAVm() {
         for state in ["stopped", "running", "suspended"] {
             #expect(MachineMenuLogic.item(.settings, for: vm(state)).enabled)
@@ -101,29 +86,6 @@ struct MachineMenuLogicTests {
     }
 }
 
-struct DisplayPreferenceTests {
-    private func defaults() -> UserDefaults {
-        let name = "openvm-test-\(UUID().uuidString)"
-        let store = UserDefaults(suiteName: name)!
-        store.removePersistentDomain(forName: name)
-        return store
-    }
-
-    @Test func bestForRetinaIsTheDefaultAndUsesTheDisplaysScale() {
-        let preference = DisplayPreference(defaults: defaults())
-        #expect(!preference.isScaled("u"))
-        #expect(preference.backingScale(for: "u", actual: 2) == 2)
-    }
-
-    @Test func scaledAsksForOnePixelPerPointAndIsPerVm() {
-        let preference = DisplayPreference(defaults: defaults())
-        preference.setScaled(true, for: "u")
-        #expect(preference.isScaled("u"))
-        #expect(preference.backingScale(for: "u", actual: 2) == 1)
-        #expect(preference.backingScale(for: "other", actual: 2) == 2)
-    }
-}
-
 @MainActor
 struct MachineMenusTests {
     private final class Log { var calls: [String] = [] }
@@ -141,12 +103,10 @@ struct MachineMenusTests {
             newVM: { log.calls.append("new") },
             toggleFullScreen: { log.calls.append("fullscreen \($0.name)") },
             shareFolder: { log.calls.append("share \($0.name)") },
-            displayChanged: { log.calls.append("refit \($0.name)") },
             isFullScreen: { _ in false },
             lastUsed: { lastUsed },
             use: { log.calls.append("use \($0)") })
-        let name = "openvm-test-\(UUID().uuidString)"
-        return (MachineMenus(model: model, actions: actions, preference: DisplayPreference(defaults: UserDefaults(suiteName: name)!)), host, log)
+        return (MachineMenus(model: model, actions: actions), host, log)
     }
 
     private func titles(_ menu: NSMenu) -> [String] { menu.items.map { $0.isSeparatorItem ? "-" : $0.title } }
@@ -156,7 +116,7 @@ struct MachineMenusTests {
         let menu = menus.statusMenu()
         menus.menuNeedsUpdate(menu)
         #expect(titles(menu) == [
-            "a", "b", "Running · Linux · 4 CPUs · 4 GB memory", "-", "View", "Actions", "Devices", "Settings…", "-",
+            "a", "b", "Running · Windows · 4 CPUs · 4 GB memory", "-", "View", "Actions", "Devices", "Settings…", "-",
             "Show Library", "New Virtual Machine…", "-", "About openVM", "Quit openVM",
         ])
         #expect(menu.items[0].state == .off)
@@ -214,21 +174,24 @@ struct MachineMenusTests {
         #expect(log.calls == ["open a"])
     }
 
-    @Test func aChangeOfResolutionRefitsTheGuest() async {
-        let (menus, _, log) = await make([FakeTransport.row("a", state: "running")])
-        await menus.perform(.retinaScaled)
-        #expect(log.calls == ["refit a"])
-        let view = menus.resolutionMenu()
-        menus.menuNeedsUpdate(view)
-        #expect(view.items[1].state == .on)
-    }
-
     @Test func theSwitchesReachTheHost() async {
         let (menus, host, _) = await make([FakeTransport.row("a", state: "running")])
         await menus.perform(.clipboard)
         #expect(host.arg("set", "clipboard-sync") == .bool(false))
         await menus.perform(.outbox)
         #expect(host.arg("set", "outbox") == .bool(false))
+    }
+}
+
+/// An Alpine guest left over from an earlier openVM cannot run, so nothing that needs a guest is offered.
+struct RetiredAlpineMenuTests {
+    @Test func nothingThatNeedsTheAgentIsOffered() {
+        let old = VmSummary(row: FakeTransport.row("srv1", state: "stopped", bootMode: "linux"))!
+        #expect(old.bootMode == .alpine)
+        for command in [MachineCommand.outbox, .shareFolder, .clipboard] {
+            #expect(!MachineMenuLogic.item(command, for: old).enabled, "\(command)")
+        }
+        #expect(MachineMenuLogic.item(.settings, for: old).enabled)
     }
 }
 
@@ -242,7 +205,7 @@ struct IsoGuestMenuTests {
     }
 
     @Test func whatNeedsTheAgentIsOff() {
-        for command in [MachineCommand.outbox, .shareFolder, .retinaBest, .retinaScaled] {
+        for command in [MachineCommand.outbox, .shareFolder] {
             #expect(!MachineMenuLogic.item(command, for: vm("running")).enabled, "\(command)")
         }
     }

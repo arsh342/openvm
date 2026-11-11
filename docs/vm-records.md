@@ -19,10 +19,11 @@ per-VM config file yet; the record *is* the config.
   "diskPath":  "…/disks/srv1/disk.raw", // present iff a raw disk was provisioned
   "timezone":  "Europe/Berlin",         // optional IANA zone; absent = guest default
   "clipboardSync": true,                 // optional; share the clipboard with this VM; absent = true, false for linux-iso
+  "outbox":    true,                       // optional; take files the guest sends to the Mac; absent = true
   "shares":    [                          // optional shared folders; absent = none
     {"hostPath": "/Users/me/Projects", "guestPath": "/mnt/openvm/Projects"}
   ],
-  "bootMode":  "linux|windows|linux-iso", // optional; absent = linux
+  "bootMode":  "windows|linux-iso",      // optional only for old records: absent or "linux" = a retired Alpine guest
   "variableStorePath": "…/nvram.bin",   // optional; Windows EFI variable store
   "installMediaPath":  "…/media.raw",   // optional; Windows install media
   "machineIdentifier": "…",             // optional; Windows, base64, kept for the VM's lifetime
@@ -37,10 +38,14 @@ Field semantics beyond the obvious:
   the daemon process); `stop`/`resume` handle the reconciliation rules per op
   (see `docs/daemon-protocol.md`). `starting`/`stopping` exist in the state
   set but are never written today — they are reserved for async lifecycle.
+* `bootMode` is `windows` or `linux-iso` for every VM made now. A record with `linux`, or with no
+  `bootMode` at all, is an Alpine guest an earlier openVM made (`BootMode.alpine`, which keeps the
+  spelling `linux` because a value the reader does not know fails the whole registry read). Such a
+  VM is listed, can have its CPUs, memory and time zone changed, and can be deleted; `start` and
+  `set --boot-mode` refuse it.
 * Sidecar files referenced by `diskPath` are not part of the record:
-  `<diskPath>.openvm-installed` (root-device marker), `.openvm-kernel`,
-  `.openvm-initramfs` (installed-kernel pair exported by first boot). `delete`
-  sweeps all of them.
+  `<diskPath>.openvm-installed` (an install has finished), and on an old Alpine disk
+  `.openvm-kernel` and `.openvm-initramfs`. `delete` sweeps all of them.
 * `clipboardSync` is optional and absent in records written before the field existed; absent
   means on, except for a `linux-iso` guest, where it means off (its clipboard goes through the
   framework's Spice agent, which has no password filter, and is set when the VM starts). It is a per-VM policy the person can change while the VM runs, as the time zone
@@ -94,8 +99,8 @@ below build against the Xcode Swift 6 SDK in use and the package declares
 | API | Role | Call site / note |
 |---|---|---|
 | `VZVirtualMachineConfiguration` | root config | `GuestBoot.boot`; validated via `try config.validate()` before any device is created |
-| `VZLinuxBootLoader` | kernel direct boot | `GuestBoot.boot` — `kernelURL` + `initialRamdiskURL` + `commandLine`; Linux guests |
-| cmdline contract | boot policy | `effectiveCmdline`: `apkovl=<url>` (first-boot install), or `root=<dev> rootfstype=ext4 rw` (persistent), or `openvm.install=1 openvm.uuid=<uuid> openvm.artifact-port=<port>` (netboot install) |
+| `VZLinuxBootLoader` | kernel direct boot | `WimHelperVM.run` only — `kernelURL` + `initialRamdiskURL` + `commandLine`; the helper VM |
+| cmdline contract | boot policy | `GuestBoot.netbootCmdline`: Alpine netboot with the pinned modloop and `apkovl=<url>`, plus `openvm.job=wim` |
 | `VZVirtioConsoleDeviceSerialPortConfiguration` + `VZFileSerialPortAttachment` | serial console → `<name>.console.log` | `append: false`; readiness polling re-reads this file every 0.5 s |
 | `VZVirtioNetworkDeviceConfiguration` + `VZNATNetworkDeviceAttachment` | guest NIC | one NIC, vmnet NAT |
 | `VZVirtioSocketDeviceConfiguration` + `VZVirtioSocketDevice.connect(toPort:)` | the guest channel | daemon↔agent OVMC rides vsock port 52; deliberate substitution for a virtio-console channel (see source comment: FileHandle-attached serial ports never activate) |
