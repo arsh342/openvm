@@ -153,7 +153,7 @@ Run `openvmctl` with no arguments to see every command.
 * **Windows sound needs Test Mode.** Windows guests are silent by default, because no Microsoft-signed driver exists for Apple's virtual sound device. `openvmctl audio enable <vm> --test-mode` installs a third-party test-signed driver, then you restart the VM. Test Mode weakens driver signature checks, trusts a third party's certificate in the guest, and shows a desktop watermark. `openvmctl audio disable <vm>` and a restart undo it.
 * **Windows guests use a private Apple API.** They need `_setPerformanceMonitoringUnitEmulationEnabled:`, which Apple could remove in any macOS release. It also keeps openVM off the Mac App Store. Linux guests do not use it.
 * **Large copies inside Windows can fail.** A bug in the current virtio-win release can fail big reads from a shared folder. openVM's own drops retry around it, but a copy you start inside Windows can still stop with an error.
-* **Printing has only been tested with a stand-in printer so far,** not on real paper.
+* **A Windows guest prints to the printers your Mac has.** Add the printer on the Mac first. If macOS offers no driver or AirPrint for it but the printer supports IPP Everywhere, `lpadmin -p NAME -E -v ipp://PRINTER.local:631/ipp/print -m everywhere` adds it without one (tested on paper with an Epson L3250).
 
 ## Roadmap
 

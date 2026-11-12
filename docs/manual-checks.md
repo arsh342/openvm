@@ -54,9 +54,12 @@ A failure goes back as a bug with the step that showed it.
 
 ## Printing and sound (moved here from M3)
 
-- [ ] **Print, Windows.** Add a real printer (or a PDF queue) to the Mac, print from the
-      guest. Paper or a real PDF comes out.
-- [ ] **Default printer.** Change the Mac's default; the guest's default follows. If not, find why
+- [x] **Print, Windows.** Add a real printer (or a PDF queue) to the Mac, print from the
+      guest. Paper or a real PDF comes out. **Passes (2026-11-12):** an Epson L3250 on Wi-Fi, added to the Mac
+      as an IPP Everywhere queue (`lpadmin -m everywhere`; the Mac offered no AirPrint or driver for it);
+      text from Notepad and an image both printed on paper.
+- [x] **Default printer.** Change the Mac's default; the guest's default follows. **Passes (2026-11-12):**
+      with the Epson made the Mac's default (`lpoptions -d`), Windows' default became `EPSON_L3250`. If not, find why
       and fix it test-first in `PrinterBridge.swift`.
 - [x] **Sound.** Linux from an ISO: works once the guest has the PipeWire setting in the README (Omarchy, 2026-11-11; silent without it). Windows: works (2026-11-12, `win-lab`, owner by ear). Play a sound in each guest; note the latency. On Windows this needs Test Mode
       (Settings, Sound, with the warning).
