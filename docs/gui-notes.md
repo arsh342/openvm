@@ -310,14 +310,16 @@ agent, so a restart from inside may stop the VM; press Start.
   not known; a likely reason is that it resets through the firmware, which the framework carries out as a reset
   and not a stop.
 
-## Where M4 stands (2026-11-12)
+## M4 is complete (2026-11-12)
 
-The build work is finished. M4 is not accepted yet: the clean-account acceptance run in `docs/manual-checks.md`
-needs a person. The screen recording was dropped from the checks on 2026-11-12 (the owner's call: every
-feature it would show was checked by hand). Scrolling, the clipboard edge cases, Windows
-sound, the files checks and printing on paper passed on 2026-11-12. Known faults:
+The owner declared M4 complete on 2026-11-12. Every check in `docs/manual-checks.md` passed by hand that day or
+before (scrolling, the clipboard edge cases, Windows sound, the files checks and printing on paper on
+2026-11-12), except the clean-account run, which the owner moved to the final acceptance before a release, once
+everything is built. The screen recording was dropped from the checks (the owner's call: every feature it would
+show was checked by hand). Known limits:
 
-1. Scrolling in a guest follows the fingers, not the Mac's setting, and only the guest can reverse it (below).
+1. Scrolling in a guest follows the fingers, not the Mac's setting, and only the guest can reverse it: the
+   Windows tools set natural scrolling, and a Linux guest needs the README's setting (below).
 2. A Windows guest gets the window's full size, which scrambles with the released `viogpudo` (0.1.302). The cause
    is measured and fixed upstream in two pull requests (virtio-win 1687 and 1717, issue 1720); until a signed
    release carries the fix, a guest needs a driver built with it. Until 2026-11-12 the app held Windows guests at

@@ -9,7 +9,9 @@ First public version.
 * Windows 11 ARM64 guests, installed unattended from your own ISO
 * Clipboard, file transfer, shared folders and drag and drop into a guest
 * Printing to the Mac's printers
-* A Windows guest stays at 1024 pixels wide in its window for now
+* A Windows guest fills its window and full screen, Retina included, and keeps its size when it restarts itself; this needs a `viogpudo` with the virtio-win mode-change fix until a signed release carries it
+* Scrolling matches a Mac with natural scrolling: the Windows tools set it, and the README says how in a Linux guest
+* Linux guests on Hyprland (Omarchy) follow the window's size with a small script from the README
 * Sound out, with Windows as an opt-in
 * Clock and time zone sync, and pausing guests when the Mac sleeps
 * The openVM app: a window for each VM with keyboard, mouse and live resizing, a VM library, a creation wizard, a menu-bar icon and per-VM settings

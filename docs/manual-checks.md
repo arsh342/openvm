@@ -76,4 +76,5 @@ A failure goes back as a bug with the step that showed it.
 - [x] **Library cards** show a picture of each running VM after a while (30 seconds, or when you leave its window). If a card stays a plain tile for a running VM, the screen could not be read: tell me.
 - [x] **VM window title bar**: dark, with four round buttons that fade when the pointer leaves.
 - [ ] **Clean account.** On a new macOS user with no developer tools, do the whole of the above that
-      the app offers. Any step that needs the terminal fails this.
+      the app offers. Any step that needs the terminal fails this. Moved to the final acceptance before a
+      release (owner, 2026-11-12); it does not hold M4 open.
