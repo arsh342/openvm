@@ -51,5 +51,20 @@ not after a cold start. In viogpudo's source, `AddSingleTargetMode` adds the mod
 pass, so the monitor is offered one target mode; that may be the reason. Not tested with the released 0.1.302
 driver, which cannot show any size but its first correctly anyway.
 
+## The fix's first version cut the frame buffer
+
+The first version kept `PersistentDispMode0Width/Height` at the window's size. viogpudo sizes its frame buffer
+once, at start, to 16 MB or the largest size it lists times 4 bytes, so after a restart with 2232x1580 saved
+it could not hold the window's 2936x1580 (18.6 MB): `ChangeDisplaySettingsEx` failed (-1), `SetDisplayConfig`
+returned `ERROR_NOT_ENOUGH_MEMORY` (8), and Windows stayed at 2232x1580 with bars in a wider window and in full
+screen. The 5120x2880 found there before had given a 59 MB frame buffer, which is why it had not happened.
+
+So the agent now keeps that value at least 5120x2880, or the largest size asked, and never lowers it. To list
+the window's size after a restart it uses viogpudo's own escape, `VIOGPU_SET_CUSTOM_RESOLUTION` (virtio-win's
+`viogpuap` uses it), which adds a size to the list at once; the escape also saves that size as the persistent
+mode, so the agent writes the large value back afterwards. After one restart with this: wide, narrow and
+full-screen windows filled with no bars (owner), a capture read 2936x1846, the window's size, and 2936x1580,
+refused for memory before, was taken.
+
 A side effect seen while testing: replacing the agent's file failed while its restore was retrying, because
 each try runs a copy of the same executable in the user's session.

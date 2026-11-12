@@ -27,11 +27,21 @@ static int display_mode_path(WCHAR *out, size_t cap) {
     return 1;
 }
 
-/* viogpudo lists, after a restart, its two fixed sizes and one more: the size the
- * Mac last set, unless its driver key holds PersistentDispMode0Width/Height, which
- * win instead (measured: 5120x2880 there, so 2496x1440 could not be restored). The
- * agent keeps them at the last size the Mac asked for, so that size is listed. */
+/* viogpudo sizes its frame buffer once, when Windows starts: 16 MB, or the largest size
+ * it lists times 4 bytes. It lists its two fixed sizes and PersistentDispMode0Width/
+ * Height from its driver key (or, without them, the size the Mac last set). So that
+ * value bounds every size until the next start: with the window's 2232x1580 there,
+ * 2936x1580 was refused for memory (measured 2026-11-12). The agent keeps it at least
+ * 5120x2880 (59 MB), or the largest size asked if that is larger, and never lowers it;
+ * the helper's escape that lists a size after a restart writes it there, so it is put
+ * back after every change. */
+#define DISPLAY_KEEP_W 5120ul
+#define DISPLAY_KEEP_H 2880ul
 static void display_persist(unsigned long width, unsigned long height) {
+    if (width * height < DISPLAY_KEEP_W * DISPLAY_KEEP_H) {
+        width = DISPLAY_KEEP_W;
+        height = DISPLAY_KEEP_H;
+    }
     /* GUID_DEVCLASS_DISPLAY */
     static const GUID display_class = {
         0x4d36e968, 0xe325, 0x11ce, {0xbf, 0xc1, 0x08, 0x00, 0x2b, 0xe1, 0x03, 0x18}};
@@ -61,14 +71,14 @@ static void display_persist(unsigned long width, unsigned long height) {
         RegQueryValueExW(key, L"PersistentDispMode0Width", NULL, NULL, (BYTE *)&old_w, &size);
         size = sizeof old_h;
         RegQueryValueExW(key, L"PersistentDispMode0Height", NULL, NULL, (BYTE *)&old_h, &size);
-        if (old_w != width || old_h != height) {
+        if ((unsigned long)old_w * old_h < width * height) {
             DWORD w = (DWORD)width, h = (DWORD)height;
             if (RegSetValueExW(key, L"PersistentDispMode0Width", 0, REG_DWORD, (const BYTE *)&w,
                                sizeof w) == ERROR_SUCCESS &&
                 RegSetValueExW(key, L"PersistentDispMode0Height", 0, REG_DWORD, (const BYTE *)&h,
                                sizeof h) == ERROR_SUCCESS)
-                agent_log("display: viogpudo will list %lux%lu after a restart (was %lux%lu)", width,
-                          height, (unsigned long)old_w, (unsigned long)old_h);
+                agent_log("display: viogpudo's frame buffer fits %lux%lu from the next start (was %lux%lu)",
+                          width, height, (unsigned long)old_w, (unsigned long)old_h);
             else
                 agent_log("display: cannot keep %lux%lu in the virtio GPU's driver key", width, height);
         }
@@ -116,6 +126,8 @@ static int display_recall(unsigned long *width, unsigned long *height, unsigned 
 
 static DWORD WINAPI display_restore_thread(LPVOID unused) {
     (void)unused;
+    /* A guest whose saved size is small gets the large one from its next start. */
+    display_persist(0, 0);
     unsigned long width = 0, height = 0, scale = 0;
     if (!display_recall(&width, &height, &scale))
         return 0;
@@ -138,6 +150,7 @@ static DWORD WINAPI display_restore_thread(LPVOID unused) {
                 ran = run_in_user_session(mode, NULL, 0, said, sizeof said - 1, &got);
             }
             ReleaseSRWLockExclusive(&g_display_lock);
+            display_persist(width, height); /* the helper's escape lowered it */
             if (g_display_asked)
                 return 0;
             unsigned long held_w = 0, held_h = 0, held_scale = 0;

@@ -313,8 +313,8 @@ agent, so a restart from inside may stop the VM; press Start.
 ## Where M4 stands (2026-11-12)
 
 The build work is finished. M4 is not accepted yet: the checks still open in `docs/manual-checks.md` (files,
-printing, Windows sound, the clipboard edge cases, the screen recording) and the clean-account acceptance run
-need a person. Known faults:
+printing, the screen recording) and the clean-account acceptance run need a person. Scrolling, the clipboard
+edge cases and Windows sound passed on 2026-11-12. Known faults:
 
 1. Scrolling in a guest follows the fingers, not the Mac's setting, and only the guest can reverse it (below).
 2. A Windows guest gets the window's full size, which scrambles with the released `viogpudo` (0.1.302). The cause
@@ -442,10 +442,10 @@ guest now needs a `viogpudo` with the mode-change fix.
 **A restart from inside Windows.** The VM keeps running through it and the framework reports nothing, so the app
 never sizes the guest again, and Windows came back at 1024x768 refusing every other size from
 `ChangeDisplaySettingsEx` (`docs/evidence/windows-restart-display-2026-11-12.md`). The agent now remembers the last
-size the Mac asked for (`C:\openvm\display-mode.txt`), keeps it in viogpudo's `PersistentDispMode0Width/Height`
-so the driver lists it after a restart, and applies it again once someone is signed in. When Windows refuses
-`ChangeDisplaySettingsEx`, the helper sets the source mode with `SetDisplayConfig` instead, as virtio-win's
-`viogpuap` does. A window resized while Windows restarts is corrected at the next resize.
+size the Mac asked for (`C:\openvm\display-mode.txt`) and applies it again once someone is signed in. When
+Windows refuses `ChangeDisplaySettingsEx`, the helper lists the size with viogpudo's escape and sets the source
+mode with `SetDisplayConfig`, as virtio-win's `viogpuap` does. viogpudo sizes its frame buffer at start from
+`PersistentDispMode0Width/Height`, so the agent keeps that at least 5120x2880 and never lowers it. A window resized while Windows restarts is corrected at the next resize.
 
 ## Linux, from an ISO
 

@@ -11,12 +11,15 @@ A failure goes back as a bug with the step that showed it.
       dead key); hold a key to repeat it.
 - [x] **Shortcuts.** Cmd+C, V, Q, W, Tab in a windowed guest and in full screen. Cmd+Q must not quit
       the app silently while a guest has focus.
-- [x] **Pointer.** Clicks, drag and right-click work; scrolling runs the wrong way (see Scrolling). Clicks land where the pointer is, on a Retina display; drag, scroll, right-click.
-- [ ] **Scrolling.** With the guest's natural scrolling set (README), scrolling in a guest runs the same way as on the Mac, on a trackpad and a mouse, up and down and sideways. **2026-11-12:** scrolling ran opposite to the Mac in both guests; with the guest settings, vertical trackpad scrolling matched in Windows and Linux (`docs/evidence/scroll-direction-2026-11-12.md`). A mouse and sideways scrolling are not checked yet.
+- [x] **Pointer.** Clicks, drag and right-click work. Clicks land where the pointer is, on a Retina display; drag, scroll, right-click.
+- [x] **Scrolling.** With the guest's natural scrolling set (the Windows tools do it; Linux per the README), scrolling in a guest runs the same way as on the Mac, up and down and sideways. **Passes (2026-11-12),** Windows and Linux, on a trackpad (`docs/evidence/scroll-direction-2026-11-12.md`). A physical mouse was not tried. Pinch to zoom does nothing (the pointer has no gestures); Control with a two-finger scroll zooms.
 - [x] **Idle.** Leave the window open and idle for 12 minutes, then type. The guest must answer
       (Windows Modern Standby idles at 5.5 minutes).
 - [x] **Resize.** Drag the window edge slowly and quickly; the guest desktop follows without a
-      failure screen. Enter and leave full screen. Note how long it takes to settle.
+      failure screen. Enter and leave full screen. Note how long it takes to settle. **2026-11-12:** a
+      Windows guest fills wide, narrow and full-screen windows, also after it restarts itself
+      (`docs/evidence/windows-restart-display-2026-11-12.md`); Linux (Omarchy) does with the README's
+      `openvm-fit-display` (`docs/evidence/linux-display-fit-2026-11-12.md`).
 - [x] **Move between displays** (if you have two): the guest re-fits.
 - [x] **Close and reopen.** Close the window; the VM keeps running; reopen it from the menu bar.
 - [x] **Quit.** Quit the app with a guest running: the dialog names it; the guest shuts down cleanly.
@@ -26,10 +29,10 @@ A failure goes back as a bug with the step that showed it.
 
 - [x] Copy text in a Mac app, click into the VM window, paste in the guest. Windows: works (2026-11-10, again 2026-11-12). Linux from an ISO: copy and paste work inside the guest, but nothing crosses to or from the Mac (2026-11-12, Omarchy). That is expected: these guests have no openVM tools, and the Spice clipboard covers X11 desktops only, not Omarchy's Wayland. An X11 guest with `spice-vdagent` is still to try.
 - [x] Copy in the guest, click out to the Mac, paste. Same as above.
-- [ ] Copy from a password manager, click into the VM: nothing arrives, and the window subtitle
-      says the clipboard was marked private.
-- [ ] Untick Devices ▸ Share Clipboard: nothing moves either way.
-- [ ] Copy more than 512 KiB of text: it is skipped, and the subtitle says so.
+- [x] Copy from a password manager, click into the VM: nothing arrives, and the window subtitle
+      says the clipboard was marked private. Passes (2026-11-12, Windows).
+- [x] Untick Devices ▸ Share Clipboard: nothing moves either way. Passes (2026-11-12, Windows).
+- [x] Copy more than 512 KiB of text: it is skipped, and the subtitle says so. Passes (2026-11-12, Windows).
 
 ## Files
 
@@ -52,7 +55,7 @@ A failure goes back as a bug with the step that showed it.
       guest. Paper or a real PDF comes out.
 - [ ] **Default printer.** Change the Mac's default; the guest's default follows. If not, find why
       and fix it test-first in `PrinterBridge.swift`.
-- [ ] **Sound.** Linux from an ISO: works once the guest has the PipeWire setting in the README (Omarchy, 2026-11-11; silent without it). Windows: not yet checked. Play a sound in each guest; note the latency. On Windows this needs Test Mode
+- [x] **Sound.** Linux from an ISO: works once the guest has the PipeWire setting in the README (Omarchy, 2026-11-11; silent without it). Windows: works (2026-11-12, `win-lab`, owner by ear). Play a sound in each guest; note the latency. On Windows this needs Test Mode
       (Settings, Sound, with the warning).
 - [ ] **Screen recording** of the integration features, for the docs.
 

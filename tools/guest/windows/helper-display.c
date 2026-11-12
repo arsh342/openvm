@@ -166,6 +166,81 @@ static LONG helper_source_mode(unsigned long width, unsigned long height) {
                                 SDC_SAVE_TO_DATABASE);
 }
 
+/* viogpudo's private escape (virtio-win viogpu/shared/viogpum.h), the one virtio-win's own
+ * resolution tool uses. VIOGPU_SET_CUSTOM_RESOLUTION adds a size to the driver's list now; it also
+ * saves it as PersistentDispMode0, which the agent puts back afterwards (display_persist). The D3DKMT
+ * structures are declared here because mingw has no d3dkmthk.h; the layouts are Microsoft's. */
+#define VIOGPU_SET_CUSTOM_RESOLUTION 0x02
+#pragma pack(push, 1)
+struct viogpu_escape {
+    USHORT type;
+    USHORT length;
+    USHORT width; /* the VIOGPU_DISP_MODE arm of the union */
+    USHORT height;
+};
+#pragma pack(pop)
+struct kmt_open_gdi {
+    WCHAR device_name[32];
+    UINT adapter;
+    LUID adapter_luid;
+    UINT source_id;
+};
+struct kmt_escape {
+    UINT adapter;
+    UINT device;
+    int type; /* D3DKMT_ESCAPE_DRIVERPRIVATE = 0 */
+    UINT flags;
+    void *data;
+    UINT data_size;
+    UINT context;
+};
+struct kmt_close {
+    UINT adapter;
+};
+LONG WINAPI D3DKMTOpenAdapterFromGdiDisplayName(struct kmt_open_gdi *open);
+LONG WINAPI D3DKMTEscape(const struct kmt_escape *escape);
+LONG WINAPI D3DKMTCloseAdapter(const struct kmt_close *close);
+
+/* Asks viogpudo to list width x height. Returns 0 (STATUS_SUCCESS) or the failure. */
+static LONG helper_list_size(unsigned long width, unsigned long height) {
+    DISPLAY_DEVICEW device;
+    for (DWORD i = 0;; i++) {
+        ovmc_memset_zero(&device, sizeof device);
+        device.cb = sizeof device;
+        if (!EnumDisplayDevicesW(NULL, i, &device, 0))
+            return -1;
+        char ascii[128];
+        size_t n = 0;
+        for (; n + 1 < sizeof ascii && device.DeviceID[n] != 0; n++)
+            ascii[n] = device.DeviceID[n] < 0x80 ? (char)device.DeviceID[n] : '?';
+        ascii[n] = '\0';
+        if ((device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) && display_is_virtio_adapter(ascii))
+            break;
+    }
+    struct kmt_open_gdi open;
+    ovmc_memset_zero(&open, sizeof open);
+    for (size_t k = 0; k + 1 < 32 && device.DeviceName[k] != 0; k++)
+        open.device_name[k] = device.DeviceName[k];
+    LONG status = D3DKMTOpenAdapterFromGdiDisplayName(&open);
+    if (status != 0)
+        return status;
+    struct viogpu_escape data;
+    ovmc_memset_zero(&data, sizeof data);
+    data.type = VIOGPU_SET_CUSTOM_RESOLUTION;
+    data.length = 2 * sizeof(USHORT);
+    data.width = (USHORT)width;
+    data.height = (USHORT)height;
+    struct kmt_escape escape;
+    ovmc_memset_zero(&escape, sizeof escape);
+    escape.adapter = open.adapter;
+    escape.data = &data;
+    escape.data_size = sizeof data;
+    status = D3DKMTEscape(&escape);
+    struct kmt_close close = {open.adapter};
+    D3DKMTCloseAdapter(&close);
+    return status;
+}
+
 static int helper_display(unsigned long width, unsigned long height, unsigned long scale) {
     int switched_off = helper_virtio_only();
     DEVMODEW want;
@@ -181,8 +256,10 @@ static int helper_display(unsigned long width, unsigned long height, unsigned lo
             break;
         Sleep(250);
     }
-    LONG source_result = ERROR_SUCCESS;
+    LONG listed = 0, source_result = ERROR_SUCCESS;
     if (result != DISP_CHANGE_SUCCESSFUL) {
+        /* After Windows restarts itself the size may not be listed (display-restore.c). */
+        listed = helper_list_size(width, height);
         source_result = helper_source_mode(width, height);
         DEVMODEW check;
         ovmc_memset_zero(&check, sizeof check);
@@ -211,8 +288,8 @@ static int helper_display(unsigned long width, unsigned long height, unsigned lo
         }
         snprintf(
             line, sizeof line,
-            "Windows refused %lux%lu (code %ld, then %ld): holds %lux%lu, offers %lu modes up to %lux%lu",
-            width, height, (long)result, (long)source_result, (unsigned long)now.dmPelsWidth,
+            "Windows refused %lux%lu (code %ld, listing %lx, then %ld): holds %lux%lu, offers %lu modes up to %lux%lu",
+            width, height, (long)result, (unsigned long)listed, (long)source_result, (unsigned long)now.dmPelsWidth,
             (unsigned long)now.dmPelsHeight, (unsigned long)modes, (unsigned long)top_w,
             (unsigned long)top_h);
         g_helper_error = line;
