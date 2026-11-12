@@ -362,7 +362,10 @@ The driver then creates the new mode under the same id, and that is refused too
 mode's memory attached to it. Scanouts and transfers wider than that are refused, and the Mac reads the
 wider memory at 1024 pixels a row. A 1024-wide mode fits the old resource, which is why it is the only
 clean width. The fix belongs in the driver: create the new mode under a fresh id, point the scanout at
-it, then free the old resource. Not built yet.
+it, then free the old resource. Built and traced on 2026-11-12 (`docs/patches/viogpudo-mode-change.patch`,
+reported as virtio-win issue 1720): the same mode sequence gave no refused command, and 1600x900 drew clean in
+the window. Guests still get the scramble until a signed virtio-win release carries the change, so the
+1024-wide hold stays.
 
 **Tried, and did not help:**
 

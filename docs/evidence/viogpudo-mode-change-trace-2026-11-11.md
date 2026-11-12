@@ -54,3 +54,35 @@ refused. 198 "Command failed" lines in all.
 
 A change that works on both: create the new mode under a fresh id, point the scanout at it, then detach
 and unref the old resource. Not built or tested yet.
+
+## The fix, built and traced (2026-11-12)
+
+Reported upstream as virtio-win issue 1720. The change is `docs/patches/viogpudo-mode-change.patch`, against
+virtio-win master (`2775c3d`): in `SetCurrentMode`, detach the old resource's backing, create the new mode
+under a fresh id and point the scanout at it, and only then unref the old resource and return its id.
+
+Built in `win-lab` with the Windows 11 24H2 EWDK (26100), `Win11 Release|ARM64`: 0 errors, 0 warnings.
+Signed with virtio-win's test certificate and loaded under Test Mode by pointing the `VioGpuDod` service's
+`ImagePath` at it and restarting (no live device stop).
+
+The same nine-mode sequence, traced the same way:
+
+| | 0.1.302 | with the change |
+| --- | --- | --- |
+| "Command failed" lines | 198 | 0 |
+| Refused replies | UNREF, CREATE_2D, SET_SCANOUT, TRANSFER_2D at every change | none |
+| Resource ids | 1 reused every time | 1 and 2 alternating |
+
+```
+03:42:33.505   GetId 2
+03:42:33.505   PutId 1
+03:42:33.505 MODE 1536x864
+03:42:42.755   GetId 1
+03:42:42.755   PutId 2
+03:42:42.755 MODE 1024x768
+```
+
+The guest confirmed every mode (1536x864, 1280x800, 1600x900, 2048x1152), and the owner, watching the window
+through the run, saw a correct picture at every size. The app's Mac-side capture of the window was a clean
+desktop at 1600x900 (black with the earlier one-byte patch) and at 2560x1600 with 2x scale, a Retina size.
+Not tested: QEMU, and a mode change that fails part way.
