@@ -332,9 +332,11 @@ Scrolling in a guest follows the fingers and ignores the Mac's natural scrolling
 (the Mac's default) it runs the other way. The app cannot change it: `VZVirtualMachineView` takes the scroll
 amount from the original event, so neither a flipped copy nor a new event changed what the guest got
 (`docs/evidence/scroll-direction-2026-11-12.md`). View ▸ Reverse Scrolling, which tried, was removed. The guest
-can reverse it: Hyprland's `natural_scroll`, and in Windows `FlipFlopWheel` on the mouse, each matched the Mac
-(README, "Before you rely on it" and "Create a Linux guest"). A mouse wheel and horizontal scrolling have not been
-checked.
+can reverse it: Hyprland's `natural_scroll`, and in Windows `FlipFlopWheel` on the mouse, each matched the Mac,
+sideways too. The Windows agent sets `FlipFlopWheel` = 1 on every mouse when it starts and restarts only a mouse
+whose value changed, which applies it without a restart of Windows (`tools/guest/windows/scrolling.c`). It is
+always natural, the Mac's default, by the owner's choice: a Mac with natural scrolling off gets a reversed guest.
+Linux guests have no openVM tools, so the README says how to set it. A mouse wheel has not been checked.
 
 ## Dragging out of a guest: moved to later
 
@@ -436,6 +438,14 @@ following the window, which kept the picture correct with the released driver (m
 1024x643, 1024x590 and 1024x640, across a restart and in use) but softer than a Retina display can show. View ▸
 Full Size Display lifted it for a guest with the fixed driver. The owner chose the full size always, so a Windows
 guest now needs a `viogpudo` with the mode-change fix.
+
+**A restart from inside Windows.** The VM keeps running through it and the framework reports nothing, so the app
+never sizes the guest again, and Windows came back at 1024x768 refusing every other size from
+`ChangeDisplaySettingsEx` (`docs/evidence/windows-restart-display-2026-11-12.md`). The agent now remembers the last
+size the Mac asked for (`C:\openvm\display-mode.txt`), keeps it in viogpudo's `PersistentDispMode0Width/Height`
+so the driver lists it after a restart, and applies it again once someone is signed in. When Windows refuses
+`ChangeDisplaySettingsEx`, the helper sets the source mode with `SetDisplayConfig` instead, as virtio-win's
+`viogpuap` does. A window resized while Windows restarts is corrected at the next resize.
 
 ## Linux, from an ISO
 

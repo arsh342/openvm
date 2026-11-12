@@ -37,6 +37,24 @@ of UTM not work … Setting in Ubuntu works perfect").
   refuses `hyprctl keyword`). Effect at once: scrolling matched the Mac (owner, by hand).
 * **Windows.** `FlipFlopWheel` = 1 (DWORD) under each mouse-class device's
   `HKLM\SYSTEM\CurrentControlSet\Enum\<instance>\Device Parameters`, then a restart. Scrolling matched the
-  Mac (owner, by hand). Horizontal scrolling was not checked.
+  Mac, up and down and sideways (owner, by hand). Set back to 0 and the mouse restarted with
+  `pnputil /restart-device`, with no restart of Windows, scrolling went back to reversed at once.
+* **Pinch to zoom** does nothing in either guest: the framework's pointer for these guests has no gestures.
+  Control with a two-finger scroll zooms web pages (owner, Windows).
+
+## The agent sets it
+
+The Windows agent now sets `FlipFlopWheel` = 1 on every present mouse when it starts, and restarts a mouse whose
+value changed (`SetupDiCallClassInstaller` with `DIF_PROPERTYCHANGE`, as `pnputil /restart-device` does). On
+`win-lab`, with the value set back to 0 and the mouse restarted first, installing the new agent gave:
+
+```
+HID-compliant mouse [HID\VID_05AC&PID_8106\6&E98C78C&0&0000]: FlipFlopWheel=0     (before)
+2026-11-12 15:42:50 scrolling: natural on 1 mice, 1 changed now, 0 failed
+HID-compliant mouse [HID\VID_05AC&PID_8106\6&E98C78C&0&0000]: FlipFlopWheel=1     (after)
+```
+
+The guest has one mouse, Apple's pointer (`VID_05AC&PID_8106`). A live restart of the mouse did not crash, unlike
+a live restart of the display device.
 
 The traces and the research build's changes are kept outside the repository.

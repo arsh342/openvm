@@ -5,6 +5,14 @@
  * one asked for. */
 static uint64_t g_displayW = 1920, g_displayH = 1080, g_displayScale = 0;
 
+#ifdef OPENVM_REAL_WIN32
+/* A mode change from the host and the restore after a restart (display-restore.c)
+ * never run the helper at once, and a request from the host means no restore. */
+static SRWLOCK g_display_lock = SRWLOCK_INIT;
+static volatile LONG g_display_asked;
+static void display_remember(unsigned long width, unsigned long height, unsigned long scale);
+#endif
+
 /* Windows also drives openVM's boot frame buffer through the Basic Display Driver, as a second display
  * nobody can see (docs/evidence/windows-second-display-2026-11-11.md). The helper switches it off, but
  * only while the virtio display is active: if viogpudo has failed, the Basic Display is all there is. */
@@ -139,8 +147,12 @@ static void handle_display(SOCKET fd, const uint8_t *body, const struct ovmc_pai
              (unsigned long)height, (unsigned long)scale);
     static uint8_t said[256];
     size_t got = 0;
+    InterlockedExchange(&g_display_asked, 1);
+    AcquireSRWLockExclusive(&g_display_lock);
     g_helper_error = NULL;
-    if (!run_in_user_session(mode, NULL, 0, said, sizeof said - 1, &got)) {
+    int ran = run_in_user_session(mode, NULL, 0, said, sizeof said - 1, &got);
+    ReleaseSRWLockExclusive(&g_display_lock);
+    if (!ran) {
         agent_log("display %lux%lu: %s", (unsigned long)width, (unsigned long)height,
                   g_helper_error ? g_helper_error : "helper failed");
         display_reply(fd, cid, g_helper_error ? g_helper_error : "the display helper failed");
@@ -155,6 +167,7 @@ static void handle_display(SOCKET fd, const uint8_t *body, const struct ovmc_pai
     g_displayW = held_w;
     g_displayH = held_h;
     g_displayScale = held_scale;
+    display_remember(held_w, held_h, held_scale);
     agent_log("display holds %lux%lu at scale %lu (%s)", held_w, held_h, held_scale,
               (const char *)said);
     display_reply(fd, cid, NULL);

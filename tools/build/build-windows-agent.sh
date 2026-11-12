@@ -19,6 +19,6 @@ mkdir -p "$OUT"
 zig cc -target aarch64-windows-gnu -std=c99 -O2 ${OPENVM_AGENT_CFLAGS:-} \
     -Wall -Wextra -Werror -Wno-unused-function \
     -Itools/guest -o "$OUT/openvm-tools-win.exe" tools/guest/openvm-tools-win.c \
-    -lws2_32 -luser32 -ladvapi32 -lwtsapi32 -lwinspool -lgdi32 -lwinmm -lshcore -lshell32 -lole32 -luserenv
+    -lws2_32 -luser32 -ladvapi32 -lwtsapi32 -lwinspool -lgdi32 -lwinmm -lshcore -lshell32 -lole32 -luserenv -lsetupapi
 rm -f "$OUT/openvm-tools-win.pdb"
 echo "$OUT/openvm-tools-win.exe"

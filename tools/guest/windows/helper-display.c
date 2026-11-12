@@ -81,6 +81,22 @@ static unsigned long helper_scale(unsigned long scale, char *why, size_t why_cap
     return 0;
 }
 
+/* Whether a display path's adapter is the virtio GPU. */
+static int path_is_virtio(const DISPLAYCONFIG_PATH_INFO *path) {
+    DISPLAYCONFIG_ADAPTER_NAME name;
+    ovmc_memset_zero(&name, sizeof name);
+    name.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADAPTER_NAME;
+    name.header.size = sizeof name;
+    name.header.adapterId = path->targetInfo.adapterId;
+    char ascii[128];
+    size_t n = 0;
+    if (DisplayConfigGetDeviceInfo(&name.header) == ERROR_SUCCESS)
+        for (; n + 1 < sizeof ascii && name.adapterDevicePath[n] != 0; n++)
+            ascii[n] = name.adapterDevicePath[n] < 0x80 ? (char)name.adapterDevicePath[n] : '?';
+    ascii[n] = '\0';
+    return display_is_virtio_adapter(ascii);
+}
+
 /* Switches off every active display that is not on the virtio GPU, when one that is stays on (see
  * display_choose_kept). Saved to the display database, as Settings does, so it lasts across restarts.
  * Returns how many displays it switched off, or -1 if Windows refused. */
@@ -93,18 +109,7 @@ static int helper_virtio_only(void) {
         ERROR_SUCCESS)
         return 0;
     for (UINT32 i = 0; i < paths; i++) {
-        DISPLAYCONFIG_ADAPTER_NAME name;
-        ovmc_memset_zero(&name, sizeof name);
-        name.header.type = DISPLAYCONFIG_DEVICE_INFO_GET_ADAPTER_NAME;
-        name.header.size = sizeof name;
-        name.header.adapterId = path[i].targetInfo.adapterId;
-        char ascii[128];
-        size_t n = 0;
-        if (DisplayConfigGetDeviceInfo(&name.header) == ERROR_SUCCESS)
-            for (; n + 1 < sizeof ascii && name.adapterDevicePath[n] != 0; n++)
-                ascii[n] = name.adapterDevicePath[n] < 0x80 ? (char)name.adapterDevicePath[n] : '?';
-        ascii[n] = '\0';
-        is_virtio[i] = display_is_virtio_adapter(ascii);
+        is_virtio[i] = path_is_virtio(&path[i]);
     }
     size_t count = display_choose_kept(is_virtio, paths, keep);
     if (count == 0)
@@ -132,6 +137,35 @@ static int helper_virtio_only(void) {
     return result == ERROR_SUCCESS ? (int)(paths - kp) : -1;
 }
 
+/* Sets only the source mode (the size Windows draws) of the active virtio path and lets Windows fit
+ * the target to it, as virtio-win's own viogpuap does. After Windows restarts itself, it refuses every
+ * ChangeDisplaySettingsEx but 1024x768 and accepts this (measured 2026-11-12). A likely reason, read in
+ * viogpudo's source and not measured: AddSingleTargetMode adds the mode at index SourceId on every
+ * pass, so the monitor is offered one target mode. */
+static LONG helper_source_mode(unsigned long width, unsigned long height) {
+    static DISPLAYCONFIG_PATH_INFO path[8];
+    static DISPLAYCONFIG_MODE_INFO mode[32];
+    UINT32 paths = 8, modes = 32;
+    LONG result = QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &paths, path, &modes, mode, NULL);
+    if (result != ERROR_SUCCESS)
+        return result;
+    int changed = 0;
+    for (UINT32 i = 0; i < paths; i++) {
+        UINT32 src = path[i].sourceInfo.modeInfoIdx;
+        if (!path_is_virtio(&path[i]) || src == DISPLAYCONFIG_PATH_MODE_IDX_INVALID ||
+            src >= modes || mode[src].infoType != DISPLAYCONFIG_MODE_INFO_TYPE_SOURCE)
+            continue;
+        mode[src].sourceMode.width = (UINT32)width;
+        mode[src].sourceMode.height = (UINT32)height;
+        changed = 1;
+    }
+    if (!changed)
+        return ERROR_NOT_FOUND;
+    return SetDisplayConfig(paths, path, modes, mode,
+                            SDC_APPLY | SDC_USE_SUPPLIED_DISPLAY_CONFIG | SDC_ALLOW_CHANGES |
+                                SDC_SAVE_TO_DATABASE);
+}
+
 static int helper_display(unsigned long width, unsigned long height, unsigned long scale) {
     int switched_off = helper_virtio_only();
     DEVMODEW want;
@@ -146,6 +180,16 @@ static int helper_display(unsigned long width, unsigned long height, unsigned lo
         if (result == DISP_CHANGE_SUCCESSFUL)
             break;
         Sleep(250);
+    }
+    LONG source_result = ERROR_SUCCESS;
+    if (result != DISP_CHANGE_SUCCESSFUL) {
+        source_result = helper_source_mode(width, height);
+        DEVMODEW check;
+        ovmc_memset_zero(&check, sizeof check);
+        check.dmSize = sizeof check;
+        if (source_result == ERROR_SUCCESS && EnumDisplaySettingsW(NULL, ENUM_CURRENT_SETTINGS, &check) &&
+            check.dmPelsWidth == width && check.dmPelsHeight == height)
+            result = DISP_CHANGE_SUCCESSFUL;
     }
     DEVMODEW now;
     ovmc_memset_zero(&now, sizeof now);
@@ -167,8 +211,8 @@ static int helper_display(unsigned long width, unsigned long height, unsigned lo
         }
         snprintf(
             line, sizeof line,
-            "Windows refused %lux%lu (code %ld): holds %lux%lu, offers %lu modes up to %lux%lu",
-            width, height, (long)result, (unsigned long)now.dmPelsWidth,
+            "Windows refused %lux%lu (code %ld, then %ld): holds %lux%lu, offers %lu modes up to %lux%lu",
+            width, height, (long)result, (long)source_result, (unsigned long)now.dmPelsWidth,
             (unsigned long)now.dmPelsHeight, (unsigned long)modes, (unsigned long)top_w,
             (unsigned long)top_h);
         g_helper_error = line;

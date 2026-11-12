@@ -228,7 +228,9 @@ the channel before the reply. Only the opener sends requests, `hello`, and
   `sharedRequest` (14/15, the shared-folder mount), `timesyncRequest` (12/13 via
   `SetSystemTime` and `tzutil`), `suspendRequest` (16/17), `dragRequest` (18/19, host
   to guest only), `printerRequest` (20/21), `audioRequest` (22/23) and `displayRequest`
-  (24/25).
+  (24/25). With no message, it also sets natural scrolling on every mouse when it starts
+  (`FlipFlopWheel` = 1), restarting only a mouse whose value changed, and after Windows restarts
+  itself it applies again the last display mode the host asked for (`docs/gui-notes.md`).
 
   For `audioRequest`: On Linux, `test` plays a 3 second tone and
   `status` reports the card, and `enable` and `disable` are refused because sound is

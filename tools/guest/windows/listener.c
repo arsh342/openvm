@@ -62,6 +62,13 @@ static int run_agent(void) {
         return 1;
     }
     agent_log("openvm-tools %u starting (pid %lu)", PRODUCT_VERSION, GetCurrentProcessId());
+    /* Off the listener's thread: restarting a mouse can take a moment. */
+    HANDLE scrolling = CreateThread(NULL, 0, scrolling_thread, NULL, 0, NULL);
+    if (scrolling != NULL)
+        CloseHandle(scrolling);
+    HANDLE restore = CreateThread(NULL, 0, display_restore_thread, NULL, 0, NULL);
+    if (restore != NULL)
+        CloseHandle(restore);
 #ifdef OPENVM_AGENT_TRACE
     CreateThread(NULL, 0, trace_thread, NULL, 0, NULL);
 #endif

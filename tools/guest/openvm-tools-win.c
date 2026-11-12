@@ -51,6 +51,7 @@
 #include <shellscalingapi.h>
 #include <shlobj.h>
 #include <userenv.h>
+#include <setupapi.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -211,6 +212,8 @@ static void agent_log(const char *fmt, ...);
 
 #ifdef OPENVM_REAL_WIN32
 #include "windows/log.c"
+#include "windows/scrolling.c"
+#include "windows/display-restore.c"
 #include "windows/listener.c"
 #include "windows/service.c"
 #include "windows/helper-clipboard.c"
