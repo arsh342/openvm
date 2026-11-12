@@ -36,11 +36,11 @@ A failure goes back as a bug with the step that showed it.
 
 ## Files
 
-- [ ] **Drop in.** Drag from Finder onto the window: one file, a folder, a file with a non-Latin
+- [x] **Drop in.** Drag from Finder onto the window: one file, a folder, a file with a non-Latin
       name, a photo from Photos, a 1 GiB file. The guest keeps answering while it copies. Mouse input
       still works over the whole screen. **2026-11-12, Windows:** one photo dropped onto the window
-      arrived on the guest's desktop, and so did a 300 MB Blender file and a folder. The non-Latin
-      name, Photos and 1 GiB cases are still to try.
+      arrived on the guest's desktop, and so did a 300 MB Blender file and a folder. The owner then
+      reported every case of this check working.
 - [x] **Send out, Windows.** In Explorer, right-click a file, Send to, "Send to Mac" (in Windows 11 under
       Show more options). Passes (2026-11-12): it arrived in `~/Downloads/openVM/win-lab/`.
 - [ ] **A 12 x 200 MB tree** from Windows: bytes match on the Mac (compare with `cmp` or `shasum`).
