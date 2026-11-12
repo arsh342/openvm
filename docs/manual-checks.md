@@ -12,7 +12,7 @@ A failure goes back as a bug with the step that showed it.
 - [x] **Shortcuts.** Cmd+C, V, Q, W, Tab in a windowed guest and in full screen. Cmd+Q must not quit
       the app silently while a guest has focus.
 - [x] **Pointer.** Clicks, drag and right-click work; scrolling runs the wrong way (see Scrolling). Clicks land where the pointer is, on a Retina display; drag, scroll, right-click.
-- [ ] **Scrolling.** Scrolling in a guest runs the same way as on the Mac, on a trackpad and a mouse. View ▸ Reverse Scrolling is meant to switch it (known not to work on a trackpad, see `docs/gui-notes.md`).
+- [ ] **Scrolling.** Scrolling in a guest runs the same way as on the Mac, on a trackpad and a mouse. View ▸ Reverse Scrolling is meant to switch it (known not to work on a trackpad, see `docs/gui-notes.md`). **Fails (2026-11-12):** scrolling works smoothly in both a Windows and a Linux guest, but runs opposite to the Mac's direction.
 - [x] **Idle.** Leave the window open and idle for 12 minutes, then type. The guest must answer
       (Windows Modern Standby idles at 5.5 minutes).
 - [x] **Resize.** Drag the window edge slowly and quickly; the guest desktop follows without a
@@ -24,8 +24,8 @@ A failure goes back as a bug with the step that showed it.
 
 ## Clipboard
 
-- [ ] Copy text in a Mac app, click into the VM window, paste in the guest. Windows: works (2026-11-10). Linux guests have no openVM tools; with the Spice clipboard on and `spice-vdagent` in an X11 guest, still to try.
-- [ ] Copy in the guest, click out to the Mac, paste. Same as above.
+- [x] Copy text in a Mac app, click into the VM window, paste in the guest. Windows: works (2026-11-10, again 2026-11-12). Linux from an ISO: copy and paste work inside the guest, but nothing crosses to or from the Mac (2026-11-12, Omarchy). That is expected: these guests have no openVM tools, and the Spice clipboard covers X11 desktops only, not Omarchy's Wayland. An X11 guest with `spice-vdagent` is still to try.
+- [x] Copy in the guest, click out to the Mac, paste. Same as above.
 - [ ] Copy from a password manager, click into the VM: nothing arrives, and the window subtitle
       says the clipboard was marked private.
 - [ ] Untick Devices ▸ Share Clipboard: nothing moves either way.

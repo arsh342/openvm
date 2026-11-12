@@ -314,19 +314,27 @@ agent, so a restart from inside may stop the VM; press Start.
   not known; a likely reason is that it resets through the firmware, which the framework carries out as a reset
   and not a stop.
 
-## Where M4 stands (2026-11-09)
+## Where M4 stands (2026-11-12)
 
-The build work is finished. M4 is not accepted yet: the checks in `docs/manual-checks.md` and the clean-account
-acceptance run still need a person. Three bugs are known and open:
+The build work is finished. M4 is not accepted yet: the checks still open in `docs/manual-checks.md` (files,
+printing, Windows sound, the clipboard edge cases, the screen recording) and the clean-account acceptance run
+need a person. Known faults:
 
-1. Reverse Scrolling has no effect on a trackpad (below).
-2. A Windows guest is held at 1024 pixels wide, because other widths scramble (below).
-3. Windows guests installed before the agent fix have an invisible second display (below). The agent now switches it off.
+1. Scrolling in a guest runs opposite to the Mac's, in Windows and Linux alike, and View ▸ Reverse Scrolling has
+   no effect on a trackpad (below).
+2. A Windows guest is held at 1024 pixels wide. The cause is measured and fixed upstream in two pull requests
+   (virtio-win 1687 and 1717, issue 1720); a guest with a fixed driver can use View ▸ Full Size Display. The hold
+   stays the default until a signed virtio-win release carries the fix.
+3. Windows guests installed before the agent fix have an invisible second display (below). The agent now
+   switches it off.
+4. A Linux guest installed from its ISO has no openVM tools, so the clipboard, files, printing and clock are not
+   shared with the Mac (README, "Create a Linux guest").
 
 ## Known fault: Reverse Scrolling has no effect on a trackpad
 
-Reported on a Windows guest (2026-11-08): with View ▸ Reverse Scrolling on, the guest scrolls against the fingers, and
-turning it off changes nothing. A mouse wheel and a Linux guest have not been rechecked. The switch flips the scroll
+Reported on a Windows guest (2026-11-08), and on 2026-11-12 on both a Windows and a Linux guest: scrolling
+runs against the Mac's direction. With View ▸ Reverse Scrolling on, the guest scrolls against the fingers, and
+turning it off changes nothing. A mouse wheel has not been checked. The switch flips the scroll
 fields of the event in a local monitor. A made-up event flipped that way does read as reversed through `NSEvent`, and
 `VZVirtualMachineView` implements `scrollWheel:` itself, so what differs about a real trackpad event is not known yet.
 
