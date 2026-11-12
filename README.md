@@ -119,6 +119,14 @@ then run `systemctl --user restart wireplumber pipewire pipewire-pulse`. This is
 
 **If scrolling runs the wrong way.** The VM's pointer scrolls the way your fingers move, whatever your Mac is set to. To match a Mac with natural scrolling, turn on natural scrolling for the mouse in the guest. In Omarchy, add `natural_scroll = true` directly inside `input` in `~/.config/hypr/input.lua` (not inside `touchpad`: the VM's pointer is not a touchpad). In GNOME it is Settings ▸ Mouse & Touchpad ▸ Mouse ▸ Natural Scrolling.
 
+**If the desktop does not fill the window.** The VM's display takes the window's size, and full screen's, and the guest's kernel sees each new size, but a desktop has to switch to it. Hyprland, and so Omarchy, does not, which leaves black bars. Copy `tools/guest/hyprland/openvm-fit-display.sh` into the guest as `~/.local/bin/openvm-fit-display`, make it executable, and have Omarchy start it at login:
+
+```sh
+printf '\nhl.on("hyprland.start", function()\n  hl.exec_cmd("%s/.local/bin/openvm-fit-display")\nend)\n' "$HOME" >> ~/.config/hypr/autostart.lua
+```
+
+It also sets the guest to 2x scale, like a Retina Mac; set `OPENVM_SCALE=1` for a display that is not Retina. Other desktops have not been checked.
+
 ## Using a guest
 
 ```sh

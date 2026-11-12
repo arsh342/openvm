@@ -453,6 +453,11 @@ so the driver lists it after a restart, and applies it again once someone is sig
 blank virtio disk, and the ISO on a USB stick, with the distribution's own installer in the VM window.
 There is no per-distribution code. Any ARM64 build that boots by UEFI should work.
 
+* **The size.** The view resizes the display itself (`automaticallyReconfiguresDisplay`), and the guest's kernel
+  sees each new size, but Hyprland keeps the size it read at login, which leaves black bars after a resize and in
+  full screen. `tools/guest/hyprland/openvm-fit-display.sh`, started at login, switches it
+  (`docs/evidence/linux-display-fit-2026-11-12.md`, README "Create a Linux guest").
+
 * **The check.** `linux-iso-check` scans the file for the boot file names, because macOS could not mount
   the hybrid ISO tried. It refuses an ISO with only x86-64 names, and lets one with neither through with a
   note that it may or may not start.
