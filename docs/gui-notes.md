@@ -312,9 +312,9 @@ agent, so a restart from inside may stop the VM; press Start.
 
 ## Where M4 stands (2026-11-12)
 
-The build work is finished. M4 is not accepted yet: the checks still open in `docs/manual-checks.md` (files,
-printing, the screen recording) and the clean-account acceptance run need a person. Scrolling, the clipboard
-edge cases and Windows sound passed on 2026-11-12. Known faults:
+The build work is finished. M4 is not accepted yet: the checks still open in `docs/manual-checks.md` (printing,
+the screen recording) and the clean-account acceptance run need a person. Scrolling, the clipboard edge cases,
+Windows sound and the files checks passed on 2026-11-12. Known faults:
 
 1. Scrolling in a guest follows the fingers, not the Mac's setting, and only the guest can reverse it (below).
 2. A Windows guest gets the window's full size, which scrambles with the released `viogpudo` (0.1.302). The cause

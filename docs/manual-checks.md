@@ -43,9 +43,9 @@ A failure goes back as a bug with the step that showed it.
       reported every case of this check working.
 - [x] **Send out, Windows.** In Explorer, right-click a file, Send to, "Send to Mac" (in Windows 11 under
       Show more options). Passes (2026-11-12): it arrived in `~/Downloads/openVM/win-lab/`.
-- [ ] **A 12 x 200 MB tree** from Windows: bytes match on the Mac (compare with `cmp` or `shasum`).
-- [ ] **Outbox off.** Settings, turn off "Accept files this VM sends to the Mac": a send is not
-      taken.
+- [x] **A 12 x 200 MB tree** from Windows: bytes match on the Mac (compare with `cmp` or `shasum`). Ticked by the owner (2026-11-12).
+- [x] **Outbox off.** Settings, turn off "Accept files this VM sends to the Mac": a send is not
+      taken. Passes (2026-11-12, owner).
 
 ## Restart
 
