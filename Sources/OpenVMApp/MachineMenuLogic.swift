@@ -4,7 +4,7 @@ import Foundation
 import OpenVMCore
 
 enum MachineCommand: CaseIterable {
-    case power, restart, pause, fullScreen, reverseScrolling, shareFolder, clipboard
+    case power, restart, pause, fullScreen, reverseScrolling, fullSizeDisplay, shareFolder, clipboard
     case outbox, ejectInstaller
     case settings
 }
@@ -25,7 +25,7 @@ enum MachineMenuLogic {
 
     /// `vm` is nil when there are no VMs: then nothing is live.
     static func item(
-        _ command: MachineCommand, for vm: VmSummary?, fullScreen: Bool = false
+        _ command: MachineCommand, for vm: VmSummary?, fullScreen: Bool = false, fullSize: Bool = false
     ) -> MachineMenuItem {
         guard let vm else { return MachineMenuItem(title: defaultTitle(command), enabled: false) }
         let state = VMToolbarLogic.state(for: vm)
@@ -39,6 +39,10 @@ enum MachineMenuLogic {
                 title: fullScreen ? "Exit Full Screen" : "Enter Full Screen", enabled: state.fullScreenEnabled)
         case .reverseScrolling:
             return MachineMenuItem(title: defaultTitle(command), enabled: true, checked: ScrollFlip.isReversed())
+        // Only a Windows guest is held at one width (WindowsDisplayHold), so only it has a hold to lift.
+        case .fullSizeDisplay:
+            let windows = vm.bootMode == .windows
+            return MachineMenuItem(title: defaultTitle(command), enabled: windows, checked: windows && fullSize)
         // These work through the guest agent, so a guest without one has nothing to offer.
         case .shareFolder: return MachineMenuItem(title: defaultTitle(command), enabled: vm.bootMode.hasAgent)
         // A guest from its own ISO can share it through the framework's Spice agent instead (next start).
@@ -79,6 +83,7 @@ enum MachineMenuLogic {
         case .pause: return "Pause"
         case .fullScreen: return "Enter Full Screen"
         case .reverseScrolling: return "Reverse Scrolling"
+        case .fullSizeDisplay: return "Full Size Display (Fixed Driver Only)"
         case .shareFolder: return "Share Folder…"
         case .clipboard: return "Share Clipboard"
         case .outbox: return "Accept Files from the VM"

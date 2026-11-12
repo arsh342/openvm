@@ -142,7 +142,11 @@ menu-bar icon brings a window back; host sleep with a window open pauses and res
   * View: Enter or Exit Full Screen, Reverse Scrolling (no effect on a trackpad yet, see "Known fault: Reverse Scrolling"; on by default: scrolling in both guests ran the
     opposite way to the Mac's).
     Retina Resolution (Best for Retina Display, or Scaled) was removed with the Alpine guest, the only
-    guest that took a size from it; it comes back with Retina sizes for Windows.
+    guest that took a size from it.
+    Full Size Display (Fixed Driver Only), for Windows guests: lifts the 1024-wide hold for that VM, so the
+    guest is fitted to the window's full size at the display's scale (`WindowsDisplayHold`). Off unless
+    chosen, because with the released `viogpudo` any other width scrambles; it is for a guest whose display
+    driver has the mode-change fix.
   * Actions: Start or Shut Down (or Cancel Start), Restart, Pause or Resume, and Settings.
   * Devices: Share Clipboard and Accept Files from the VM (ticked when on), and Share Folder.
   * They act on the **current VM**: the one last in front or last chosen under the icon, else a live
@@ -424,7 +428,7 @@ every connected monitor. Guests installed before this keep the second display un
 **Stopgap.** The app holds a Windows guest at 1024 pixels wide, with the height following the window
 (`DisplayFit.windowsMode`), so the picture stays correct (measured: three clean captures at 1024x643, 1024x590 and 1024x640, across a restart and
 in use),  but softer than a Retina display can show,
-and there is no Retina Resolution menu. `openvmctl display set` is not held, so it can still
+and Retina sizes need View ▸ Full Size Display, which is only right for a guest with the fixed driver. `openvmctl display set` is not held, so it can still
 scramble. Retina sizes for Windows need the cause found.
 
 ## Linux, from an ISO

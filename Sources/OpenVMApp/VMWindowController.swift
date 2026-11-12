@@ -285,10 +285,11 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     /// a booting one is sized when it becomes ready. Between resizes the view scales the
     /// last frame, so a window dragged larger never shows a failure.
     private func fitGuestToWindow() {
-        guard state == .running, window != nil else { return }
+        guard state == .running, let window else { return }
         guard vm.bootMode.hasAgent else { return }
-        // Only a Windows guest has an agent, and it is held at one width for now.
-        let mode = DisplayFit.windowsMode(pointSize: machineView.bounds.size)
+        // Only a Windows guest has an agent. It is held at one width unless its hold is lifted.
+        let mode = WindowsDisplayHold().mode(
+            for: vm.uuid, pointSize: machineView.bounds.size, backingScale: window.backingScaleFactor)
         Task { await resizer.request(mode) }
     }
 

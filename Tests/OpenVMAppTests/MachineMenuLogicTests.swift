@@ -45,6 +45,19 @@ struct MachineMenuLogicTests {
         #expect(MachineMenuLogic.item(.fullScreen, for: vm("running"), fullScreen: true).title == "Exit Full Screen")
     }
 
+    /// Full Size Display lifts the 1024-wide hold, which only a guest with a fixed display driver can
+    /// take, so it is offered for Windows guests only and is off unless chosen.
+    @Test func fullSizeIsForWindowsGuestsAndOffUntilChosen() {
+        let windows = vm("running")
+        #expect(MachineMenuLogic.item(.fullSizeDisplay, for: windows).enabled)
+        #expect(!MachineMenuLogic.item(.fullSizeDisplay, for: windows).checked)
+        #expect(MachineMenuLogic.item(.fullSizeDisplay, for: windows, fullSize: true).checked)
+        let linux = VmSummary(row: FakeTransport.row("l", state: "running", bootMode: "linux-iso"))!
+        #expect(!MachineMenuLogic.item(.fullSizeDisplay, for: linux).enabled)
+        #expect(!MachineMenuLogic.item(.fullSizeDisplay, for: linux, fullSize: true).checked)
+        #expect(!MachineMenuLogic.item(.fullSizeDisplay, for: nil).enabled)
+    }
+
     @Test func switchesAreTickedWhenOn() {
         #expect(MachineMenuLogic.item(.clipboard, for: vm("running")).checked)
         #expect(!MachineMenuLogic.item(.clipboard, for: vm("running", clipboardSync: false)).checked)
@@ -103,10 +116,13 @@ struct MachineMenusTests {
             newVM: { log.calls.append("new") },
             toggleFullScreen: { log.calls.append("fullscreen \($0.name)") },
             shareFolder: { log.calls.append("share \($0.name)") },
+            displayChanged: { log.calls.append("refit \($0.name)") },
             isFullScreen: { _ in false },
             lastUsed: { lastUsed },
             use: { log.calls.append("use \($0)") })
-        return (MachineMenus(model: model, actions: actions), host, log)
+        let name = "openvm-test-\(UUID().uuidString)"
+        let hold = WindowsDisplayHold(defaults: UserDefaults(suiteName: name)!)
+        return (MachineMenus(model: model, actions: actions, hold: hold), host, log)
     }
 
     private func titles(_ menu: NSMenu) -> [String] { menu.items.map { $0.isSeparatorItem ? "-" : $0.title } }
@@ -174,6 +190,21 @@ struct MachineMenusTests {
         #expect(log.calls == ["open a"])
     }
 
+    @Test func choosingFullSizeRefitsTheGuestAndTicksTheItem() async {
+        let (menus, _, log) = await make([FakeTransport.row("a", state: "running")])
+        let view = menus.viewMenu()
+        menus.menuNeedsUpdate(view)
+        let item = view.items.first { $0.title.hasPrefix("Full Size Display") }
+        #expect(item?.state == .off)
+        await menus.perform(.fullSizeDisplay)
+        #expect(log.calls == ["refit a"])
+        menus.menuNeedsUpdate(view)
+        #expect(item?.state == .on)
+        await menus.perform(.fullSizeDisplay)
+        menus.menuNeedsUpdate(view)
+        #expect(item?.state == .off)
+    }
+
     @Test func theSwitchesReachTheHost() async {
         let (menus, host, _) = await make([FakeTransport.row("a", state: "running")])
         await menus.perform(.clipboard)
@@ -229,5 +260,35 @@ struct IsoGuestMenuTests {
         #expect(MachineMenuLogic.item(.ejectInstaller, for: vm("stopped", attached: true)).enabled)
         #expect(!MachineMenuLogic.item(.ejectInstaller, for: vm("running", attached: true)).enabled)
         #expect(!MachineMenuLogic.item(.ejectInstaller, for: vm("stopped")).enabled)
+    }
+}
+
+/// A Windows guest is held at 1024 wide unless its hold is lifted; then it gets the window's full size.
+struct WindowsDisplayHoldTests {
+    private func hold() -> WindowsDisplayHold {
+        let name = "openvm-test-\(UUID().uuidString)"
+        let store = UserDefaults(suiteName: name)!
+        store.removePersistentDomain(forName: name)
+        return WindowsDisplayHold(defaults: store)
+    }
+
+    @Test func theHoldIsOnByDefaultAndPerVm() {
+        let hold = hold()
+        #expect(!hold.isLifted("u"))
+        hold.setLifted(true, for: "u")
+        #expect(hold.isLifted("u"))
+        #expect(!hold.isLifted("other"))
+        hold.setLifted(false, for: "u")
+        #expect(!hold.isLifted("u"))
+    }
+
+    @Test func aHeldGuestGets1024WideAndALiftedOneTheWindowsFullSize() {
+        let hold = hold()
+        let size = CGSize(width: 1280, height: 800)
+        #expect(hold.mode(for: "u", pointSize: size, backingScale: 2) == DisplayFit.windowsMode(pointSize: size))
+        #expect(hold.mode(for: "u", pointSize: size, backingScale: 2).width == 1024)
+        hold.setLifted(true, for: "u")
+        #expect(hold.mode(for: "u", pointSize: size, backingScale: 2) == DisplayFit.Mode(width: 2560, height: 1600, scale: 2))
+        #expect(hold.mode(for: "u", pointSize: size, backingScale: 1) == DisplayFit.Mode(width: 1280, height: 800, scale: 1))
     }
 }
