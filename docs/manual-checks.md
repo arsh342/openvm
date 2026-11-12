@@ -12,7 +12,7 @@ A failure goes back as a bug with the step that showed it.
 - [x] **Shortcuts.** Cmd+C, V, Q, W, Tab in a windowed guest and in full screen. Cmd+Q must not quit
       the app silently while a guest has focus.
 - [x] **Pointer.** Clicks, drag and right-click work; scrolling runs the wrong way (see Scrolling). Clicks land where the pointer is, on a Retina display; drag, scroll, right-click.
-- [ ] **Scrolling.** Scrolling in a guest runs the same way as on the Mac, on a trackpad and a mouse. View ▸ Reverse Scrolling is meant to switch it (known not to work on a trackpad, see `docs/gui-notes.md`). **Fails (2026-11-12):** scrolling works smoothly in both a Windows and a Linux guest, but runs opposite to the Mac's direction.
+- [ ] **Scrolling.** With the guest's natural scrolling set (README), scrolling in a guest runs the same way as on the Mac, on a trackpad and a mouse, up and down and sideways. **2026-11-12:** scrolling ran opposite to the Mac in both guests; with the guest settings, vertical trackpad scrolling matched in Windows and Linux (`docs/evidence/scroll-direction-2026-11-12.md`). A mouse and sideways scrolling are not checked yet.
 - [x] **Idle.** Leave the window open and idle for 12 minutes, then type. The guest must answer
       (Windows Modern Standby idles at 5.5 minutes).
 - [x] **Resize.** Drag the window edge slowly and quickly; the guest desktop follows without a

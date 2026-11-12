@@ -34,18 +34,6 @@ public nonisolated enum DisplayFit {
         return Mode(width: width, height: pixels(pointSize.height, 480, 4320), scale: scale)
     }
 
-    /// The width a Windows guest is held at. With `viogpudo`, the Mac reads every row at 1024 pixels
-    /// whatever mode Windows moves to, so any other width smears (measured: docs/gui-notes.md).
-    public static let windowsWidth: UInt64 = 1024
-
-    /// The mode for a Windows guest: the only width that draws correctly, at the window's shape. It
-    /// is a stopgap. The view scales the picture up, so it is softer than the display could show.
-    public static func windowsMode(pointSize: CGSize) -> Mode {
-        let shape = pointSize.width > 0 && pointSize.height > 0 ? pointSize.height / pointSize.width : 0.75
-        let height = (CGFloat(windowsWidth) * shape).rounded()
-        return Mode(width: windowsWidth, height: UInt64(min(max(height, 480), 4320)), scale: 1)
-    }
-
     /// The scales to try, highest first. Windows caps the scale by desktop size, so a
     /// small window may not get the one its display asks for; the highest it allows wins.
     public static func scalesToTry(_ asked: UInt64) -> [UInt64] {

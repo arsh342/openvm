@@ -22,7 +22,6 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private let drops: DropSession
     private let controls = TitlebarControlsModel()
     private var thumbnailTimer: Timer?
-    private var scrollMonitor: Any?
     private(set) var vm: VmSummary
     private(set) var state: VMWindowState = .stopped
 
@@ -61,7 +60,6 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         wireDrops()
         wireTitlebar(window)
         startThumbnailTimer()
-        watchScrolling()
         updateMinimumSize()
 
         // The display size is set by the host's display op, not by the view: the guest's
@@ -152,17 +150,6 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
                 guard let self, self.window?.isVisible == true, self.state == .running else { return }
                 self.captureThumbnail()
             }
-        }
-    }
-
-    // MARK: scrolling
-
-    /// A monitor, not an override: it sees the event whichever of the view's parts would take it.
-    private func watchScrolling() {
-        scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
-            guard let self, event.window === self.window, self.state.showsScreen, ScrollFlip.isReversed()
-            else { return event }
-            return ScrollFlip.flipped(event) ?? event
         }
     }
 
@@ -287,9 +274,9 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private func fitGuestToWindow() {
         guard state == .running, let window else { return }
         guard vm.bootMode.hasAgent else { return }
-        // Only a Windows guest has an agent. It is held at one width unless its hold is lifted.
-        let mode = WindowsDisplayHold().mode(
-            for: vm.uuid, pointSize: machineView.bounds.size, backingScale: window.backingScaleFactor)
+        // Only a Windows guest has an agent. It gets the window's full size at the display's scale,
+        // which needs a viogpudo with the mode-change fix (docs/gui-notes.md).
+        let mode = DisplayFit.mode(pointSize: machineView.bounds.size, backingScale: window.backingScaleFactor)
         Task { await resizer.request(mode) }
     }
 
@@ -317,9 +304,6 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
             Data("openvm: could not set the guest display to \(mode.width)x\(mode.height): \(failure)\n".utf8))
         return false
     }
-
-    /// The person chose another resolution: ask for it now.
-    func refit() { fitGuestToWindow() }
 
     var isFullScreen: Bool { window?.styleMask.contains(.fullScreen) == true }
 

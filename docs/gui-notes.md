@@ -139,14 +139,10 @@ menu-bar icon brings a window back; host sleep with a window open pauses and res
 
 * **View, Actions and Devices** are in the menu bar and, as submenus, under the menu-bar icon. One
   piece of code (`MachineMenus`) feeds both, so they cannot disagree.
-  * View: Enter or Exit Full Screen, Reverse Scrolling (no effect on a trackpad yet, see "Known fault: Reverse Scrolling"; on by default: scrolling in both guests ran the
-    opposite way to the Mac's).
+  * View: Enter or Exit Full Screen.
     Retina Resolution (Best for Retina Display, or Scaled) was removed with the Alpine guest, the only
-    guest that took a size from it.
-    Full Size Display (Fixed Driver Only), for Windows guests: lifts the 1024-wide hold for that VM, so the
-    guest is fitted to the window's full size at the display's scale (`WindowsDisplayHold`). Off unless
-    chosen, because with the released `viogpudo` any other width scrambles; it is for a guest whose display
-    driver has the mode-change fix.
+    guest that took a size from it. Reverse Scrolling and Full Size Display were removed on 2026-11-12: the
+    first could not work ("Scroll direction" below), and a Windows guest now always gets the window's full size.
   * Actions: Start or Shut Down (or Cancel Start), Restart, Pause or Resume, and Settings.
   * Devices: Share Clipboard and Accept Files from the VM (ticked when on), and Share Folder.
   * They act on the **current VM**: the one last in front or last chosen under the icon, else a live
@@ -320,23 +316,25 @@ The build work is finished. M4 is not accepted yet: the checks still open in `do
 printing, Windows sound, the clipboard edge cases, the screen recording) and the clean-account acceptance run
 need a person. Known faults:
 
-1. Scrolling in a guest runs opposite to the Mac's, in Windows and Linux alike, and View ▸ Reverse Scrolling has
-   no effect on a trackpad (below).
-2. A Windows guest is held at 1024 pixels wide. The cause is measured and fixed upstream in two pull requests
-   (virtio-win 1687 and 1717, issue 1720); a guest with a fixed driver can use View ▸ Full Size Display. The hold
-   stays the default until a signed virtio-win release carries the fix.
+1. Scrolling in a guest follows the fingers, not the Mac's setting, and only the guest can reverse it (below).
+2. A Windows guest gets the window's full size, which scrambles with the released `viogpudo` (0.1.302). The cause
+   is measured and fixed upstream in two pull requests (virtio-win 1687 and 1717, issue 1720); until a signed
+   release carries the fix, a guest needs a driver built with it. Until 2026-11-12 the app held Windows guests at
+   1024 pixels wide instead, with View ▸ Full Size Display to lift the hold; the owner chose the full size always.
 3. Windows guests installed before the agent fix have an invisible second display (below). The agent now
    switches it off.
 4. A Linux guest installed from its ISO has no openVM tools, so the clipboard, files, printing and clock are not
    shared with the Mac (README, "Create a Linux guest").
 
-## Known fault: Reverse Scrolling has no effect on a trackpad
+## Scroll direction
 
-Reported on a Windows guest (2026-11-08), and on 2026-11-12 on both a Windows and a Linux guest: scrolling
-runs against the Mac's direction. With View ▸ Reverse Scrolling on, the guest scrolls against the fingers, and
-turning it off changes nothing. A mouse wheel has not been checked. The switch flips the scroll
-fields of the event in a local monitor. A made-up event flipped that way does read as reversed through `NSEvent`, and
-`VZVirtualMachineView` implements `scrollWheel:` itself, so what differs about a real trackpad event is not known yet.
+Scrolling in a guest follows the fingers and ignores the Mac's natural scrolling, so with natural scrolling on
+(the Mac's default) it runs the other way. The app cannot change it: `VZVirtualMachineView` takes the scroll
+amount from the original event, so neither a flipped copy nor a new event changed what the guest got
+(`docs/evidence/scroll-direction-2026-11-12.md`). View ▸ Reverse Scrolling, which tried, was removed. The guest
+can reverse it: Hyprland's `natural_scroll`, and in Windows `FlipFlopWheel` on the mouse, each matched the Mac
+(README, "Before you rely on it" and "Create a Linux guest"). A mouse wheel and horizontal scrolling have not been
+checked.
 
 ## Dragging out of a guest: moved to later
 
@@ -433,11 +431,11 @@ active display not on the virtio GPU, provided a virtio display stays on, and sa
 so after a restart from the Start menu. Settings still lists the second monitor, inactive, because Windows lists
 every connected monitor. Guests installed before this keep the second display until they get the new agent.
 
-**Stopgap.** The app holds a Windows guest at 1024 pixels wide, with the height following the window
-(`DisplayFit.windowsMode`), so the picture stays correct (measured: three clean captures at 1024x643, 1024x590 and 1024x640, across a restart and
-in use),  but softer than a Retina display can show,
-and Retina sizes need View ▸ Full Size Display, which is only right for a guest with the fixed driver. `openvmctl display set` is not held, so it can still
-scramble. Retina sizes for Windows need the cause found.
+**The stopgap, removed.** Until 2026-11-12 the app held a Windows guest at 1024 pixels wide, with the height
+following the window, which kept the picture correct with the released driver (measured: three clean captures at
+1024x643, 1024x590 and 1024x640, across a restart and in use) but softer than a Retina display can show. View ▸
+Full Size Display lifted it for a guest with the fixed driver. The owner chose the full size always, so a Windows
+guest now needs a `viogpudo` with the mode-change fix.
 
 ## Linux, from an ISO
 

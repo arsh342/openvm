@@ -140,7 +140,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                     self?.openWindow(vm)
                     WindowRegistry.shared.controller(for: vm.uuid)?.machineShareFolder(nil)
                 },
-                displayChanged: { vm in WindowRegistry.shared.controller(for: vm.uuid)?.refit() },
                 isFullScreen: { uuid in WindowRegistry.shared.controller(for: uuid)?.isFullScreen ?? false },
                 lastUsed: { WindowRegistry.shared.lastUsed },
                 use: { uuid in WindowRegistry.shared.lastUsed = uuid }))

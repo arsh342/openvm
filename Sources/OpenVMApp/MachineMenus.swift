@@ -15,8 +15,6 @@ struct MachineMenuActions {
     let newVM: () -> Void
     let toggleFullScreen: (VmSummary) -> Void
     let shareFolder: (VmSummary) -> Void
-    /// The display choice changed: fit the guest again.
-    let displayChanged: (VmSummary) -> Void
     let isFullScreen: (String) -> Bool
     let lastUsed: () -> String?
     let use: (String) -> Void
@@ -26,16 +24,14 @@ struct MachineMenuActions {
 final class MachineMenus: NSObject, NSMenuDelegate {
     private let model: VMListModel
     private let actions: MachineMenuActions
-    private let hold: WindowsDisplayHold
     /// Marks the rows at the top of the icon's menu, which are rebuilt each time it opens.
     private static let dynamicTag = 7001
     private var commands: [ObjectIdentifier: MachineCommand] = [:]
     private var statusRoot: NSMenu?
 
-    init(model: VMListModel, actions: MachineMenuActions, hold: WindowsDisplayHold = WindowsDisplayHold()) {
+    init(model: VMListModel, actions: MachineMenuActions) {
         self.model = model
         self.actions = actions
-        self.hold = hold
     }
 
     private var current: VmSummary? { MachineMenuLogic.current(in: model.vms, lastUsed: actions.lastUsed()) }
@@ -47,8 +43,6 @@ final class MachineMenus: NSObject, NSMenuDelegate {
         let full = add(.fullScreen, to: menu)
         full.keyEquivalent = "f"
         full.keyEquivalentModifierMask = [.command, .control]
-        add(.reverseScrolling, to: menu)
-        add(.fullSizeDisplay, to: menu)
         return menu
     }
 
@@ -137,8 +131,7 @@ final class MachineMenus: NSObject, NSMenuDelegate {
         let vm = current
         let state = MachineMenuLogic.item(
             command, for: vm,
-            fullScreen: vm.map { actions.isFullScreen($0.uuid) } ?? false,
-            fullSize: vm.map { hold.isLifted($0.uuid) } ?? false)
+            fullScreen: vm.map { actions.isFullScreen($0.uuid) } ?? false)
         item.title = state.title
         item.isEnabled = state.enabled
         item.state = state.checked ? .on : .off
@@ -195,11 +188,6 @@ final class MachineMenus: NSObject, NSMenuDelegate {
             case .disabled: break
             }
         case .fullScreen: actions.toggleFullScreen(vm)
-        case .reverseScrolling: ScrollFlip.setReversed(!ScrollFlip.isReversed())
-        case .fullSizeDisplay:
-            guard vm.bootMode == .windows else { break }
-            hold.setLifted(!hold.isLifted(vm.uuid), for: vm.uuid)
-            actions.displayChanged(vm)
         case .shareFolder: actions.shareFolder(vm)
         case .clipboard: await model.setClipboardSync(vm, !vm.clipboardSync)
         case .outbox: await model.setOutbox(vm, !vm.outbox)
