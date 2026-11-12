@@ -86,3 +86,22 @@ The guest confirmed every mode (1536x864, 1280x800, 1600x900, 2048x1152), and th
 through the run, saw a correct picture at every size. The app's Mac-side capture of the window was a clean
 desktop at 1600x900 (black with the earlier one-byte patch) and at 2560x1600 with 2x scale, a Retina size.
 Not tested: QEMU, and a mode change that fails part way.
+
+## The two upstream pull requests, tested (2026-11-12)
+
+Two pull requests for this fault were already open at virtio-win when issue 1720 was filed, and were missed:
+1687 (fresh resource ids as an opt-in, and the scanout disabled before the old resource is released) and 1717
+(the scanout moved to the new frame buffer before the old one is released, the same change as the patch
+above). The duplicate pull request 1723 was closed, and both were tested here instead, each built from its
+head commit in `win-lab` and traced over the same nine modes.
+
+| | 0.1.302 | 1717 at `de6150d` | 1687 at `5cdca23`, default |
+| --- | --- | --- | --- |
+| "Command failed" lines | 198 | 0 | 0 |
+| Resource ids | 1 reused | 1 and 2 alternating | 1 reused |
+| Picture, by eye, every size | wrong above 1024 wide | right | right |
+| Mac-side capture, 1600x900 and 2560x1600 at 2x | | clean | clean |
+
+With 1687 the device accepts the unref once the scanout is disabled, and then accepts a create under the same
+id. So the refusal is about unref'ing a resource that is on a scanout, not about reusing an id. Not tested:
+1687 with `UseFreshResourceId=1`, either change on QEMU. The results were posted on both pull requests.
