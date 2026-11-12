@@ -312,8 +312,9 @@ agent, so a restart from inside may stop the VM; press Start.
 
 ## Where M4 stands (2026-11-12)
 
-The build work is finished. M4 is not accepted yet: the checks still open in `docs/manual-checks.md` (the screen
-recording) and the clean-account acceptance run need a person. Scrolling, the clipboard edge cases, Windows
+The build work is finished. M4 is not accepted yet: the clean-account acceptance run in `docs/manual-checks.md`
+needs a person. The screen recording was dropped from the checks on 2026-11-12 (the owner's call: every
+feature it would show was checked by hand). Scrolling, the clipboard edge cases, Windows
 sound, the files checks and printing on paper passed on 2026-11-12. Known faults:
 
 1. Scrolling in a guest follows the fingers, not the Mac's setting, and only the guest can reverse it (below).
