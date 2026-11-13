@@ -304,8 +304,8 @@ struct InstallersView: View {
         } else {
             List(model.installers) { row in
                 HStack(spacing: 12) {
-                    Image(systemName: row.complete ? "opticaldisc" : "arrow.down.circle").font(.title2)
-                        .foregroundStyle(.secondary).frame(width: 30).accessibilityHidden(true)
+                    SystemLogo(brand: .of(row)).frame(width: 28, height: 28).frame(width: 30)
+                        .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 3) {
                         Text(row.name).font(.headline)
                         Text(row.file).font(.callout).foregroundStyle(.secondary).lineLimit(1).truncationMode(

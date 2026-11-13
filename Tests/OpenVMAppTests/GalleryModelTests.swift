@@ -248,3 +248,25 @@ struct OfficialArtworkTests {
         #expect(OfficialArtwork.fedora.contains("matrix(1.1600518,0,0,1.1600518,654.47677,-112.84527)"))
     }
 }
+
+/// An installer in the cache shows its system's mark, while it downloads and once it is downloaded.
+struct InstallerBrandTests {
+    private func installer(_ entry: String, name: String, complete: Bool) -> InstallerRow {
+        InstallerRow(
+            row: .map([
+                ("entry", .text(entry)), ("name", .text(name)), ("file", .text("a.iso")),
+                ("path", .text("/x/\(entry)-a.iso\(complete ? "" : ".part")")), ("bytes", .uint(1)),
+                ("complete", .bool(complete)),
+            ]))!
+    }
+
+    @Test func anInstallerGetsItsSystemsMarkWhateverItsState() {
+        #expect(SystemBrand.of(installer("ubuntu-lts", name: "Ubuntu", complete: true)) == .ubuntu)
+        #expect(SystemBrand.of(installer("ubuntu-lts", name: "Ubuntu", complete: false)) == .ubuntu)
+        #expect(
+            SystemBrand.of(installer("fedora-workstation", name: "Fedora Workstation", complete: false))
+                == .fedora)
+        // One this build's catalog does not know keeps a plain disc.
+        #expect(SystemBrand.of(installer("debian", name: "Debian", complete: true)) == .other("opticaldisc"))
+    }
+}

@@ -24,6 +24,11 @@ enum SystemBrand: Equatable {
         return vm.systemName.flatMap(named) ?? .other("terminal")
     }
 
+    /// For an installer in the cache, downloading or downloaded: its catalog entry's mark.
+    static func of(_ installer: InstallerRow) -> SystemBrand {
+        InstallerCatalog.entry(installer.entry).map(of) ?? named(installer.name) ?? .other("opticaldisc")
+    }
+
     private static func named(_ name: String) -> SystemBrand? {
         let lower = name.lowercased()
         if lower.contains("ubuntu") { return .ubuntu }
@@ -32,20 +37,46 @@ enum SystemBrand: Equatable {
     }
 }
 
-/// A system's mark, filling the square it is given.
+/// A system's mark on a background, as an app icon has one: a rounded square that fills the square it is
+/// given. Ubuntu's is its own orange; Windows and Fedora sit on white, which their marks are made for. So
+/// the three read as one set, in light and in dark. A system with no mark of its own is a plain glyph.
 struct SystemLogo: View {
     let brand: SystemBrand
 
+    /// How far a mark is set in from the edge of its background, as a share of the side.
+    static func inset(for brand: SystemBrand) -> CGFloat {
+        switch brand {
+        case .windows: return 0.2
+        case .fedora: return 0.11
+        case .ubuntu, .other: return 0  // Ubuntu's artwork is its background
+        }
+    }
+
     var body: some View {
         switch brand {
-        case .windows: WindowsLogo()
-        case .ubuntu: UbuntuLogo()
-        case .fedora: FedoraLogo()
+        case .windows: plate(WindowsLogo(), fill: .white)
+        case .ubuntu: plate(UbuntuLogo(), fill: Color(red: 0.914, green: 0.314, blue: 0.055))
+        case .fedora: plate(FedoraLogo(), fill: .white)
         case .other(let symbol):
             GeometryReader { proxy in
                 Image(systemName: symbol).font(.system(size: min(proxy.size.width, proxy.size.height) * 0.8))
                     .foregroundStyle(.secondary).frame(width: proxy.size.width, height: proxy.size.height)
             }
+        }
+    }
+}
+
+extension SystemLogo {
+    private func plate<Mark: View>(_ mark: Mark, fill: Color) -> some View {
+        GeometryReader { proxy in
+            let side = min(proxy.size.width, proxy.size.height)
+            let shape = RoundedRectangle(cornerRadius: side * 0.225, style: .continuous)
+            mark.padding(side * Self.inset(for: brand))
+                .frame(width: side, height: side)
+                .background(fill)
+                .clipShape(shape)
+                .overlay(shape.strokeBorder(Color.black.opacity(0.12), lineWidth: max(0.5, side / 64)))
+                .frame(width: proxy.size.width, height: proxy.size.height)
         }
     }
 }

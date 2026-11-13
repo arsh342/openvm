@@ -590,6 +590,9 @@ in Downloads) and a tile for each system. The library shows the same view while 
   `fedora_default-vertical.svg` (`gitlab.com/fedora/design/team/logos/fedora-project-logos`, the logo's own
   path without the wordmark, on a white disc). The Windows mark is drawn in code. All three are trademarks
   whose usage rules have not been checked: before a public release, check them or go back to neutral glyphs.
+  Each mark sits on a rounded-square background, as an app icon does: Ubuntu's own orange, and white for
+  Windows and Fedora. The same marks show in the library's Downloaded list, while an installer downloads and
+  once it is there.
 * **Layout.** Windows comes first, in full. The systems openVM downloads itself follow as short cards side by
   side: mark, name, what it is for, size and time. Their limits are in each card's tooltip and on the
   wizard's summary.
