@@ -24,12 +24,14 @@ private nonisolated final class RealHost: @unchecked Sendable {
         // The download cache is shared, so media is not downloaded again for every run.
         try? FileManager.default.createSymbolicLink(
             at: home.appendingPathComponent("cache"),
-            withDestinationURL: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".openvm/cache"))
+            withDestinationURL: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(
+                ".openvm/cache"))
         let daemon = repo.appendingPathComponent(".build/debug/openvmd")
         let sign = Process()
         sign.executableURL = URL(fileURLWithPath: "/usr/bin/codesign")
         sign.arguments = [
-            "--force", "--sign", "-", "--entitlements", repo.appendingPathComponent("tools/build/vm.entitlements.xml").path,
+            "--force", "--sign", "-", "--entitlements",
+            repo.appendingPathComponent("tools/build/vm.entitlements.xml").path,
             daemon.path,
         ]
         sign.standardOutput = FileHandle.nullDevice
@@ -46,7 +48,9 @@ private nonisolated final class RealHost: @unchecked Sendable {
         try process.run()
         client = DaemonClient(socket: home.appendingPathComponent("openvmd.sock").path)
         for _ in 0..<100 {
-            if FileManager.default.fileExists(atPath: home.appendingPathComponent("openvmd.sock").path) { return }
+            if FileManager.default.fileExists(atPath: home.appendingPathComponent("openvmd.sock").path) {
+                return
+            }
             Thread.sleep(forTimeInterval: 0.1)
         }
         throw HostError.protocolFailure("the host did not start")
@@ -59,11 +63,13 @@ private nonisolated final class RealHost: @unchecked Sendable {
     }
 
     var mediaFiles: [String] {
-        ((try? FileManager.default.contentsOfDirectory(atPath: home.appendingPathComponent("media").path)) ?? [])
+        ((try? FileManager.default.contentsOfDirectory(atPath: home.appendingPathComponent("media").path))
+            ?? [])
     }
 
     var diskFolders: [String] {
-        ((try? FileManager.default.contentsOfDirectory(atPath: home.appendingPathComponent("disks").path)) ?? [])
+        ((try? FileManager.default.contentsOfDirectory(atPath: home.appendingPathComponent("disks").path))
+            ?? [])
     }
 }
 
@@ -93,20 +99,26 @@ private func waitUntil(_ seconds: Double, _ condition: () async -> Bool) async -
 @Suite(.serialized, .enabled(if: ProcessInfo.processInfo.environment["OPENVM_E2E"] == "1"))
 struct WizardEndToEndTests {
     private func summary(_ model: CreateWizardModel) {
-        model.next(); model.next(); model.next()
+        model.next()
+        model.next()
+        model.next()
     }
 
     @Test func cancellingAWindowsMediaBuildLeavesNothing() async throws {
-        let iso = try FileManager.default.contentsOfDirectory(atPath: repo.appendingPathComponent("windowsImage").path)
-            .first { $0.lowercased().hasSuffix(".iso") }
-            .map { repo.appendingPathComponent("windowsImage/\($0)").path }
+        let iso = try FileManager.default.contentsOfDirectory(
+            atPath: repo.appendingPathComponent("windowsImage").path
+        )
+        .first { $0.lowercased().hasSuffix(".iso") }
+        .map { repo.appendingPathComponent("windowsImage/\($0)").path }
         guard let iso else {
             Issue.record("no ISO in windowsImage/")
             return
         }
         let before = attachedImages().count
         let host = try RealHost()
-        let model = CreateWizardModel(transport: host.client, existingNames: [], pollInterval: .milliseconds(500)) { _ in }
+        let model = CreateWizardModel(
+            transport: host.client, existingNames: [], pollInterval: .milliseconds(500)
+        ) { _ in }
         await model.load()
         model.os = .windows
         model.next()
@@ -129,7 +141,7 @@ struct WizardEndToEndTests {
         await model.cancel()
         await run.value
 
-        #expect(model.page == .os)
+        #expect(model.page == .gallery)
         #expect(host.mediaFiles.isEmpty, "media left behind: \(host.mediaFiles)")
         #expect(attachedImages().count == before, "images left attached")
         #expect(((try? await host.client.listVMs()) ?? []).isEmpty)

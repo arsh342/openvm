@@ -20,13 +20,16 @@ final class LibraryWindowController: NSWindowController, NSMenuItemValidation, N
     private let nav = LibraryNav()
     private let model: VMListModel
     private let context: VMCommandContext
-    private let newVM: () -> Void
+    private let newVM: (NewVMStart) -> Void
+    private let gallery: GalleryModel
     private var subscription: AnyCancellable?
 
-    init(model: VMListModel, context: VMCommandContext, newVM: @escaping () -> Void) {
+    init(model: VMListModel, context: VMCommandContext, newVM: @escaping (NewVMStart) -> Void) {
         self.model = model
         self.context = context
         self.newVM = newVM
+        let gallery = GalleryModel(transport: model.transport)
+        self.gallery = gallery
         let nav = self.nav
         let run: (VMCommand, VmSummary) -> Void = { command, vm in
             Task { await command.perform(on: vm, in: context) }
@@ -34,17 +37,20 @@ final class LibraryWindowController: NSWindowController, NSMenuItemValidation, N
 
         let split = NSSplitViewController()
         let sidebar = NSSplitViewItem(
-            sidebarWithViewController: NSHostingController(rootView: LibrarySidebarView(model: model, nav: nav)))
+            sidebarWithViewController: NSHostingController(
+                rootView: LibrarySidebarView(model: model, nav: nav)))
         sidebar.minimumThickness = 160
         sidebar.maximumThickness = 260
         split.addSplitViewItem(sidebar)
         let table = NSSplitViewItem(
-            viewController: NSHostingController(rootView: VMTableView(model: model, nav: nav, run: run, newVM: newVM)))
+            viewController: NSHostingController(
+                rootView: VMTableView(model: model, nav: nav, run: run, newVM: newVM, gallery: gallery)))
         table.minimumThickness = 420
         split.addSplitViewItem(table)
         let detail = NSSplitViewItem(
             inspectorWithViewController: NSHostingController(
-                rootView: VMDetailPane(model: model, nav: nav, thumbnails: .shared, settings: .shared, run: run)))
+                rootView: VMDetailPane(
+                    model: model, nav: nav, thumbnails: .shared, settings: .shared, run: run)))
         detail.minimumThickness = 250
         detail.maximumThickness = 340
         split.addSplitViewItem(detail)
@@ -96,7 +102,13 @@ final class LibraryWindowController: NSWindowController, NSMenuItemValidation, N
         return true
     }
 
-    @objc private func newVirtualMachine(_ sender: Any?) { newVM() }
+    @objc private func newVirtualMachine(_ sender: Any?) { newVM(.gallery) }
+
+    /// The free space on the gallery's tiles is read each time the window comes up.
+    override func showWindow(_ sender: Any?) {
+        super.showWindow(sender)
+        Task { await gallery.load() }
+    }
 
     // MARK: toolbar
 
@@ -112,7 +124,8 @@ final class LibraryWindowController: NSWindowController, NSMenuItemValidation, N
     }
 
     func toolbar(
-        _ toolbar: NSToolbar, itemForItemIdentifier identifier: NSToolbarItem.Identifier, willBeInsertedIntoToolbar flag: Bool
+        _ toolbar: NSToolbar, itemForItemIdentifier identifier: NSToolbarItem.Identifier,
+        willBeInsertedIntoToolbar flag: Bool
     ) -> NSToolbarItem? {
         switch identifier {
         case .newVM:

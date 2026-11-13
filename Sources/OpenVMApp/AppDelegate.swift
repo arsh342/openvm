@@ -3,6 +3,7 @@ import AppKit
 import Combine
 import OpenVMCore
 import OpenVMHost
+import UniformTypeIdentifiers
 
 /// What to tell a person when the host could not start. Another host on the same
 /// home (the app, or the headless openvmd) is the usual reason.
@@ -33,7 +34,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.machine = machine
         let menu = AppMenu(
             model: model, machine: machine, showLibrary: { [weak self] in self?.showLibrary() },
-            newVM: { [weak self] in self?.showWizard() }, showSettings: { [weak self] in self?.showAppSettings() },
+            newVM: { [weak self] in self?.showWizard() },
+            openInstaller: { [weak self] in self?.openInstallerFile() },
+            showSettings: { [weak self] in self?.showAppSettings() },
             openVM: { [weak self] vm in self?.openWindow(vm) })
         self.menu = menu
         NSApp.mainMenu = menu.build()
@@ -62,6 +65,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func application(_ application: NSApplication, open urls: [URL]) {
         for url in urls {
+            // An installer file dropped on the Dock icon, or opened with openVM, starts a new VM from it.
+            if url.isFileURL {
+                if url.pathExtension.lowercased() == "iso" { showWizard(.file(url)) }
+                continue
+            }
             guard let reference = vmReference(from: url) else { continue }
             Task { await openWindow(for: reference) }
         }
@@ -70,7 +78,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// A link may arrive before the first poll has filled the list.
     private func openWindow(for reference: String) async {
         if model.vms.isEmpty { await model.refresh() }
-        guard let vm = model.vms.first(where: { $0.name == reference || $0.uuid.lowercased() == reference.lowercased() })
+        guard
+            let vm = model.vms.first(where: {
+                $0.name == reference || $0.uuid.lowercased() == reference.lowercased()
+            })
         else { return }
         openWindow(vm)
     }
@@ -87,18 +98,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showLibrary() {
         let controller =
             library
-            ?? LibraryWindowController(model: model, context: context, newVM: { [weak self] in self?.showWizard() })
+            ?? LibraryWindowController(
+                model: model, context: context, newVM: { [weak self] start in self?.showWizard(start) })
         library = controller
         NSApp.setActivationPolicy(.regular)  // a window needs the Dock icon back
         controller.showWindow(nil)
         NSApp.activate()
     }
 
-    /// The creation wizard. One at a time: a second request brings the open one forward.
-    private func showWizard() {
+    /// The creation wizard. One at a time: a second request brings the open one forward, and hands it
+    /// the file or system that came with the request unless it is already installing.
+    private func showWizard(_ start: NewVMStart = .gallery) {
         if let wizard, wizard.window?.isVisible == true {
             wizard.showWindow(nil)
             NSApp.activate()
+            wizard.begin(start)
             return
         }
         NSApp.setActivationPolicy(.regular)
@@ -108,6 +122,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         wizard = controller
         controller.showWindow(nil)
         NSApp.activate()
+        controller.begin(start)
+    }
+
+    /// File ▸ Open Installer File…: choose an installer, and make a VM from it.
+    private func openInstallerFile() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+        if let iso = UTType(filenameExtension: "iso") { panel.allowedContentTypes = [iso] }
+        panel.directoryURL = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first
+        panel.message = "Choose an installer file: Windows 11 for Arm, or a Linux made for Arm."
+        panel.prompt = "Choose"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        showWizard(.file(url))
     }
 
     private func showSettings(_ vm: VmSummary) {
@@ -168,9 +197,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func installStatusMenu() {
         if let machine { statusMenu = StatusMenuController(menus: machine, settings: settings) }
         // Turning the icon off or on changes whether the Dock icon has to stay.
-        subscriptions.append(settings.$showsMenuBarIcon.dropFirst().sink { [weak self] _ in
-            DispatchQueue.main.async { MainActor.assumeIsolated { self?.refreshActivationPolicy() } }
-        })
+        subscriptions.append(
+            settings.$showsMenuBarIcon.dropFirst().sink { [weak self] _ in
+                DispatchQueue.main.async { MainActor.assumeIsolated { self?.refreshActivationPolicy() } }
+            })
     }
 
     private func makeMachineMenus() -> MachineMenus {
@@ -194,7 +224,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ]
         for name in names {
             observers.append(
-                NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) {
+                    [weak self] _ in
                     // After the window has finished closing, not while it still counts as open.
                     DispatchQueue.main.async { MainActor.assumeIsolated { self?.refreshActivationPolicy() } }
                 })
@@ -206,9 +237,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func refreshActivationPolicy() {
-        let open = NSApp.windows.filter { $0.styleMask.contains(.titled) && ($0.isVisible || $0.isMiniaturized) }.count
-        let live = model.vms.contains { $0.state == .running || $0.state == .suspended || $0.activity == "start" }
-        let wanted = activationPolicy(openWindows: open, anyGuestLive: live, menuBarIcon: settings.showsMenuBarIcon)
+        let open = NSApp.windows.filter {
+            $0.styleMask.contains(.titled) && ($0.isVisible || $0.isMiniaturized)
+        }.count
+        let live = model.vms.contains {
+            $0.state == .running || $0.state == .suspended || $0.activity == "start"
+        }
+        let wanted = activationPolicy(
+            openWindows: open, anyGuestLive: live, menuBarIcon: settings.showsMenuBarIcon)
         if NSApp.activationPolicy() != wanted { NSApp.setActivationPolicy(wanted) }
     }
 

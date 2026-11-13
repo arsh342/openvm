@@ -24,6 +24,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private var thumbnailTimer: Timer?
     private(set) var vm: VmSummary
     private(set) var state: VMWindowState = .stopped
+    private var stopNoticeShown = false
 
     init(vm: VmSummary, model: VMListModel, context: VMCommandContext) {
         self.vm = vm
@@ -115,7 +116,9 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private func showDropResult() {
         switch drops.state {
         case .finished(let names):
-            window?.subtitle = names.count == 1 ? "Copied 1 item to the Desktop" : "Copied \(names.count) items to the Desktop"
+            window?.subtitle =
+                names.count == 1
+                ? "Copied 1 item to the Desktop" : "Copied \(names.count) items to the Desktop"
         case .failed(let why):
             window?.subtitle = ""
             if let window {
@@ -190,7 +193,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         panel.canChooseDirectories = true
         panel.allowsMultipleSelection = false
         panel.prompt = "Share"
-        panel.message = "Choose a folder to share with \(vm.name). The guest can read and change what is in it."
+        panel.message =
+            "Choose a folder to share with \(vm.name). The guest can read and change what is in it."
         panel.beginSheetModal(for: window) { [weak self] response in
             guard response == .OK, let url = panel.url, let self else { return }
             Task { @MainActor in
@@ -224,12 +228,27 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         controls.power = VMCommand.power.state(for: vm)
         controls.pause = VMCommand.pause.state(for: vm)
         controls.settings = VMCommand.settings.state(for: vm)
-        cover.show(state) { [weak self] in
-            guard let self else { return }
-            Task { await self.model.start(self.vm) }
-        }
+        cover.show(
+            state, installerAttached: vm.installerAttached,
+            onStart: { [weak self] in
+                guard let self else { return }
+                Task { await self.model.start(self.vm) }
+            },
+            onRemoveInstaller: { [weak self] in
+                guard let self else { return }
+                Task {
+                    await self.model.ejectInstaller(self.vm)
+                    guard self.model.lastError == nil, let fresh = self.model.vm(uuid: self.vm.uuid) else {
+                        return
+                    }
+                    await self.model.start(fresh)
+                }
+            })
+        showStopProgress()
         window?.title = title(for: state)
-        if state == .running, window?.firstResponder !== machineView { window?.makeFirstResponder(machineView) }
+        if state == .running, window?.firstResponder !== machineView {
+            window?.makeFirstResponder(machineView)
+        }
         // A guest that has just become ready (first boot, or back from a pause) is sized to
         // the window. This is also what gives a first Windows boot, which comes up at
         // 1024x768, its right size.
@@ -239,6 +258,18 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
             // A window already in front when the guest comes up has no focus change to trigger a push.
             if window?.isKeyWindow == true { Task { await clipboard.focusGained() } }
         }
+    }
+
+    /// A guest without openVM's tools can only be asked to stop through the framework, and may take up to
+    /// two minutes before it is forced off. The window says so instead of sitting silent.
+    private func showStopProgress() {
+        let asking = vm.activity == "stop" && !vm.bootMode.hasAgent
+        if asking {
+            window?.subtitle = "Asking \(vm.name) to shut down. This can take up to two minutes."
+        } else if stopNoticeShown {
+            window?.subtitle = ""
+        }
+        stopNoticeShown = asking
     }
 
     private func title(for state: VMWindowState) -> String {
@@ -268,7 +299,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         guard vm.bootMode.hasAgent else { return }
         // Only a Windows guest has an agent. It gets the window's full size at the display's scale,
         // which needs a viogpudo with the mode-change fix (docs/gui-notes.md).
-        let mode = DisplayFit.mode(pointSize: machineView.bounds.size, backingScale: window.backingScaleFactor)
+        let mode = DisplayFit.mode(
+            pointSize: machineView.bounds.size, backingScale: window.backingScaleFactor)
         Task { await resizer.request(mode) }
     }
 
@@ -293,7 +325,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
             }
         }
         FileHandle.standardError.write(
-            Data("openvm: could not set the guest display to \(mode.width)x\(mode.height): \(failure)\n".utf8))
+            Data("openvm: could not set the guest display to \(mode.width)x\(mode.height): \(failure)\n".utf8)
+        )
         return false
     }
 

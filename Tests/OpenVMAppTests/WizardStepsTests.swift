@@ -11,7 +11,7 @@ struct WizardStepsTests {
     }
 
     @Test func theCurrentStepIsMarkedAndEarlierOnesAreDone() {
-        #expect(states(.os) == [.current, .upcoming, .upcoming, .upcoming, .upcoming])
+        #expect(states(.gallery) == [.current, .upcoming, .upcoming, .upcoming, .upcoming])
         #expect(states(.resources) == [.done, .done, .current, .upcoming, .upcoming])
         #expect(states(.summary) == [.done, .done, .done, .current, .upcoming])
     }
@@ -23,19 +23,21 @@ struct WizardStepsTests {
     }
 
     @Test func stepsHaveTitles() {
-        #expect(WizardSteps.all(for: .os).map(\.title) == ["System", "Source", "Resources", "Summary", "Install"])
+        #expect(
+            WizardSteps.all(for: .gallery).map(\.title) == [
+                "System", "Installer", "Resources", "Summary", "Install",
+            ])
     }
 }
 
 struct WindowsWizardStepsTests {
     @Test func windowsHasAnAccountStep() {
         let steps = WizardSteps.all(for: .account, os: .windows)
-        #expect(steps.map(\.title) == ["System", "Source", "Resources", "Account", "Summary", "Install"])
+        #expect(steps.map(\.title) == ["System", "Installer", "Resources", "Account", "Summary", "Install"])
         #expect(steps.map(\.state) == [.done, .done, .done, .current, .upcoming, .upcoming])
     }
 
     @Test func linuxHasNone() {
-        #expect(!WizardSteps.all(for: .os, os: .linuxISO).map(\.title).contains("Account"))
+        #expect(!WizardSteps.all(for: .gallery, os: .linuxISO).map(\.title).contains("Account"))
     }
 }
-

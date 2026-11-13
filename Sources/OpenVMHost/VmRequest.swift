@@ -57,7 +57,8 @@ nonisolated func vmOp(_ op: String, _ args: [(key: String, value: CBOR)], _ env:
         case .take:
             // begin() can still lose a race with another connection
             guard activity.begin(record.uuid, op) else {
-                return r.fail("\(record.name) is busy: \(activity.current(record.uuid) ?? "another operation")")
+                return r.fail(
+                    "\(record.name) is busy: \(activity.current(record.uuid) ?? "another operation")")
             }
             defer { activity.end(record.uuid) }
             return run(op, r)
@@ -91,6 +92,7 @@ private nonisolated func run(_ op: String, _ r: VmRequest) -> Envelope {
         case "host-info": return try hostInfoOp(r)
         case "windows-iso-check": return try windowsISOCheckOp(r)
         case "linux-iso-check": return try linuxISOCheckOp(r)
+        case "installer-identify": return try installerIdentifyOp(r)
         case "eject-installer": return try ejectInstaller(r)
         case "task-start": return try taskStartOp(r)
         case "task-status": return try taskStatusOp(r)

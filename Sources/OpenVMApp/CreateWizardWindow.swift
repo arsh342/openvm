@@ -14,23 +14,40 @@ final class CreateWizardWindowController: NSWindowController, NSWindowDelegate {
     let model: CreateWizardModel
     private var closing = false
 
+    let gallery: GalleryModel
+
     init(transport: any HostTransport, existingNames: [String], openWindow: @escaping (String) -> Void) {
         model = CreateWizardModel(transport: transport, existingNames: existingNames, openWindow: openWindow)
+        gallery = GalleryModel(transport: transport)
         // The view's Close button calls through this box, because the window is built before self exists.
         let closer = CloseBox()
         let window = SidebarWindow.make(
-            size: NSSize(width: 860, height: 560), minSize: NSSize(width: 760, height: 520), sidebarWidth: 220,
+            size: NSSize(width: 860, height: 560), minSize: NSSize(width: 760, height: 520),
+            sidebarWidth: 220,
             title: "New Virtual Machine", sidebar: WizardSidebarView(model: model),
-            detail: CreateWizardView(model: model) { closer.close() })
+            detail: CreateWizardView(model: model, gallery: gallery) { closer.close() })
         window.styleMask.remove(.resizable)
         window.center()
         super.init(window: window)
         closer.close = { [weak self] in self?.closeNow() }
         window.delegate = self
-        Task { await model.load() }
+        Task {
+            await model.load()
+            await gallery.load()
+        }
     }
 
     required init?(coder: NSCoder) { fatalError("not used") }
+
+    /// Starts the wizard from what it was opened with. A run in progress is left alone.
+    func begin(_ start: NewVMStart) {
+        guard model.page == .gallery || model.page == .source else { return }
+        switch start {
+        case .gallery: break
+        case .file(let url): Task { await model.useInstaller(url.path) }
+        case .system(let kind): model.chooseSystem(kind == .windows ? .windows : .linuxISO)
+        }
+    }
 
     private func closeNow() {
         closing = true

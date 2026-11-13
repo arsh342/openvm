@@ -14,9 +14,20 @@ import OpenVMCore
 @MainActor
 final class CreateWizardModel: ObservableObject {
     enum OS: Equatable { case windows, linuxISO }
-    enum Page: Equatable { case os, source, resources, account, summary, working, finished, failed(String) }
-    enum ISOState: Equatable { case none, checking, usable, problem(String) }
-    enum FetchState: Equatable { case idle, running(String), done, failed(String) }
+    enum Page: Equatable {
+        case gallery, source, resources, account, summary, working, finished
+        case failed(String)
+    }
+    enum ISOState: Equatable {
+        case none, checking, usable
+        case problem(String)
+    }
+    enum FetchState: Equatable {
+        case idle
+        case running(String)
+        case done
+        case failed(String)
+    }
     enum StepState: Equatable { case pending, running, done }
 
     struct Step: Equatable, Identifiable {
@@ -28,7 +39,7 @@ final class CreateWizardModel: ObservableObject {
     /// Why the run stopped: not a failure, the person asked.
     private struct Cancelled: Error {}
 
-    @Published private(set) var page: Page = .os
+    @Published private(set) var page: Page = .gallery
     @Published var os: OS = .linuxISO {
         didSet {
             guard os != oldValue else { return }
@@ -37,6 +48,7 @@ final class CreateWizardModel: ObservableObject {
             isoPath = nil
             iso = .none
             isoUnchecked = false
+            isoFailure = nil
         }
     }
     @Published var name = ""
@@ -52,6 +64,10 @@ final class CreateWizardModel: ObservableObject {
     @Published private(set) var iso: ISOState = .none
     /// The ISO's boot files could not be read, so it may or may not start. It is still offered.
     @Published private(set) var isoUnchecked = false
+    /// Why the chosen file cannot be used, in plain words (the gallery and the installer page show it).
+    @Published private(set) var isoFailure: FailureMessage?
+    /// The technical text of a failure is on show.
+    @Published var detailsShown = false
     @Published private(set) var fetch: FetchState = .idle
     @Published private(set) var host: HostInfo?
     @Published private(set) var steps: [Step] = []
@@ -136,26 +152,81 @@ final class CreateWizardModel: ObservableObject {
     func load() async {
         host = try? await transport.hostInfo()
         if let listed = try? await transport.listVMs() { existingNames.formUnion(listed.map(\.name)) }
-        if name == lastDefaultName { name = defaultName(for: os); lastDefaultName = name }
+        if name == lastDefaultName {
+            name = defaultName(for: os)
+            lastDefaultName = name
+        }
     }
 
+    /// Checks a file chosen on the installer page, as the system already chosen.
     func chooseISO(_ path: String) async {
         isoPath = path
         iso = .checking
+        isoFailure = nil
         do {
             let op = os == .linuxISO ? "linux-iso-check" : "windows-iso-check"
-            let reply = try await transport.send(op, [("iso", .text(path))])
-            if case .bool(true)? = DaemonClient.field(reply, "usable") {
-                iso = .usable
-                isoUnchecked = DaemonClient.field(reply, "unknown") == .bool(true)
-            } else if case .text(let problem)? = DaemonClient.field(reply, "problem") {
-                iso = .problem(problem)
-            } else {
-                iso = .problem("openVM could not tell whether this ISO is usable.")
-            }
+            take(try await transport.send(op, [("iso", .text(path))]))
         } catch {
-            iso = .problem("\(error)")
+            refuse(code: nil, "\(error)")
         }
+    }
+
+    /// Takes a file dropped or chosen in the gallery: the host says whether it is Windows or Linux, and
+    /// a usable one moves the wizard on. This is what makes the gallery one step instead of two.
+    func useInstaller(_ path: String) async {
+        isoPath = path
+        iso = .checking
+        isoFailure = nil
+        do {
+            let reply = try await transport.send("installer-identify", [("iso", .text(path))])
+            if text(reply, "kind") == "windows" { setSystem(.windows, keeping: path) }
+            if text(reply, "kind") == "linux" { setSystem(.linuxISO, keeping: path) }
+            take(reply)
+            if iso == .usable, page == .gallery || page == .source { page = afterInstaller }
+        } catch {
+            refuse(code: nil, "\(error)")
+        }
+    }
+
+    /// A tile was chosen: the installer page is next, where its file is brought in.
+    func chooseSystem(_ system: OS) {
+        os = system
+        page = .source
+    }
+
+    /// Changing the system forgets the file (it was checked as the other system), so it is put back.
+    private func setSystem(_ system: OS, keeping path: String) {
+        os = system
+        isoPath = path
+        iso = .checking
+    }
+
+    private func take(_ reply: [(key: String, value: CBOR)]) {
+        if case .bool(true)? = DaemonClient.field(reply, "usable") {
+            iso = .usable
+            isoUnchecked = DaemonClient.field(reply, "unknown") == .bool(true)
+        } else if case .text(let problem)? = DaemonClient.field(reply, "problem") {
+            let code = text(reply, "code")
+            refuse(code: code.isEmpty ? nil : code, problem)
+        } else {
+            refuse(code: nil, "openVM could not tell whether this file is usable.")
+        }
+    }
+
+    private func refuse(code: String?, _ problem: String) {
+        iso = .problem(problem)
+        detailsShown = false
+        isoFailure = FailureMessage.of(code: code, details: problem)
+    }
+
+    /// Where a usable file leads: straight to the sizes, unless Windows still needs its helper download.
+    private var afterInstaller: Page { sourceProblem == nil ? .resources : .source }
+
+    /// What the VM runs, for the library: "Windows 11", or the Linux file's name without ".iso".
+    var systemName: String {
+        if os == .windows { return "Windows 11" }
+        guard let isoPath else { return "Linux" }
+        return URL(fileURLWithPath: isoPath).deletingPathExtension().lastPathComponent
     }
 
     /// Fetches the helper VM's files, with progress. Windows needs them when the Mac has no wimlib,
@@ -228,15 +299,15 @@ final class CreateWizardModel: ObservableObject {
         switch os {
         case .linuxISO:
             switch iso {
-            case .none: return "Choose an ARM64 Linux ISO."
-            case .checking: return "Checking the ISO…"
+            case .none: return "Choose a Linux installer file."
+            case .checking: return "Checking the file…"
             case .problem(let why): return why
             case .usable: return nil
             }
         case .windows:
             switch iso {
-            case .none: return "Choose your Windows 11 ARM64 ISO."
-            case .checking: return "Checking the ISO…"
+            case .none: return "Choose the Windows 11 file you downloaded."
+            case .checking: return "Checking the file…"
             case .problem(let why): return why
             case .usable: break
             }
@@ -252,7 +323,9 @@ final class CreateWizardModel: ObservableObject {
     private var resourcesProblem: String? {
         if let problem = Self.nameProblem(name, existing: existingNames) { return problem }
         if let host {
-            if cpus < 1 || cpus > host.maxCpus { return "This Mac allows 1 to \(host.maxCpus) CPUs for a VM." }
+            if cpus < 1 || cpus > host.maxCpus {
+                return "This Mac allows 1 to \(host.maxCpus) CPUs for a VM."
+            }
             if memoryMB < 1024 || memoryMB > host.maxMemoryMB {
                 return "This Mac allows 1024 to \(host.maxMemoryMB) MB of memory for a VM."
             }
@@ -277,7 +350,7 @@ final class CreateWizardModel: ObservableObject {
         case .linuxISO:
             return [
                 "The VM starts from your ISO, and you finish the distribution's own installer in its window.",
-                "When the installer asks to restart, the VM stops. Press Start. If the installer starts again, use Devices ▸ Eject Installer ISO first.",
+                "When the installer asks to restart, the VM stops. Its window then offers Remove Installer and Start.",
                 "Clipboard, file drops and Send to Mac need openVM's guest tools, which these guests do not have yet.",
                 "If the guest makes no sound, its PipeWire needs a setting for larger buffers: see \"If the guest makes no sound\" in openVM's README.",
             ]
@@ -294,7 +367,7 @@ final class CreateWizardModel: ObservableObject {
     func next() {
         guard problem == nil else { return }
         switch page {
-        case .os: page = .source
+        case .gallery: page = iso == .usable ? afterInstaller : .source
         case .source: page = .resources
         case .resources: page = os == .windows ? .account : .summary
         case .account: page = .summary
@@ -304,7 +377,7 @@ final class CreateWizardModel: ObservableObject {
 
     func back() {
         switch page {
-        case .source: page = .os
+        case .source: page = .gallery
         case .resources: page = .source
         case .account: page = .resources
         case .summary: page = os == .windows ? .account : .resources
@@ -329,12 +402,15 @@ final class CreateWizardModel: ObservableObject {
         mediaFinished = false
         progress = ""
         steps =
-            (os == .windows ? [Step(id: "media", title: "Prepare the installation media", state: .pending)] : [])
+            (os == .windows
+                ? [Step(id: "media", title: "Prepare the installation media", state: .pending)] : [])
             + [
                 Step(id: "create", title: "Create the virtual machine", state: .pending),
                 Step(
-                    id: "start", title: os == .windows
-                        ? "Install Windows (15 to 30 minutes)" : (os == .linuxISO ? "Start the installer" : "Install Linux"),
+                    id: "start",
+                    title: os == .windows
+                        ? "Install Windows (15 to 30 minutes)"
+                        : (os == .linuxISO ? "Start the installer" : "Install Linux"),
                     state: .pending),
             ]
         page = .working
@@ -387,7 +463,8 @@ final class CreateWizardModel: ObservableObject {
             case "failed":
                 mediaFinished = true
                 let why = text(status, "error")
-                throw HostError.remote("Preparing the installation media failed: \(why.isEmpty ? progress : why)")
+                throw HostError.remote(
+                    "Preparing the installation media failed: \(why.isEmpty ? progress : why)")
             case "cancelled":
                 mediaFinished = true
                 throw Cancelled()
@@ -403,6 +480,7 @@ final class CreateWizardModel: ObservableObject {
             ("name", .text(name)), ("cpus", .uint(UInt64(cpus))), ("memoryMB", .uint(UInt64(memoryMB))),
             ("diskSizeMB", .uint(UInt64(diskGB) * 1024)),
         ]
+        if VmRegistry.validSystemName(systemName) { arguments.append(("system-name", .text(systemName))) }
         if os == .windows, let media {
             arguments.append(("boot-mode", .text("windows")))
             arguments.append(("install-media", .text(media)))
@@ -453,7 +531,7 @@ final class CreateWizardModel: ObservableObject {
     }
 
     private func reset() {
-        page = .os
+        page = .gallery
         steps = []
         progress = ""
     }
@@ -463,7 +541,9 @@ final class CreateWizardModel: ObservableObject {
     private func removeVM(_ name: String) async {
         _ = try? await transport.send("stop", [("id", .text(name))])
         for _ in 0..<600 {
-            guard let listed = try? await transport.listVMs(), let vm = listed.first(where: { $0.name == name }) else {
+            guard let listed = try? await transport.listVMs(),
+                let vm = listed.first(where: { $0.name == name })
+            else {
                 break
             }
             if vm.state == .stopped && vm.activity == nil { break }

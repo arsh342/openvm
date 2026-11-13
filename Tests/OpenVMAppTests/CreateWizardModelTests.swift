@@ -33,11 +33,14 @@ struct CreateWizardModelTests {
     }
 
     private func wizard(
-        host: FakeTransport = FakeTransport(), info: [(key: String, value: CBOR)]? = nil, existing: [String] = [],
+        host: FakeTransport = FakeTransport(), info: [(key: String, value: CBOR)]? = nil,
+        existing: [String] = [],
         opened: OpenedBox = OpenedBox(), cancelWait: Duration = .seconds(60)
     ) async -> (CreateWizardModel, FakeTransport) {
         host.respond("host-info", with: info ?? hostInfo())
-        if !host.answers("linux-iso-check") { host.respond("linux-iso-check", with: [("usable", .bool(true))]) }
+        if !host.answers("linux-iso-check") {
+            host.respond("linux-iso-check", with: [("usable", .bool(true))])
+        }
         let model = CreateWizardModel(
             transport: host, existingNames: existing, pollInterval: .milliseconds(1), cancelWait: cancelWait
         ) { name in opened.names.append(name) }
@@ -64,7 +67,7 @@ struct CreateWizardModelTests {
 
     @Test func pagesFollowTheOsChoice() async {
         let (model, _) = await wizard()
-        #expect(model.page == .os)
+        #expect(model.page == .gallery)
         model.os = .linuxISO
         model.next()
         #expect(model.page == .source)
@@ -77,9 +80,9 @@ struct CreateWizardModelTests {
         #expect(model.page == .resources)
         model.back()
         model.back()
-        #expect(model.page == .os)
+        #expect(model.page == .gallery)
         model.back()
-        #expect(model.page == .os)  // nowhere to go back to
+        #expect(model.page == .gallery)  // nowhere to go back to
     }
 
     @Test func defaultsFollowTheOs() async {
@@ -157,9 +160,11 @@ struct CreateWizardModelTests {
 
     @Test func x64IsoStaysOnTheSourcePage() async {
         let host = FakeTransport()
-        host.respond("windows-iso-check", with: [
-            ("usable", .bool(false)), ("problem", .text("This is not a Windows 11 ARM64 ISO."))
-        ])
+        host.respond(
+            "windows-iso-check",
+            with: [
+                ("usable", .bool(false)), ("problem", .text("This is not a Windows 11 ARM64 ISO.")),
+            ])
         let (model, _) = await wizard(host: host)
         model.os = .windows
         model.next()
@@ -174,7 +179,7 @@ struct CreateWizardModelTests {
         let (model, _) = await wizard()
         model.os = .windows
         model.next()
-        #expect(model.problem?.contains("ISO") == true)
+        #expect(model.problem?.contains("file") == true)
         model.next()
         #expect(model.page == .source)
     }
@@ -219,10 +224,12 @@ struct CreateWizardModelTests {
         model.next()
         await model.chooseISO("/Users/me/Win.iso")
         host.respond("task-start", with: [("taskId", .text("f1"))])
-        host.respond("task-status", with: [
-            ("state", .text("failed")), ("progress", .text("curl: (6) Could not resolve host")),
-            ("error", .text("exited with status 1: curl: (6) Could not resolve host")),
-        ])
+        host.respond(
+            "task-status",
+            with: [
+                ("state", .text("failed")), ("progress", .text("curl: (6) Could not resolve host")),
+                ("error", .text("exited with status 1: curl: (6) Could not resolve host")),
+            ])
         await model.fetchLinux()
         guard case .failed(let why) = model.fetch else {
             Issue.record("expected a failure, got \(model.fetch)")
@@ -260,10 +267,12 @@ struct CreateWizardModelTests {
         let host = FakeTransport()
         host.respond("windows-iso-check", with: [("usable", .bool(true))])
         host.respond("task-start", with: [("taskId", .text("m1")), ("output", .text("/h/media/win.raw"))])
-        host.respond("task-status", inSequence: [
-            [("state", .text("running")), ("progress", .text("copying install.wim"))],
-            [("state", .text("done")), ("progress", .text("wrote media"))],
-        ])
+        host.respond(
+            "task-status",
+            inSequence: [
+                [("state", .text("running")), ("progress", .text("copying install.wim"))],
+                [("state", .text("done")), ("progress", .text("wrote media"))],
+            ])
         let opened = OpenedBox()
         let (model, _) = await wizard(host: host, opened: opened)
         model.os = .windows
@@ -315,7 +324,9 @@ struct CreateWizardModelTests {
         }
         // The script takes a moment to unmount and delete after it is told to stop.
         host.handle("task-status") { _ in
-            if cancelSeen.value > 0, stoppedPolls.next() >= 3 { return [("state", .text("cancelled")), ("progress", .text(""))] }
+            if cancelSeen.value > 0, stoppedPolls.next() >= 3 {
+                return [("state", .text("cancelled")), ("progress", .text(""))]
+            }
             return [("state", .text("running")), ("progress", .text("copying"))]
         }
         let (model, _) = await wizard(host: host)
@@ -335,7 +346,7 @@ struct CreateWizardModelTests {
         // deleting a 22 GB image) takes seconds, and a new run with the same name must not meet it.
         #expect(stoppedPolls.value >= 4)
         #expect(!host.calls.contains("create"))  // nothing was made
-        #expect(model.page == .os)
+        #expect(model.page == .gallery)
         #expect(!model.cancelling)
     }
 
@@ -350,14 +361,15 @@ struct CreateWizardModelTests {
         model.os = .windows
         model.next()
         await model.chooseISO("/Users/me/Win.iso")
-        model.next(); model.next()
+        model.next()
+        model.next()
         model.fillInAnAccount()
         model.next()
         let run = Task { await model.create() }
         #expect(await eventually { host.calls.contains("task-status") })
         await model.cancel()  // returns after the bound, not never
         await run.value
-        #expect(model.page == .os)
+        #expect(model.page == .gallery)
     }
 
     @Test func cancelDuringInstallRemovesTheVm() async {
@@ -385,7 +397,7 @@ struct CreateWizardModelTests {
         let deleteAt = host.calls.firstIndex(of: "delete")
         #expect(stopAt != nil && deleteAt != nil && stopAt! < deleteAt!)  // stopped first, then deleted
         #expect(host.arg("delete", "id") == .text("lab"))
-        #expect(model.page == .os)
+        #expect(model.page == .gallery)
         #expect(model.createdName == nil)
     }
 
@@ -394,7 +406,10 @@ struct CreateWizardModelTests {
         let host = FakeTransport()
         let attempts = Counter()
         host.respond("create", with: [])
-        host.handle("start") { _ in try await Task.sleep(for: .seconds(30)); return [] }
+        host.handle("start") { _ in
+            try await Task.sleep(for: .seconds(30))
+            return []
+        }
         host.respond("stop", with: [])
         host.rows = [FakeTransport.row("lab", state: "stopped")]
         host.handle("delete") { _ in
@@ -418,10 +433,12 @@ struct CreateWizardModelTests {
         let host = FakeTransport()
         host.respond("windows-iso-check", with: [("usable", .bool(true))])
         host.respond("task-start", with: [("taskId", .text("m1")), ("output", .text("/h/media/win.raw"))])
-        host.respond("task-status", with: [
-            ("state", .text("failed")), ("progress", .text("hdiutil: attach failed")),
-            ("error", .text("exited with status 1: no space left on device | hdiutil: attach failed")),
-        ])
+        host.respond(
+            "task-status",
+            with: [
+                ("state", .text("failed")), ("progress", .text("hdiutil: attach failed")),
+                ("error", .text("exited with status 1: no space left on device | hdiutil: attach failed")),
+            ])
         let (model, _) = await wizard(host: host)
         model.os = .windows
         model.next()
@@ -442,7 +459,9 @@ struct CreateWizardModelTests {
     @Test func aFailedStartKeepsTheVmAndSaysWhy() async {
         let host = FakeTransport()
         host.respond("create", with: [])
-        host.fail("start", with: HostError.remote("guest did not reach boot readiness; console tail:\nkernel panic"))
+        host.fail(
+            "start", with: HostError.remote("guest did not reach boot readiness; console tail:\nkernel panic")
+        )
         let (model, _) = await wizard(host: host)
         await toSummary(model)
         model.name = "lab"
@@ -485,7 +504,7 @@ struct CreateWizardModelTests {
         await model.discard()
         #expect(host.calls.contains("delete"))
         #expect(model.createdName == nil)
-        #expect(model.page == .os)
+        #expect(model.page == .gallery)
     }
 }
 
@@ -605,14 +624,16 @@ struct WizardLinuxISOTests {
         let (model, host) = await wizard([("usable", .bool(true))])
         model.next()
         #expect(model.page == .source)
-        #expect(model.problem?.contains("ISO") == true)
+        #expect(model.problem?.contains("file") == true)
         await model.chooseISO("/x/omarchy-arm64.iso")
         #expect(host.arg("linux-iso-check", "iso") == .text("/x/omarchy-arm64.iso"))
         #expect(model.problem == nil)
     }
 
     @Test func anIntelIsoStopsThereWithTheReason() async {
-        let (model, _) = await wizard([("usable", .bool(false)), ("problem", .text("This ISO is for Intel and AMD PCs."))])
+        let (model, _) = await wizard([
+            ("usable", .bool(false)), ("problem", .text("This ISO is for Intel and AMD PCs.")),
+        ])
         model.next()
         await model.chooseISO("/x/kali-amd64.iso")
         #expect(model.problem?.contains("Intel") == true)
@@ -657,7 +678,7 @@ struct WizardLinuxISOTests {
 
     @Test func theSummaryExplainsTheInstallerAndTheMissingTools() async {
         let (model, _) = await wizard([("usable", .bool(true))])
-        #expect(model.summaryNotes.contains { $0.contains("Eject Installer ISO") })
+        #expect(model.summaryNotes.contains { $0.contains("Remove Installer and Start") })
         #expect(model.summaryNotes.contains { $0.contains("guest tools") })
         #expect(model.summaryNotes.contains { $0.contains("no sound") && $0.contains("README") })
     }

@@ -52,6 +52,7 @@ the daemon replies on the same id.
 | share-remove | `id`, `hostPath` | unmounts the share in the guest and drops the export and the record entry |
 | share-list | `id` | lists the record's shares as `hostPath`/`guestPath` rows |
 | linux-iso-check | `iso` | whether an ISO can start here: `usable`, with `problem` when it cannot and `unknown` when its boot files were not found |
+| installer-identify | `iso` | what kind of installer a file is, for a file dropped on the gallery: `kind` (`windows` or `linux`), `usable`, and when it cannot be used `problem` and a `code` (`not-an-iso`, `iso-incomplete`, `linux-intel`, `windows-intel`, `windows-no-image`). The Windows check runs first, because a Windows Arm ISO also holds the boot file the Linux check looks for. `linux-iso-check` and `windows-iso-check` carry the same `code` |
 | eject-installer | `id` | takes a stopped `linux-iso` VM's installer ISO away, so it starts from its disk |
 | drag | `id`, `op` (`enter`, `leave`, `drop`, `status`, `send`); `paths` for `drop`, `path` (a guest path) for `send` | stages host files and has the guest put them on the user's Desktop; `send` runs the guest's send tool as the desktop user, which is what the file manager's "Send to Mac" does. A guest too old to know `send` is told so in plain words |
 | printer | `id`, `op` (`list`, `test`), `name` for `test` | lists the guest's queues, or prints a test page |

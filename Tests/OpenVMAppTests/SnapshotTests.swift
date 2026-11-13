@@ -17,7 +17,9 @@ enum Snapshot {
     /// Renders through a real hosting view, so AppKit-backed controls (buttons, spinners)
     /// draw as they do on screen. Light appearance and a fixed size keep it repeatable.
     @MainActor
-    static func render<V: View>(_ view: V, width: CGFloat, height: CGFloat, dark: Bool = false) -> NSBitmapImageRep? {
+    static func render<V: View>(_ view: V, width: CGFloat, height: CGFloat, dark: Bool = false)
+        -> NSBitmapImageRep?
+    {
         // The window gives the view a background and an appearance to inherit, as on screen.
         let host = NSHostingView(rootView: view.background(Color(nsColor: .windowBackgroundColor)))
         host.frame = NSRect(x: 0, y: 0, width: width, height: height)
@@ -61,10 +63,12 @@ enum Snapshot {
     /// Checks a view in light and in dark: `name` and `name-dark`.
     @MainActor
     static func check<V: View>(
-        _ name: String, _ view: V, width: CGFloat, height: CGFloat, sourceLocation: SourceLocation = #_sourceLocation
+        _ name: String, _ view: V, width: CGFloat, height: CGFloat,
+        sourceLocation: SourceLocation = #_sourceLocation
     ) {
         checkOne(name, view, width: width, height: height, dark: false, sourceLocation: sourceLocation)
-        checkOne("\(name)-dark", view, width: width, height: height, dark: true, sourceLocation: sourceLocation)
+        checkOne(
+            "\(name)-dark", view, width: width, height: height, dark: true, sourceLocation: sourceLocation)
     }
 
     @MainActor
@@ -83,7 +87,8 @@ enum Snapshot {
             return
         }
         guard let data = try? Data(contentsOf: url), let baseline = NSBitmapImageRep(data: data) else {
-            Issue.record("no baseline for \(name); record it with OPENVM_UI_RECORD=1", sourceLocation: sourceLocation)
+            Issue.record(
+                "no baseline for \(name); record it with OPENVM_UI_RECORD=1", sourceLocation: sourceLocation)
             return
         }
         guard let different = differingPixels(rep, baseline) else {
@@ -93,7 +98,9 @@ enum Snapshot {
             return
         }
         let allowed = rep.pixelsWide * rep.pixelsHigh / 500  // 0.2% for anti-aliasing noise
-        #expect(different <= allowed, "\(name): \(different) pixels differ (allowed \(allowed))", sourceLocation: sourceLocation)
+        #expect(
+            different <= allowed, "\(name): \(different) pixels differ (allowed \(allowed))",
+            sourceLocation: sourceLocation)
     }
 }
 
@@ -125,32 +132,46 @@ struct SnapshotTests {
     func libraryTableWithMixedStates() async {
         let model = await model(mixed)
         Snapshot.check(
-            "library-table", VMTableView(model: model, nav: nav(selecting: "uuid-windows-11"), run: { _, _ in }, newVM: {}),
+            "library-table",
+            VMTableView(
+                model: model, nav: nav(selecting: "uuid-windows-11"), run: { _, _ in }, newVM: { _ in },
+                gallery: GalleryModel(transport: FakeTransport())),
             width: 700, height: 420)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
     func libraryWithNoVms() async {
         let model = await model([])
-        Snapshot.check("library-empty", VMTableView(model: model, nav: nav(), run: { _, _ in }, newVM: {}), width: 700, height: 420)
+        Snapshot.check(
+            "library-empty",
+            VMTableView(
+                model: model, nav: nav(), run: { _, _ in }, newVM: { _ in },
+                gallery: GalleryModel(transport: FakeTransport())), width: 700, height: 420)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
     func libraryAfterAFailedAction() async {
         let model = await model([FakeTransport.row("scratch", state: "stopped", bootMode: "linux-iso")])
         model.lastError = "scratch is busy: start"
-        Snapshot.check("library-error", VMTableView(model: model, nav: nav(), run: { _, _ in }, newVM: {}), width: 700, height: 420)
+        Snapshot.check(
+            "library-error",
+            VMTableView(
+                model: model, nav: nav(), run: { _, _ in }, newVM: { _ in },
+                gallery: GalleryModel(transport: FakeTransport())), width: 700, height: 420)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
     func librarySidebar() async {
         let model = await model(mixed)
-        Snapshot.check("library-sidebar", LibrarySidebarView(model: model, nav: nav()), width: 220, height: 420)
+        Snapshot.check(
+            "library-sidebar", LibrarySidebarView(model: model, nav: nav()), width: 220, height: 420)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
     func libraryDetailOfAPausedVm() async {
-        let model = await model([FakeTransport.row("windows-11", state: "suspended", bootMode: "windows", memoryMB: 8192)])
+        let model = await model([
+            FakeTransport.row("windows-11", state: "suspended", bootMode: "windows", memoryMB: 8192)
+        ])
         let defaults = UserDefaults(suiteName: "openvm-snapshots")!
         defaults.removePersistentDomain(forName: "openvm-snapshots")
         Snapshot.check(
@@ -166,7 +187,9 @@ struct SnapshotTests {
     func appSettings() async {
         let defaults = UserDefaults(suiteName: "openvm-snapshots")!
         defaults.removePersistentDomain(forName: "openvm-snapshots")
-        Snapshot.check("app-settings", AppSettingsView(model: AppSettingsModel(defaults: defaults)), width: 480, height: 260)
+        Snapshot.check(
+            "app-settings", AppSettingsView(model: AppSettingsModel(defaults: defaults)), width: 480,
+            height: 260)
     }
 }
 
@@ -175,9 +198,19 @@ extension SnapshotTests {
         let host = FakeTransport()
         host.respond("host-info", with: FakeTransport.hostInfoFields)
         if shares {
-            host.respond("share-list", with: [
-                ("shares", .array([.map([("hostPath", .text("/Users/me/Projects")), ("guestPath", .text("/mnt/openvm/Projects"))])]))
-            ])
+            host.respond(
+                "share-list",
+                with: [
+                    (
+                        "shares",
+                        .array([
+                            .map([
+                                ("hostPath", .text("/Users/me/Projects")),
+                                ("guestPath", .text("/mnt/openvm/Projects")),
+                            ])
+                        ])
+                    )
+                ])
         }
         let model = VMSettingsModel(vm: vm, transport: host)
         await model.load()
@@ -186,30 +219,42 @@ extension SnapshotTests {
 
     @Test(.enabled(if: Snapshot.enabled))
     func settingsOfAStoppedLinuxVm() async {
-        let model = await settingsModel(FakeTransport.summary("lab", state: "stopped", timezone: "Europe/Berlin"), shares: true)
-        Snapshot.check("settings-stopped-linux", VMSettingsView(model: model, close: {}), width: 520, height: 740)
+        let model = await settingsModel(
+            FakeTransport.summary("lab", state: "stopped", timezone: "Europe/Berlin"), shares: true)
+        Snapshot.check(
+            "settings-stopped-linux", VMSettingsView(model: model, close: {}), width: 520, height: 740)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
     func settingsOfARunningWindowsVm() async {
-        let model = await settingsModel(FakeTransport.summary("win11", state: "running", bootMode: "windows", cpus: 4, memoryMB: 8192))
-        Snapshot.check("settings-running-windows", VMSettingsView(model: model, close: {}), width: 520, height: 740)
+        let model = await settingsModel(
+            FakeTransport.summary("win11", state: "running", bootMode: "windows", cpus: 4, memoryMB: 8192))
+        Snapshot.check(
+            "settings-running-windows", VMSettingsView(model: model, close: {}), width: 520, height: 740)
     }
 }
 
 extension SnapshotTests {
-    private func wizardModel(_ host: FakeTransport = FakeTransport(), linuxReady: Bool = true) async -> CreateWizardModel {
-        host.respond("host-info", with: [
-            ("maxCpus", .uint(8)), ("maxMemoryMB", .uint(16384)), ("freeDiskMB", .uint(500_000)),
-            ("linuxReady", .bool(linuxReady)), ("hostWimlib", .bool(false)),
-        ])
-        if !host.answers("linux-iso-check") { host.respond("linux-iso-check", with: [("usable", .bool(true))]) }
+    private func wizardModel(_ host: FakeTransport = FakeTransport(), linuxReady: Bool = true) async
+        -> CreateWizardModel
+    {
+        host.respond(
+            "host-info",
+            with: [
+                ("maxCpus", .uint(8)), ("maxMemoryMB", .uint(16384)), ("freeDiskMB", .uint(500_000)),
+                ("linuxReady", .bool(linuxReady)), ("hostWimlib", .bool(false)),
+            ])
+        if !host.answers("linux-iso-check") {
+            host.respond("linux-iso-check", with: [("usable", .bool(true))])
+        }
         let model = CreateWizardModel(transport: host, existingNames: ["lab"], pollInterval: .milliseconds(1))
         await model.load()
         return model
     }
 
-    private func wizardView(_ model: CreateWizardModel) -> CreateWizardView { CreateWizardView(model: model, close: {}) }
+    private func wizardView(_ model: CreateWizardModel) -> CreateWizardView {
+        CreateWizardView(model: model, gallery: GalleryModel(transport: FakeTransport()), close: {})
+    }
 
     /// The wizard opens on Linux from an ISO; a person chooses one on the source page.
     private func toResources(_ model: CreateWizardModel) async {
@@ -219,18 +264,46 @@ extension SnapshotTests {
     }
 
     @Test(.enabled(if: Snapshot.enabled))
-    func wizardChoosesTheSystem() async {
+    func wizardOpensOnTheGallery() async {
         let model = await wizardModel()
-        Snapshot.check("wizard-os", wizardView(model), width: 600, height: 540)
+        Snapshot.check("wizard-gallery", wizardView(model), width: 600, height: 540)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func galleryRefusesAFileForIntel() async {
+        let host = FakeTransport()
+        host.respond(
+            "installer-identify",
+            with: [
+                ("kind", .text("linux")), ("usable", .bool(false)), ("code", .text("linux-intel")),
+                ("problem", .text(LinuxISOCheck.Verdict.x86Only.problem ?? "")),
+            ])
+        let model = await wizardModel(host)
+        await model.useInstaller("/Users/me/Downloads/kali-linux-amd64.iso")
+        Snapshot.check("wizard-gallery-intel", wizardView(model), width: 600, height: 620)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func wizardGetsWindowsFromMicrosoft() async {
+        let model = await wizardModel()
+        model.chooseSystem(.windows)
+        Snapshot.check("wizard-windows", wizardView(model), width: 600, height: 540)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
     func wizardRefusesAnX64Iso() async {
         let host = FakeTransport()
-        host.respond("windows-iso-check", with: [
-            ("usable", .bool(false)),
-            ("problem", .text("This is not a Windows 11 ARM64 ISO. A Mac with Apple Silicon needs the ARM64 edition, not the x64 one.")),
-        ])
+        host.respond(
+            "windows-iso-check",
+            with: [
+                ("usable", .bool(false)),
+                (
+                    "problem",
+                    .text(
+                        "This is not a Windows 11 ARM64 ISO. A Mac with Apple Silicon needs the ARM64 edition, not the x64 one."
+                    )
+                ),
+            ])
         let model = await wizardModel(host, linuxReady: false)
         model.os = .windows
         model.next()
@@ -267,7 +340,11 @@ extension SnapshotTests {
     func wizardAfterAFailedStart() async {
         let host = FakeTransport()
         host.respond("create", with: [])
-        host.fail("start", with: HostError.remote("guest did not reach boot readiness with a responding openvm-tools agent; console tail:\nrandom: crng init done"))
+        host.fail(
+            "start",
+            with: HostError.remote(
+                "guest did not reach boot readiness with a responding openvm-tools agent; console tail:\nrandom: crng init done"
+            ))
         let model = await wizardModel(host)
         await toResources(model)
         model.name = "demo"
@@ -301,7 +378,10 @@ extension SnapshotTests {
         model.next()
         model.next()
         model.accountName = "arsh"
-        Snapshot.check("wizard-account", CreateWizardView(model: model, close: {}), width: 600, height: 540)
+        Snapshot.check(
+            "wizard-account",
+            CreateWizardView(model: model, gallery: GalleryModel(transport: FakeTransport()), close: {}),
+            width: 600, height: 540)
     }
 }
 
@@ -310,12 +390,17 @@ extension SnapshotTests {
     func wizardAsksForALinuxIso() async {
         let host = FakeTransport()
         host.respond("host-info", with: FakeTransport.hostInfoFields)
-        host.respond("linux-iso-check", with: [("usable", .bool(false)), ("problem", .text(LinuxISOCheck.Verdict.x86Only.problem ?? ""))])
+        host.respond(
+            "linux-iso-check",
+            with: [("usable", .bool(false)), ("problem", .text(LinuxISOCheck.Verdict.x86Only.problem ?? ""))])
         let model = CreateWizardModel(transport: host, existingNames: [])
         await model.load()
         model.os = .linuxISO
         model.next()
         await model.chooseISO("/x/kali-amd64.iso")
-        Snapshot.check("wizard-linux-iso", CreateWizardView(model: model, close: {}), width: 600, height: 540)
+        Snapshot.check(
+            "wizard-linux-iso",
+            CreateWizardView(model: model, gallery: GalleryModel(transport: FakeTransport()), close: {}),
+            width: 600, height: 540)
     }
 }

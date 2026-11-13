@@ -22,17 +22,21 @@ final class AppMenu: NSObject, NSMenuDelegate {
     private let showLibrary: () -> Void
     private let newVM: () -> Void
     private let showSettings: () -> Void
+    private let openInstaller: () -> Void
     private let openVM: (VmSummary) -> Void
 
     init(
-        model: VMListModel, machine: MachineMenus, showLibrary: @escaping () -> Void, newVM: @escaping () -> Void,
-        showSettings: @escaping () -> Void, openVM: @escaping (VmSummary) -> Void
+        model: VMListModel, machine: MachineMenus, showLibrary: @escaping () -> Void,
+        newVM: @escaping () -> Void,
+        openInstaller: @escaping () -> Void = {}, showSettings: @escaping () -> Void,
+        openVM: @escaping (VmSummary) -> Void
     ) {
         self.model = model
         self.machine = machine
         self.showLibrary = showLibrary
         self.newVM = newVM
         self.showSettings = showSettings
+        self.openInstaller = openInstaller
         self.openVM = openVM
     }
 
@@ -41,7 +45,10 @@ final class AppMenu: NSObject, NSMenuDelegate {
 
     func build() -> NSMenu {
         let main = NSMenu()
-        for menu in [appMenu(), fileMenu(), editMenu(), viewMenu(), machine.virtualMachineMenu(), windowMenu(), helpMenu()] {
+        for menu in [
+            appMenu(), fileMenu(), editMenu(), viewMenu(), machine.virtualMachineMenu(), windowMenu(),
+            helpMenu(),
+        ] {
             let item = NSMenuItem(title: menu.title, action: nil, keyEquivalent: "")
             item.submenu = menu
             main.addItem(item)
@@ -69,18 +76,22 @@ final class AppMenu: NSObject, NSMenuDelegate {
         menu.addItem(.separator())
         menu.addItem(withTitle: "Hide openVM", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
         let hideOthers = menu.addItem(
-            withTitle: "Hide Others", action: #selector(NSApplication.hideOtherApplications(_:)), keyEquivalent: "h")
+            withTitle: "Hide Others", action: #selector(NSApplication.hideOtherApplications(_:)),
+            keyEquivalent: "h")
         hideOthers.keyEquivalentModifierMask = [.command, .option]
         menu.addItem(
-            withTitle: "Show All", action: #selector(NSApplication.unhideAllApplications(_:)), keyEquivalent: "")
+            withTitle: "Show All", action: #selector(NSApplication.unhideAllApplications(_:)),
+            keyEquivalent: "")
         menu.addItem(.separator())
-        menu.addItem(withTitle: "Quit openVM", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(
+            withTitle: "Quit openVM", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         return menu
     }
 
     private func fileMenu() -> NSMenu {
         let menu = NSMenu(title: "File")
         _ = own("New Virtual Machine…", #selector(newVirtualMachine(_:)), key: "n", to: menu)
+        _ = own("Open Installer File…", #selector(openInstallerFile(_:)), key: "o", to: menu)
         // The list of VMs is rebuilt each time it opens, from the host's current list.
         let openItem = menu.addItem(withTitle: "Open Virtual Machine", action: nil, keyEquivalent: "")
         let openMenu = NSMenu(title: "Open Virtual Machine")
@@ -109,27 +120,31 @@ final class AppMenu: NSObject, NSMenuDelegate {
         let menu = NSMenu(title: "View")
         // AppKit names these two itself (Show or Hide, Enter or Exit) for the window in front.
         let sidebar = menu.addItem(
-            withTitle: "Show Sidebar", action: #selector(NSSplitViewController.toggleSidebar(_:)), keyEquivalent: "s")
+            withTitle: "Show Sidebar", action: #selector(NSSplitViewController.toggleSidebar(_:)),
+            keyEquivalent: "s")
         sidebar.keyEquivalentModifierMask = [.command, .control]
         let toolbar = menu.addItem(
             withTitle: "Show Toolbar", action: #selector(NSWindow.toggleToolbarShown(_:)), keyEquivalent: "t")
         toolbar.keyEquivalentModifierMask = [.command, .option]
         menu.addItem(.separator())
         let full = menu.addItem(
-            withTitle: "Enter Full Screen", action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")
+            withTitle: "Enter Full Screen", action: #selector(NSWindow.toggleFullScreen(_:)),
+            keyEquivalent: "f")
         full.keyEquivalentModifierMask = [.command, .control]
         return menu
     }
 
     private func windowMenu() -> NSMenu {
         let menu = NSMenu(title: "Window")
-        menu.addItem(withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
+        menu.addItem(
+            withTitle: "Minimize", action: #selector(NSWindow.performMiniaturize(_:)), keyEquivalent: "m")
         menu.addItem(withTitle: "Zoom", action: #selector(NSWindow.performZoom(_:)), keyEquivalent: "")
         menu.addItem(.separator())
         _ = own("Library", #selector(openLibrary(_:)), key: "0", to: menu)
         menu.addItem(.separator())
         menu.addItem(
-            withTitle: "Bring All to Front", action: #selector(NSApplication.arrangeInFront(_:)), keyEquivalent: "")
+            withTitle: "Bring All to Front", action: #selector(NSApplication.arrangeInFront(_:)),
+            keyEquivalent: "")
         NSApplication.shared.windowsMenu = menu  // AppKit lists the open windows below
         return menu
     }
@@ -137,7 +152,8 @@ final class AppMenu: NSObject, NSMenuDelegate {
     private func helpMenu() -> NSMenu {
         let menu = NSMenu(title: "Help")
         for (title, url) in [
-            ("openVM Help", HelpLinks.readme), ("Linux Guests: Sound, Scrolling and Display", HelpLinks.linuxGuests),
+            ("openVM Help", HelpLinks.readme),
+            ("Linux Guests: Sound, Scrolling and Display", HelpLinks.linuxGuests),
             ("Known Limits", HelpLinks.troubleshooting),
         ] {
             own(title, #selector(openLink(_:)), to: menu).representedObject = url
@@ -163,6 +179,7 @@ final class AppMenu: NSObject, NSMenuDelegate {
     @objc private func openLibrary(_ item: NSMenuItem) { showLibrary() }
     @objc private func newVirtualMachine(_ item: NSMenuItem) { newVM() }
     @objc private func openSettings(_ item: NSMenuItem) { showSettings() }
+    @objc private func openInstallerFile(_ item: NSMenuItem) { openInstaller() }
 
     @objc private func openLink(_ item: NSMenuItem) {
         if let url = item.representedObject as? URL { NSWorkspace.shared.open(url) }

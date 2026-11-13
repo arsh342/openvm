@@ -60,7 +60,9 @@ struct VMTableView: View {
     /// Carries out a command for a VM.
     let run: (VMCommand, VmSummary) -> Void
     /// Starts the creation wizard.
-    let newVM: () -> Void
+    let newVM: (NewVMStart) -> Void
+    /// What the library offers while there are no VMs.
+    @ObservedObject var gallery: GalleryModel
 
     private var rows: [VMTableRow] {
         LibraryNav.rows(model.vms, group: nav.group ?? .all, search: nav.search, sortOrder: nav.sortOrder)
@@ -77,13 +79,23 @@ struct VMTableView: View {
     @ViewBuilder private var content: some View {
         let rows = rows
         if model.vms.isEmpty {
-            empty(
-                "desktopcomputer", "No Virtual Machines", "Create one to get started.",
-                button: ("New Virtual Machine…", newVM))
+            // With no VMs the library is the gallery: the same first screen the creation window opens on.
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Create your first virtual machine").font(.title2.weight(.semibold))
+                    GalleryView(
+                        gallery: gallery, status: .none, chooseFile: { newVM(.file($0)) },
+                        chooseTile: { newVM(.system($0.entry.kind)) }, act: { _ in })
+                }
+                .frame(maxWidth: 560, alignment: .leading)
+                .padding(24)
+                .frame(maxWidth: .infinity)
+            }
         } else if rows.isEmpty, !nav.search.trimmingCharacters(in: .whitespaces).isEmpty {
             empty("magnifyingglass", "No Results", "No virtual machine has “\(nav.search)” in its name.")
         } else if rows.isEmpty {
-            empty("play.circle", "Nothing Is Running", "Virtual machines that are running or paused show here.")
+            empty(
+                "play.circle", "Nothing Is Running", "Virtual machines that are running or paused show here.")
         } else {
             table(rows)
         }
@@ -112,13 +124,15 @@ struct VMTableView: View {
             if let vm = LibraryNav.selectedVM(ids.first, in: model.vms) {
                 ForEach(VMCommand.pageRows, id: \.self) { command in
                     let state = command.state(for: vm)
-                    Button(role: command == .delete ? .destructive : nil) { run(command, vm) } label: {
+                    Button(role: command == .delete ? .destructive : nil) {
+                        run(command, vm)
+                    } label: {
                         Label(state.title, systemImage: state.symbol)
                     }
                     .disabled(!state.enabled)
                 }
             } else {
-                Button("New Virtual Machine…", action: newVM)
+                Button("New Virtual Machine…") { newVM(.gallery) }
             }
         } primaryAction: { ids in
             // Return, or a double click: open its window.
@@ -134,12 +148,12 @@ struct VMTableView: View {
         }
     }
 
-    private func empty(_ symbol: String, _ title: String, _ text: String, button: (String, () -> Void)? = nil) -> some View {
+    private func empty(_ symbol: String, _ title: String, _ text: String) -> some View {
         VStack(spacing: 8) {
-            Image(systemName: symbol).font(.system(size: 40)).foregroundStyle(.secondary).accessibilityHidden(true)
+            Image(systemName: symbol).font(.system(size: 40)).foregroundStyle(.secondary).accessibilityHidden(
+                true)
             Text(title).font(.title3.weight(.medium))
             Text(text).foregroundStyle(.secondary).multilineTextAlignment(.center)
-            if let button { Button(button.0, action: button.1).padding(.top, 4) }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(32)
@@ -150,7 +164,9 @@ struct VMTableView: View {
             Banner(text: problem, systemImage: "bolt.horizontal.circle", tint: .red, dismiss: nil)
         }
         if let error = model.lastError {
-            Banner(text: error, systemImage: "exclamationmark.triangle", tint: .orange) { model.lastError = nil }
+            Banner(text: error, systemImage: "exclamationmark.triangle", tint: .orange) {
+                model.lastError = nil
+            }
         }
     }
 }
@@ -207,8 +223,12 @@ struct VMDetailPane: View {
 
     private func button(_ command: VMCommand, _ vm: VmSummary) -> some View {
         let state = command.state(for: vm)
-        return Button { run(command, vm) } label: { Label(state.title, systemImage: state.symbol) }
-            .disabled(!state.enabled)
+        return Button {
+            run(command, vm)
+        } label: {
+            Label(state.title, systemImage: state.symbol)
+        }
+        .disabled(!state.enabled)
     }
 
     /// The last picture taken of the guest's screen, or a plain tile with the system's glyph: when there

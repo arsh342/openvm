@@ -15,7 +15,8 @@ enum GuestLinuxISO {
     @MainActor
     static func configuration(
         diskURL: URL, iso: URL?, variableStoreURL: URL, consoleURL: URL, cpus: Int, memoryMB: Int,
-        machineIdentifier: Data?, directorySharing: VZDirectorySharingDeviceConfiguration, sharesClipboard: Bool = false
+        machineIdentifier: Data?, directorySharing: VZDirectorySharingDeviceConfiguration,
+        sharesClipboard: Bool = false
     ) throws -> VZVirtualMachineConfiguration {
         let platform = VZGenericPlatformConfiguration()
         if let machineIdentifier, let id = VZGenericMachineIdentifier(dataRepresentation: machineIdentifier) {
@@ -92,19 +93,23 @@ enum GuestLinuxISO {
         if let installMediaPath {
             guard FileManager.default.fileExists(atPath: installMediaPath) else {
                 throw GuestBootError.failure(
-                    "the installer ISO is gone (\(installMediaPath)): put it back, or eject it if the install is finished")
+                    "the installer ISO is gone (\(installMediaPath)): put it back, or eject it if the install is finished"
+                )
             }
-            let size = (try? FileManager.default.attributesOfItem(atPath: installMediaPath)[.size] as? UInt64) ?? 0
+            let size =
+                (try? FileManager.default.attributesOfItem(atPath: installMediaPath)[.size] as? UInt64) ?? 0
             if let problem = LinuxISOCheck.sizeProblem(bytes: size) { throw GuestBootError.failure(problem) }
             iso = URL(fileURLWithPath: installMediaPath)
         }
-        let store = variableStorePath.map { URL(fileURLWithPath: $0) }
+        let store =
+            variableStorePath.map { URL(fileURLWithPath: $0) }
             ?? diskURL.deletingLastPathComponent().appendingPathComponent("nvram.bin")
         let config = try configuration(
             diskURL: diskURL, iso: iso, variableStoreURL: store, consoleURL: consoleURL, cpus: cpus,
             memoryMB: memoryMB, machineIdentifier: machineIdentifier,
             directorySharing: SharedFolders.device(
-                for: shares, drops: try dropRoot(vmUUID, create: true), outbox: try outboxRoot(vmUUID, create: true)),
+                for: shares, drops: try dropRoot(vmUUID, create: true),
+                outbox: try outboxRoot(vmUUID, create: true)),
             sharesClipboard: sharesClipboard)
         try config.validate()
         let vm = VZVirtualMachine(configuration: config)
@@ -150,11 +155,16 @@ nonisolated func linuxISOCheckOp(_ r: VmRequest) throws -> Envelope {
     case .success(let url):
         let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? UInt64) ?? 0
         if let problem = LinuxISOCheck.sizeProblem(bytes: size) {
-            return r.ok([("usable", .bool(false)), ("problem", .text(problem))])
+            return r.ok([
+                ("usable", .bool(false)), ("problem", .text(problem)), ("code", .text("iso-incomplete")),
+            ])
         }
         let verdict = inspectLinuxISO(url)
         var fields: [(key: String, value: CBOR)] = [("usable", .bool(verdict.problem == nil))]
-        if let problem = verdict.problem { fields.append(("problem", .text(problem))) }
+        if let problem = verdict.problem {
+            fields.append(("problem", .text(problem)))
+            fields.append(("code", .text("linux-intel")))
+        }
         if verdict == .unknown { fields.append(("unknown", .bool(true))) }
         return r.ok(fields)
     }
@@ -167,7 +177,35 @@ nonisolated func ejectInstaller(_ r: VmRequest) throws -> Envelope {
     guard record.bootMode == .linuxISO, record.installMediaPath != nil else {
         return r.fail("\(record.name) has no installer ISO attached")
     }
-    guard record.state == .stopped else { return r.fail("shut \(record.name) down to eject its installer ISO") }
+    guard record.state == .stopped else {
+        return r.fail("shut \(record.name) down to eject its installer ISO")
+    }
     try registry.clearInstallMedia(record.uuid)
     return r.ok([("message", .text("ejected the installer ISO from \(record.name)"))])
+}
+
+/// Says what kind of installer a file is, for a file dropped on the gallery: Windows or Linux, and why
+/// it cannot be used if it cannot. A problem comes back with a `code` the app turns into plain words.
+nonisolated func installerIdentifyOp(_ r: VmRequest) throws -> Envelope {
+    guard case .text(let path)? = r.arg("iso") else { return r.fail("installer-identify needs an iso") }
+    switch validISOPath(path) {
+    case .failure(let error):
+        return r.ok([
+            ("usable", .bool(false)), ("code", .text("not-an-iso")), ("problem", .text(error.description)),
+        ])
+    case .success(let url):
+        let windows: InstallerIdentify.WindowsLook
+        do { windows = .looked(try inspectWindowsISO(url)) } catch { windows = .unreadable }
+        let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? UInt64) ?? 0
+        let verdict = InstallerIdentify.verdict(
+            windows: windows, sizeProblem: LinuxISOCheck.sizeProblem(bytes: size),
+            linux: { inspectLinuxISO(url) })
+        var fields: [(key: String, value: CBOR)] = [
+            ("kind", .text(verdict.kind.rawValue)), ("usable", .bool(verdict.usable)),
+        ]
+        if let code = verdict.code { fields.append(("code", .text(code))) }
+        if let problem = verdict.problem { fields.append(("problem", .text(problem))) }
+        if verdict.unknown { fields.append(("unknown", .bool(true))) }
+        return r.ok(fields)
+    }
 }

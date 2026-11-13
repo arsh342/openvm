@@ -40,7 +40,9 @@ nonisolated func windowsMediaFiles(at root: URL) -> Set<String> {
     let top = children(root)
     for name in top { files.insert(name.lowercased()) }
     for name in top where name.lowercased() == "sources" {
-        for child in children(root.appendingPathComponent(name)) { files.insert("sources/\(child.lowercased())") }
+        for child in children(root.appendingPathComponent(name)) {
+            files.insert("sources/\(child.lowercased())")
+        }
     }
     for name in top where name.lowercased() == "efi" {
         for sub in children(root.appendingPathComponent(name)) where sub.lowercased() == "boot" {
@@ -96,7 +98,10 @@ nonisolated func windowsISOCheckOp(_ r: VmRequest) throws -> Envelope {
         do {
             let problem = try inspectWindowsISO(url)
             var fields: [(key: String, value: CBOR)] = [("usable", .bool(problem == nil))]
-            if let problem { fields.append(("problem", .text(problem.description))) }
+            if let problem {
+                fields.append(("problem", .text(problem.description)))
+                fields.append(("code", .text(InstallerIdentify.code(for: problem))))
+            }
             return r.ok(fields)
         } catch {
             return r.fail("\(error)")
