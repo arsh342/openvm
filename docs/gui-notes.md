@@ -615,11 +615,21 @@ openVM ▸ Settings… holds: show openVM in the menu bar; show previews in the 
 installers, where they are kept, the space they use, and Remove. With the menu-bar icon off, the Dock icon
 stays while a guest runs with no window open: the icon was the only way back.
 
+### The icon
+
+The owner chose the first of three directions (2026-11-13): a screen holding a second, raised screen, with no
+mark on it. It is an Icon Composer document, `tools/build/AppIcon.icon`: a blue background and two glass
+layers, no text, no logo. The menu-bar mark is the same two screens in one colour (`MenuBarGlyph`), drawn in
+code from the icon's own shapes: the host's screen as an outline, the guest's filled.
+
+The compiled icon is committed in `tools/build/AppIcon-compiled` with the hash of the document it came from,
+so a Mac without Xcode builds the app with its icon. `mk-app.sh` copies it, and stops if the document has
+changed since: `tools/build/mk-icon.sh` (which needs Xcode) recompiles it. Looked at as renders at 256, 32
+and 16 pixels in light and dark; in dark the two screens are both blue and closer in tone than in light.
+Not yet seen in the Dock or the menu bar by a person.
+
 ### What is not done
 
-* **The app icon.** Three directions are drawn as Icon Composer documents and rendered; the owner picks one.
-  Until then the app keeps its old icon. The menu-bar glyph is already the new one (a screen holding a second
-  screen), drawn in code.
 * **Evidence installs** of Ubuntu and Fedora, which gate their tiles.
 * **By hand:** the key rule in a guest, the toolbar and the guest's size, VoiceOver and keyboard passes,
   Increase Contrast and Reduce Transparency.

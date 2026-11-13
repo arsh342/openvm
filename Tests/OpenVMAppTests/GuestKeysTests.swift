@@ -48,11 +48,14 @@ struct GuestKeysTests {
         let host = FakeTransport()
         let model = VMListModel(transport: host)
         let context = VMCommandContext(
-            model: model, openWindow: { _ in }, showSettings: { _ in }, shareFolder: { _ in }, confirmDelete: { _ in })
+            model: model, openWindow: { _ in }, showSettings: { _ in }, shareFolder: { _ in },
+            confirmDelete: { _ in })
         let menus = MachineMenus(
             model: model, context: context,
             actions: MachineMenuActions(showLibrary: {}, newVM: {}, lastUsed: { nil }, use: { _ in }))
-        let menu = AppMenu(model: model, machine: menus, showLibrary: {}, newVM: {}, showSettings: {}, openVM: { _ in }).build()
+        let menu = AppMenu(
+            model: model, machine: menus, showLibrary: {}, newVM: {}, showSettings: {}, openVM: { _ in }
+        ).build()
         var kept: [String] = []
         func walk(_ menu: NSMenu) {
             for item in menu.items {
@@ -67,7 +70,8 @@ struct GuestKeysTests {
         var withoutCommand: [String] = []
         func check(_ menu: NSMenu) {
             for item in menu.items {
-                if !item.keyEquivalent.isEmpty, !GuestKeys.couldBeMenuShortcut(item.keyEquivalentModifierMask) {
+                if !item.keyEquivalent.isEmpty, !GuestKeys.couldBeMenuShortcut(item.keyEquivalentModifierMask)
+                {
                     withoutCommand.append(item.title)
                 }
                 if let submenu = item.submenu { check(submenu) }
@@ -76,6 +80,49 @@ struct GuestKeysTests {
         check(menu)
         #expect(withoutCommand.isEmpty)  // so claiming only Command combinations covers every menu shortcut
         walk(menu)
-        #expect(kept.sorted() == ["Enter Full Screen", "Hide Others", "Hide openVM", "Quit openVM", "Settings…"])
+        #expect(
+            kept.sorted() == ["Enter Full Screen", "Hide Others", "Hide openVM", "Quit openVM", "Settings…"])
+    }
+}
+
+/// The menu-bar mark is the app icon's two screens, as a template image.
+@MainActor
+struct MenuBarGlyphTests {
+    @Test func itIsATemplateTheSizeOfAMenuBarIconAndNamed() {
+        let glyph = MenuBarGlyph.image()
+        #expect(glyph.isTemplate)  // so the menu bar tints it for light and dark
+        #expect(glyph.size == NSSize(width: 18, height: 18))
+        #expect(glyph.accessibilityDescription == "openVM")
+    }
+
+    /// It draws something, and leaves the corner the two screens do not reach empty.
+    @Test func itDrawsTheTwoScreens() throws {
+        let side = 72
+        let rep = try #require(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: side, pixelsHigh: side, bitsPerSample: 8,
+                samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
+        MenuBarGlyph.image(side: CGFloat(side)).draw(in: NSRect(x: 0, y: 0, width: side, height: side))
+        NSGraphicsContext.restoreGraphicsState()
+        func alpha(_ x: Int, _ y: Int) -> CGFloat { rep.colorAt(x: x, y: y)?.alphaComponent ?? 0 }
+        #expect(alpha(54, 50) > 0.9)  // inside the guest's filled screen, lower right
+        #expect(alpha(24, 26) < 0.1)  // inside the host's outline: empty
+        #expect(alpha(68, 6) < 0.1)  // the top right corner, which neither screen reaches
+    }
+}
+
+/// The shapes are the icon's own, so the two cannot drift apart.
+struct MenuBarGlyphShapeTests {
+    @Test func theGlyphUsesTheIconsShapes() throws {
+        let assets = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .deletingLastPathComponent().appendingPathComponent("tools/build/AppIcon.icon/Assets")
+        let back = try String(contentsOf: assets.appendingPathComponent("back.svg"), encoding: .utf8)
+        let front = try String(contentsOf: assets.appendingPathComponent("front.svg"), encoding: .utf8)
+        #expect(back.contains(#"x="174" y="232" width="580" height="430" rx="72""#))
+        #expect(front.contains(#"x="400" y="430" width="450" height="340" rx="64""#))
+        #expect(!front.contains("<path"))  // the guest's screen is plain: no power mark
     }
 }

@@ -1,23 +1,51 @@
-// MenuBarGlyph — the openVM mark for the menu bar: a screen holding a second, raised screen. Drawn here
-// as a template image, so it follows the menu bar's light or dark look and needs no file in the bundle.
+// MenuBarGlyph — the openVM mark for the menu bar: the app icon's two screens in one colour. The host's
+// screen is an outline, and the guest's, raised over its lower right corner, is filled. Drawn here as a
+// template image, so it follows the menu bar's light or dark look and needs no file in the bundle.
+//
+// The shapes are the app icon's own (tools/build/AppIcon.icon), scaled from its 1024-point canvas.
 import AppKit
 
 enum MenuBarGlyph {
-    static func image() -> NSImage {
-        let image = NSImage(size: NSSize(width: 18, height: 18), flipped: false) { _ in
+    /// The icon's two screens on its 1024-point canvas, measured from the top left as in its SVG layers.
+    static let host = NSRect(x: 174, y: 232, width: 580, height: 430)
+    static let guest = NSRect(x: 400, y: 430, width: 450, height: 340)
+    static let hostRadius: CGFloat = 72
+    static let guestRadius: CGFloat = 64
+
+    static func image(side: CGFloat = 18) -> NSImage {
+        let image = NSImage(size: NSSize(width: side, height: side), flipped: true) { _ in
+            let bounds = host.union(guest)
+            // The pair fills the width but for a point of margin, and sits in the middle.
+            let scale = (side - 2) / bounds.width
+            func place(_ rect: NSRect) -> NSRect {
+                NSRect(
+                    x: 1 + (rect.minX - bounds.minX) * scale,
+                    y: (side - bounds.height * scale) / 2 + (rect.minY - bounds.minY) * scale,
+                    width: rect.width * scale, height: rect.height * scale)
+            }
+            let line = max(1.25, side / 14)
+            let gap = line * 0.9
+            let hostRect = place(host).insetBy(dx: line / 2, dy: line / 2)
+            let guestRect = place(guest)
             NSColor.black.set()
-            // The host's screen: an outline.
-            let outer = NSBezierPath(roundedRect: NSRect(x: 1.5, y: 4.5, width: 12, height: 10), xRadius: 2.5, yRadius: 2.5)
-            outer.lineWidth = 1.5
-            // The guest's screen sits over its lower right corner, so the outline is cut away under it.
-            let inner = NSRect(x: 7.5, y: 1.5, width: 9.5, height: 8)
+
+            // The guest's screen is in front: the host's outline stops short of it.
             NSGraphicsContext.saveGraphicsState()
-            let clip = NSBezierPath(rect: NSRect(x: 0, y: 0, width: 18, height: 18))
-            clip.append(NSBezierPath(roundedRect: inner.insetBy(dx: -1.5, dy: -1.5), xRadius: 3.5, yRadius: 3.5).reversed)
+            let clip = NSBezierPath(rect: NSRect(x: 0, y: 0, width: side, height: side))
+            let cut = guestRect.insetBy(dx: -gap, dy: -gap)
+            clip.append(
+                NSBezierPath(
+                    roundedRect: cut, xRadius: guestRadius * scale + gap, yRadius: guestRadius * scale + gap
+                ).reversed)
             clip.addClip()
-            outer.stroke()
+            let outline = NSBezierPath(
+                roundedRect: hostRect, xRadius: hostRadius * scale, yRadius: hostRadius * scale)
+            outline.lineWidth = line
+            outline.stroke()
             NSGraphicsContext.restoreGraphicsState()
-            NSBezierPath(roundedRect: inner, xRadius: 2, yRadius: 2).fill()
+
+            NSBezierPath(roundedRect: guestRect, xRadius: guestRadius * scale, yRadius: guestRadius * scale)
+                .fill()
             return true
         }
         image.isTemplate = true

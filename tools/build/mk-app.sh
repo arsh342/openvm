@@ -22,17 +22,19 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/openvm"
 cp "$(dirname "$0")/Info.plist" "$APP/Contents/Info.plist"
 
-# The icon is an Icon Composer document (tools/build/AppIcon.icon; open it in Icon Composer to edit).
-# actool ships with Xcode, not the Command Line Tools: without it the app is built with no icon.
-XCODE=/Applications/Xcode.app/Contents/Developer
-if [ -d "$XCODE" ]; then
-    DEVELOPER_DIR=$XCODE xcrun actool "$(dirname "$0")/AppIcon.icon" --compile "$APP/Contents/Resources" \
-        --platform macosx --minimum-deployment-target 14.0 --app-icon AppIcon \
-        --output-partial-info-plist "${TMPDIR:-/tmp}/openvm-icon.plist" >/dev/null \
-        || echo "mk-app: the icon did not compile; continuing without it" >&2
-else
-    echo "mk-app: Xcode not found; building without the icon" >&2
+# The icon is an Icon Composer document (tools/build/AppIcon.icon; open it in Icon Composer to edit), and
+# its compiled form is committed beside it (tools/build/AppIcon-compiled), so a Mac without Xcode still
+# builds an app with its icon: actool ships with Xcode, not the Command Line Tools. The compiled files
+# record the hash of the document they came from. If the document has changed since, the build stops:
+# run tools/build/mk-icon.sh (with Xcode) and commit the result.
+ICON="$(dirname "$0")/AppIcon-compiled"
+[ -f "$ICON/Assets.car" ] && [ -f "$ICON/AppIcon.icns" ] && [ -f "$ICON/source.sha256" ] \
+    || { echo "mk-app: no compiled icon in $ICON; run tools/build/mk-icon.sh" >&2; exit 1; }
+if [ "$(sh "$(dirname "$0")/mk-icon.sh" --hash)" != "$(cat "$ICON/source.sha256")" ]; then
+    echo "mk-app: AppIcon.icon has changed since the icon was compiled; run tools/build/mk-icon.sh and commit it" >&2
+    exit 1
 fi
+cp "$ICON/Assets.car" "$ICON/AppIcon.icns" "$APP/Contents/Resources/"
 
 # The guest payload goes in before signing: the signature seals the bundle's resources.
 sh "$(dirname "$0")/mk-payload.sh" "$APP/Contents/Resources/guest" >/dev/null

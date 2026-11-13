@@ -114,4 +114,5 @@ has not used it.
       the installed system.
 - [ ] **Settings.** Turning the menu-bar icon off removes it, and the Dock icon then stays with a guest running
       and no window open. Turning previews off hides guest screens in the library.
-- [ ] **The app icon**: pick one of the three directions.
+- [ ] **The app icon and the menu-bar mark**: the icon (two screens, chosen 2026-11-13) reads in the Dock, Finder and
+      the app switcher in light and dark; the menu-bar mark is the same shape and follows the menu bar's colour.

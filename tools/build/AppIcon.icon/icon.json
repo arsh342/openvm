@@ -1,19 +1,14 @@
 {
   "fill" : {
-    "automatic-gradient" : "extended-srgb:0.10000,0.17000,0.52000,1.00000"
+    "automatic-gradient" : "extended-srgb:0.12000,0.30000,0.92000,1.00000"
   },
   "groups" : [
     {
       "layers" : [
         {
           "glass" : true,
-          "image-name" : "guest.svg",
+          "image-name" : "front.svg",
           "name" : "guest"
-        },
-        {
-          "glass" : true,
-          "image-name" : "host.svg",
-          "name" : "host"
         }
       ],
       "shadow" : {
@@ -23,6 +18,23 @@
       "translucency" : {
         "enabled" : false,
         "value" : 0.5
+      }
+    },
+    {
+      "layers" : [
+        {
+          "glass" : true,
+          "image-name" : "back.svg",
+          "name" : "host"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.4
       }
     }
   ],
