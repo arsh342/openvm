@@ -26,6 +26,16 @@ struct GuestKeysTests {
         #expect(!GuestKeys.keptByMac(key: "\u{8}", modifiers: [.command]))  // Delete… must not fire from a guest
     }
 
+    /// Plain typing is never claimed from the normal path: only a press with Command could be a menu's.
+    @Test func onlyCommandCombinationsAreClaimed() {
+        #expect(GuestKeys.couldBeMenuShortcut([.command]))
+        #expect(GuestKeys.couldBeMenuShortcut([.command, .shift]))
+        #expect(!GuestKeys.couldBeMenuShortcut([]))
+        #expect(!GuestKeys.couldBeMenuShortcut([.shift]))
+        #expect(!GuestKeys.couldBeMenuShortcut([.control]))
+        #expect(!GuestKeys.couldBeMenuShortcut([.option]))
+    }
+
     /// Caps Lock and the keypad bit ride along on real events and must not change the answer.
     @Test func otherFlagsDoNotMatter() {
         #expect(GuestKeys.keptByMac(key: "Q", modifiers: [.command, .capsLock]))
@@ -54,6 +64,17 @@ struct GuestKeysTests {
                 if let submenu = item.submenu { walk(submenu) }
             }
         }
+        var withoutCommand: [String] = []
+        func check(_ menu: NSMenu) {
+            for item in menu.items {
+                if !item.keyEquivalent.isEmpty, !GuestKeys.couldBeMenuShortcut(item.keyEquivalentModifierMask) {
+                    withoutCommand.append(item.title)
+                }
+                if let submenu = item.submenu { check(submenu) }
+            }
+        }
+        check(menu)
+        #expect(withoutCommand.isEmpty)  // so claiming only Command combinations covers every menu shortcut
         walk(menu)
         #expect(kept.sorted() == ["Enter Full Screen", "Hide Others", "Hide openVM", "Quit openVM", "Settings…"])
     }

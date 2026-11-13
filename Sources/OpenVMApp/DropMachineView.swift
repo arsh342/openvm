@@ -29,7 +29,8 @@ final class DropMachineView: VZVirtualMachineView {
     /// key meant for the guest.
     override func performKeyEquivalent(with event: NSEvent) -> Bool {
         if super.performKeyEquivalent(with: event) { return true }
-        guard event.type == .keyDown, guestHasKeyboard(),
+        // Only what a menu could take is claimed. Ordinary typing goes the way it always has.
+        guard event.type == .keyDown, guestHasKeyboard(), GuestKeys.couldBeMenuShortcut(event.modifierFlags),
             !GuestKeys.keptByMac(key: event.charactersIgnoringModifiers ?? "", modifiers: event.modifierFlags)
         else { return false }
         keyDown(with: event)

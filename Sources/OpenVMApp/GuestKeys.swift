@@ -8,6 +8,10 @@
 import AppKit
 
 enum GuestKeys {
+    /// Whether a key press could be a menu shortcut at all. Every shortcut in openVM's menu bar holds
+    /// Command (a test checks that), so a press without it is plain typing and is left alone.
+    static func couldBeMenuShortcut(_ modifiers: NSEvent.ModifierFlags) -> Bool { modifiers.contains(.command) }
+
     /// Whether the app keeps this combination. `key` is the key without its modifiers, as
     /// `NSEvent.charactersIgnoringModifiers` gives it.
     static func keptByMac(key: String, modifiers: NSEvent.ModifierFlags) -> Bool {
