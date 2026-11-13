@@ -104,8 +104,16 @@ private struct TileView: View {
     var body: some View {
         Button(action: choose) {
             HStack(alignment: .top, spacing: 12) {
-                Image(systemName: tile.entry.symbol).font(.system(size: 24)).frame(width: 36)
-                    .foregroundStyle(.secondary).accessibilityHidden(true)
+                Group {
+                    if tile.entry.kind == .windows {
+                        WindowsLogo().frame(width: 26, height: 26)
+                    } else {
+                        Image(systemName: tile.entry.symbol).font(.system(size: 24)).foregroundStyle(
+                            .secondary)
+                    }
+                }
+                .frame(width: 36)
+                .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
                         Text(tile.entry.name).font(.headline)
@@ -140,6 +148,30 @@ private struct TileView: View {
         .disabled(tile.disabledReason != nil)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isButton)
+    }
+}
+
+/// The Windows mark: four squares in Windows blue. It is Microsoft's trademark, shown only beside the
+/// Windows 11 tile to say what the tile installs (the owner's choice, 2026-11-13). Linux tiles keep
+/// neutral glyphs.
+struct WindowsLogo: View {
+    var body: some View {
+        GeometryReader { proxy in
+            let side = min(proxy.size.width, proxy.size.height)
+            let gap = side * 0.06
+            let square = (side - gap) / 2
+            VStack(spacing: gap) {
+                ForEach(0..<2, id: \.self) { _ in
+                    HStack(spacing: gap) {
+                        ForEach(0..<2, id: \.self) { _ in
+                            Rectangle().fill(Color(red: 0, green: 0.47, blue: 0.83)).frame(
+                                width: square, height: square)
+                        }
+                    }
+                }
+            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
+        }
     }
 }
 

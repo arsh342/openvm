@@ -582,6 +582,9 @@ in Downloads) and a tile for each system. The library shows the same view while 
   "Not tested yet".
 * **A tile says its cost first**: download size, free space needed, rough time, known limits. It is off, with
   the reason, when the Mac lacks the space.
+* **The Windows mark.** The Windows 11 tile shows the four blue squares (the owner's choice, 2026-11-13), drawn
+  in code. It is Microsoft's trademark, and its usage rules have not been checked: before a public release,
+  check them or go back to a neutral glyph. Linux tiles and the library's rows keep neutral glyphs.
 * **Words.** The screens say Ubuntu, Windows 11, installer file and Arm. ARM64 and aarch64 appear only where a
   person has to find the right file on a download page.
 
