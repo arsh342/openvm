@@ -10,6 +10,10 @@ public nonisolated enum OVMPaths {
         return FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".openvm")
     }
 
+    /// Installers openVM downloaded. They are kept for later VMs and removed only when asked: deleting a
+    /// VM never touches them.
+    public static var isos: URL { home.appendingPathComponent("isos", isDirectory: true) }
+
     /// The host's Unix socket.
     public static var socket: String { home.appendingPathComponent("openvmd.sock").path }
 }

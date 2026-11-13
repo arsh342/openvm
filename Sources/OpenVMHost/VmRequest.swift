@@ -93,6 +93,8 @@ private nonisolated func run(_ op: String, _ r: VmRequest) -> Envelope {
         case "windows-iso-check": return try windowsISOCheckOp(r)
         case "linux-iso-check": return try linuxISOCheckOp(r)
         case "installer-identify": return try installerIdentifyOp(r)
+        case "installers-list": return try installersListOp(r)
+        case "installer-remove": return try installerRemoveOp(r)
         case "eject-installer": return try ejectInstaller(r)
         case "task-start": return try taskStartOp(r)
         case "task-status": return try taskStatusOp(r)

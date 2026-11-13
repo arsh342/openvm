@@ -335,6 +335,14 @@ nonisolated let tasks = HostTasks()
 
 nonisolated func taskStartOp(_ r: VmRequest) throws -> Envelope {
     guard case .text(let kind)? = r.arg("kind") else { return r.fail("task-start needs a kind") }
+    // A download is named by a catalog entry and nothing else: never an address or a path.
+    if kind == "fetch-iso" {
+        guard case .text(let entry)? = r.arg("entry") else { return r.fail("fetch-iso needs an entry from the catalog") }
+        switch installerDownloads.start(entry: entry) {
+        case .success(let id): return r.ok([("taskId", .text(id))])
+        case .failure(let error): return r.fail(error.description)
+        }
+    }
     var arguments: [String: String] = [:]
     for key in ["iso", "name", "user", "password", "autologon"] {
         if case .text(let value)? = r.arg(key) { arguments[key] = value }
@@ -364,9 +372,9 @@ nonisolated func taskStartOp(_ r: VmRequest) throws -> Envelope {
 }
 
 nonisolated func taskStatusOp(_ r: VmRequest) throws -> Envelope {
-    guard case .text(let id)? = r.arg("taskId"), let snapshot = tasks.status(id) else {
-        return r.fail("no such task")
-    }
+    guard case .text(let id)? = r.arg("taskId") else { return r.fail("no such task") }
+    if let download = installerDownloads.status(id) { return r.ok(downloadStatusFields(download)) }
+    guard let snapshot = tasks.status(id) else { return r.fail("no such task") }
     var fields: [(key: String, value: CBOR)] = [
         ("state", .text(snapshot.state.rawValue)), ("progress", .text(snapshot.progress)),
     ]
@@ -376,6 +384,8 @@ nonisolated func taskStatusOp(_ r: VmRequest) throws -> Envelope {
 
 nonisolated func taskCancelOp(_ r: VmRequest) throws -> Envelope {
     guard case .text(let id)? = r.arg("taskId") else { return r.fail("task-cancel needs a taskId") }
+    // Cancelling a download keeps what it has, so starting it again picks up from there.
+    if installerDownloads.status(id) != nil { return r.ok([("cancelled", .bool(installerDownloads.cancel(id)))]) }
     guard tasks.status(id) != nil else { return r.fail("no such task") }
     return r.ok([("cancelled", .bool(tasks.cancel(id)))])
 }
