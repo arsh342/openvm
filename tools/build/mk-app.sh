@@ -12,21 +12,11 @@ set -eu
 CONFIG=${1:-debug}
 case "$CONFIG" in debug | release) ;; *) echo "usage: mk-app.sh [debug|release]" >&2; exit 2 ;; esac
 
-swift build -c "$CONFIG" --product openvm
-BIN="$(swift build -c "$CONFIG" --show-bin-path)/openvm"
-[ -x "$BIN" ] || { echo "mk-app: no executable at $BIN" >&2; exit 1; }
-
-APP=.build/openvm.app
-rm -rf "$APP"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$BIN" "$APP/Contents/MacOS/openvm"
-cp "$(dirname "$0")/Info.plist" "$APP/Contents/Info.plist"
-
 # The icon is an Icon Composer document (tools/build/AppIcon.icon; open it in Icon Composer to edit), and
 # its compiled form is committed beside it (tools/build/AppIcon-compiled), so a Mac without Xcode still
 # builds an app with its icon: actool ships with Xcode, not the Command Line Tools. The compiled files
-# record the hash of the document they came from. If the document has changed since, the build stops:
-# run tools/build/mk-icon.sh (with Xcode) and commit the result.
+# record the hash of the document they came from. If the document has changed since, the build stops
+# here, before anything is touched: run tools/build/mk-icon.sh (with Xcode) and commit the result.
 ICON="$(dirname "$0")/AppIcon-compiled"
 [ -f "$ICON/Assets.car" ] && [ -f "$ICON/AppIcon.icns" ] && [ -f "$ICON/source.sha256" ] \
     || { echo "mk-app: no compiled icon in $ICON; run tools/build/mk-icon.sh" >&2; exit 1; }
@@ -34,6 +24,20 @@ if [ "$(sh "$(dirname "$0")/mk-icon.sh" --hash)" != "$(cat "$ICON/source.sha256"
     echo "mk-app: AppIcon.icon has changed since the icon was compiled; run tools/build/mk-icon.sh and commit it" >&2
     exit 1
 fi
+
+swift build -c "$CONFIG" --product openvm
+BIN="$(swift build -c "$CONFIG" --show-bin-path)/openvm"
+[ -x "$BIN" ] || { echo "mk-app: no executable at $BIN" >&2; exit 1; }
+
+# The bundle is put together beside its place and moved in only when it is whole, so a build that fails
+# never leaves a half-made app where the last good one was.
+FINAL=.build/openvm.app
+APP=.build/openvm.app.building
+rm -rf "$APP"
+mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
+cp "$BIN" "$APP/Contents/MacOS/openvm"
+cp "$(dirname "$0")/Info.plist" "$APP/Contents/Info.plist"
+
 cp "$ICON/Assets.car" "$ICON/AppIcon.icns" "$APP/Contents/Resources/"
 
 # The guest payload goes in before signing: the signature seals the bundle's resources.
@@ -43,4 +47,6 @@ codesign --force --sign "${OPENVM_SIGN_IDENTITY:--}" \
     --entitlements "$(dirname "$0")/vm.entitlements.xml" --options runtime "$APP" >/dev/null 2>&1 \
     || { echo "mk-app: signing failed" >&2; exit 1; }
 
-echo "mk-app: wrote $APP"
+rm -rf "$FINAL"
+mv "$APP" "$FINAL"
+echo "mk-app: wrote $FINAL"
