@@ -13,6 +13,9 @@ final class DropMachineView: VZVirtualMachineView {
     var acceptsDrops: () -> Bool = { false }
     /// Called with the files to take to the guest, and a folder to remove afterwards (or nil).
     var onFiles: ([URL], URL?) -> Void = { _, _ in }
+    /// Whether the guest's screen has the keyboard right now. While it does, key combinations are the
+    /// guest's, except the few the Mac keeps (GuestKeys).
+    var guestHasKeyboard: () -> Bool = { false }
 
     override init(frame: NSRect) {
         super.init(frame: frame)
@@ -20,6 +23,18 @@ final class DropMachineView: VZVirtualMachineView {
     }
 
     required init?(coder: NSCoder) { fatalError("not used") }
+
+    /// AppKit offers a key combination to the views of the window in front before the menu bar. Claiming
+    /// it here, and passing it on as an ordinary key press, is what keeps a menu shortcut from taking a
+    /// key meant for the guest.
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        if super.performKeyEquivalent(with: event) { return true }
+        guard event.type == .keyDown, guestHasKeyboard(),
+            !GuestKeys.keptByMac(key: event.charactersIgnoringModifiers ?? "", modifiers: event.modifierFlags)
+        else { return false }
+        keyDown(with: event)
+        return true
+    }
 
     override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
         acceptsDrops() ? .copy : []

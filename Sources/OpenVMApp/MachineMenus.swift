@@ -1,21 +1,17 @@
-// MachineMenus — the View, Actions and Devices menus, and the menu under the menu-bar icon. One piece of
-// code feeds them all, so the menu bar and the icon can never disagree. They act on the current VM
-// (MachineMenuLogic.current), which also works with the app in the background: the icon's menu opens
-// without any of our windows being key.
+// MachineMenus — the Virtual Machine menu in the menu bar, and the menu under the menu-bar icon. Both
+// are built from the one list of commands (VMCommand), so they can never disagree.
 //
-// Only commands that work are listed. A menu item for a feature that does not exist misleads.
+// They differ in which VM they act on. A menu-bar command goes to the window in front through the
+// responder chain: a VM's window answers for its VM, the library for the VM selected in it, and with
+// neither in front the command is off. The menu under the icon opens with no window of ours in front,
+// so it acts on the current VM (the one last used), which it lists and lets a person change.
 import AppKit
 import OpenVMCore
 
-/// What the menus need from the rest of the app.
+/// What the menus need from the rest of the app, besides the commands themselves.
 struct MachineMenuActions {
-    let openWindow: (VmSummary) -> Void
-    let showSettings: (VmSummary) -> Void
     let showLibrary: () -> Void
     let newVM: () -> Void
-    let toggleFullScreen: (VmSummary) -> Void
-    let shareFolder: (VmSummary) -> Void
-    let isFullScreen: (String) -> Bool
     let lastUsed: () -> String?
     let use: (String) -> Void
 }
@@ -23,62 +19,62 @@ struct MachineMenuActions {
 @MainActor
 final class MachineMenus: NSObject, NSMenuDelegate {
     private let model: VMListModel
+    private let context: VMCommandContext
     private let actions: MachineMenuActions
     /// Marks the rows at the top of the icon's menu, which are rebuilt each time it opens.
     private static let dynamicTag = 7001
-    private var commands: [ObjectIdentifier: MachineCommand] = [:]
     private var statusRoot: NSMenu?
+    /// The menus under the icon, whose items this object enables itself.
+    private var statusMenus: [NSMenu] = []
+    private var menuBarMenus: [NSMenu] = []
 
-    init(model: VMListModel, actions: MachineMenuActions) {
+    init(model: VMListModel, context: VMCommandContext, actions: MachineMenuActions) {
         self.model = model
+        self.context = context
         self.actions = actions
     }
 
-    private var current: VmSummary? { MachineMenuLogic.current(in: model.vms, lastUsed: actions.lastUsed()) }
+    /// The VM the icon's menu acts on: the one last used, else one that is live, else the first.
+    nonisolated static func current(in vms: [VmSummary], lastUsed: String?) -> VmSummary? {
+        vms.first { $0.uuid == lastUsed }
+            ?? vms.first { $0.state == .running || $0.state == .suspended }
+            ?? vms.first
+    }
 
-    // MARK: the menus
+    /// "Running · Linux · 4 CPUs · 4 GB memory": the current VM at a glance.
+    static func summary(_ vm: VmSummary) -> String {
+        VMStatus.of(vm).word + " · " + VMRowLogic.subtitle(for: vm)
+    }
 
-    func viewMenu() -> NSMenu {
-        let menu = make("View")
-        let full = add(.fullScreen, to: menu)
-        full.keyEquivalent = "f"
-        full.keyEquivalentModifierMask = [.command, .control]
+    private var current: VmSummary? { Self.current(in: model.vms, lastUsed: actions.lastUsed()) }
+
+    // MARK: the menu bar
+
+    /// Virtual Machine, for the menu bar. Its items have no target: the window in front answers.
+    func virtualMachineMenu() -> NSMenu {
+        let menu = NSMenu(title: "Virtual Machine")
+        menu.delegate = self
+        for item in VMCommand.items(VMCommand.menuBar, shortcuts: true, delegate: self) { menu.addItem(item) }
+        menuBarMenus = [menu] + menu.items.compactMap(\.submenu)
         return menu
     }
 
-    func actionsMenu(settingsKey: String = "") -> NSMenu {
-        let menu = make("Actions")
-        add(.power, to: menu)
-        add(.restart, to: menu)
-        menu.addItem(.separator())
-        add(.pause, to: menu)
-        menu.addItem(.separator())
-        add(.settings, to: menu).keyEquivalent = settingsKey
-        return menu
-    }
+    // MARK: the menu under the icon
 
-    func devicesMenu() -> NSMenu {
-        let menu = make("Devices")
-        add(.clipboard, to: menu)
-        add(.outbox, to: menu)
-        menu.addItem(.separator())
-        add(.shareFolder, to: menu)
-        add(.ejectInstaller, to: menu)
-        return menu
-    }
-
-    /// The menu under the menu-bar icon: the VMs, the current one's state, then the same commands.
+    /// The VMs, the current one's state, its commands, then the way back to the app.
     func statusMenu() -> NSMenu {
-        let menu = make("openVM")
+        let menu = NSMenu(title: "openVM")
+        menu.delegate = self
         statusRoot = menu
-        for (title, submenu) in [("View", viewMenu()), ("Actions", actionsMenu()), ("Devices", devicesMenu())] {
-            let item = NSMenuItem(title: title, action: nil, keyEquivalent: "")
-            item.submenu = submenu
-            menu.addItem(item)
+        for item in VMCommand.items(VMCommand.statusItem, shortcuts: false, delegate: self) { menu.addItem(item) }
+        statusMenus = [menu] + menu.items.compactMap(\.submenu)
+        for owned in statusMenus {
+            owned.autoenablesItems = false  // each item is set in `menuNeedsUpdate`
+            for item in owned.items where VMCommand.from(item) != nil {
+                item.target = self
+                item.action = #selector(run(_:))
+            }
         }
-        // Shortcuts belong to the menu bar: the same one twice would make the choice of menu arbitrary.
-        clearKeyEquivalents(menu)
-        add(.settings, to: menu)
         menu.addItem(.separator())
         addPlain("Show Library", #selector(showLibrary(_:)), to: menu)
         addPlain("New Virtual Machine…", #selector(newVirtualMachine(_:)), to: menu)
@@ -86,30 +82,6 @@ final class MachineMenus: NSObject, NSMenuDelegate {
         addPlain("About openVM", #selector(about(_:)), to: menu)
         addPlain("Quit openVM", #selector(quit(_:)), to: menu)
         return menu
-    }
-
-    private func clearKeyEquivalents(_ menu: NSMenu) {
-        for item in menu.items {
-            item.keyEquivalent = ""
-            if let submenu = item.submenu { clearKeyEquivalents(submenu) }
-        }
-    }
-
-    private func make(_ title: String) -> NSMenu {
-        let menu = NSMenu(title: title)
-        menu.autoenablesItems = false  // each item says for itself, in `apply`
-        menu.delegate = self
-        return menu
-    }
-
-    @discardableResult
-    private func add(_ command: MachineCommand, to menu: NSMenu) -> NSMenuItem {
-        let item = NSMenuItem(title: "", action: #selector(run(_:)), keyEquivalent: "")
-        item.target = self
-        commands[ObjectIdentifier(item)] = command
-        apply(command, to: item)
-        menu.addItem(item)
-        return item
     }
 
     private func addPlain(_ title: String, _ action: Selector, to menu: NSMenu) {
@@ -121,22 +93,21 @@ final class MachineMenus: NSObject, NSMenuDelegate {
     // MARK: keeping them current
 
     func menuNeedsUpdate(_ menu: NSMenu) {
-        if menu === statusRoot { rebuildVmList(menu) }
-        for item in menu.items {
-            if let command = commands[ObjectIdentifier(item)] { apply(command, to: item) }
+        if menuBarMenus.contains(where: { $0 === menu }) {
+            // Back to the plain names first. The window in front then says what each is for its VM
+            // (validateMenuItem); with no such window the items stay plain, and off.
+            for item in menu.items {
+                if let command = VMCommand.from(item) { command.apply(command.state(for: nil), to: item) }
+            }
+            return
         }
-    }
-
-    private func apply(_ command: MachineCommand, to item: NSMenuItem) {
+        if menu === statusRoot { rebuildVmList(menu) }
         let vm = current
-        let state = MachineMenuLogic.item(
-            command, for: vm,
-            fullScreen: vm.map { actions.isFullScreen($0.uuid) } ?? false)
-        item.title = state.title
-        item.isEnabled = state.enabled
-        item.state = state.checked ? .on : .off
-        item.image = MachineMenuLogic.symbol(command, for: vm).flatMap {
-            NSImage(systemSymbolName: $0, accessibilityDescription: state.title)
+        for item in menu.items {
+            guard let command = VMCommand.from(item) else { continue }
+            let state = command.state(for: vm)
+            command.apply(state, to: item)
+            item.isEnabled = state.enabled
         }
     }
 
@@ -151,7 +122,7 @@ final class MachineMenus: NSObject, NSMenuDelegate {
             row.state = vm.uuid == chosen?.uuid ? .on : .off
             rows.append(row)
         }
-        let text = chosen.map(MachineMenuLogic.summary) ?? "No virtual machines"
+        let text = chosen.map(Self.summary) ?? "No virtual machines"
         let summary = NSMenuItem(title: text, action: nil, keyEquivalent: "")
         summary.isEnabled = false
         rows.append(summary)
@@ -165,35 +136,14 @@ final class MachineMenus: NSObject, NSMenuDelegate {
     // MARK: acting
 
     @objc private func run(_ item: NSMenuItem) {
-        guard let command = commands[ObjectIdentifier(item)] else { return }
+        guard let command = VMCommand.from(item) else { return }
         Task { await perform(command) }
     }
 
-    func perform(_ command: MachineCommand) async {
+    /// Does a command for the current VM.
+    func perform(_ command: VMCommand) async {
         guard let vm = current else { return }
-        switch command {
-        case .power:
-            switch VMToolbarLogic.state(for: vm).power {
-            case .start:
-                actions.openWindow(vm)
-                await model.start(vm)
-            case .shutDown, .cancel: await model.stop(vm)
-            case .disabled: break
-            }
-        case .restart: await model.restart(vm)
-        case .pause:
-            switch VMToolbarLogic.state(for: vm).pause {
-            case .pause: await model.suspend(vm)
-            case .resume: await model.resume(vm)
-            case .disabled: break
-            }
-        case .fullScreen: actions.toggleFullScreen(vm)
-        case .shareFolder: actions.shareFolder(vm)
-        case .clipboard: await model.setClipboardSync(vm, !vm.clipboardSync)
-        case .outbox: await model.setOutbox(vm, !vm.outbox)
-        case .ejectInstaller: await model.ejectInstaller(vm)
-        case .settings: actions.showSettings(vm)
-        }
+        await command.perform(on: vm, in: context)
     }
 
     @objc private func chooseVm(_ item: NSMenuItem) {
@@ -204,7 +154,7 @@ final class MachineMenus: NSObject, NSMenuDelegate {
     func choose(_ uuid: String) {
         guard let vm = model.vm(uuid: uuid) else { return }
         actions.use(uuid)
-        actions.openWindow(vm)
+        context.openWindow(vm)
     }
 
     @objc private func showLibrary(_ item: NSMenuItem) { actions.showLibrary() }

@@ -16,7 +16,7 @@ struct VMWindowStateTests {
         #expect(VMWindowState.from(vm("stopped", activity: "start"), hasMachine: true) == .busy("Starting…"))
         #expect(VMWindowState.from(vm("stopped", activity: "start"), hasMachine: false) == .busy("Starting…"))
         #expect(VMWindowState.from(vm("running"), hasMachine: true) == .running)
-        #expect(VMWindowState.from(vm("running", activity: "stop"), hasMachine: true) == .busy("Shutting down…"))
+        #expect(VMWindowState.from(vm("running", activity: "stop"), hasMachine: true) == .busy("Shutting Down…"))
         #expect(VMWindowState.from(vm("running", activity: "suspend"), hasMachine: true) == .busy("Pausing…"))
         #expect(VMWindowState.from(vm("suspended"), hasMachine: true) == .paused)
         #expect(VMWindowState.from(vm("suspended", activity: "resume"), hasMachine: true) == .busy("Resuming…"))

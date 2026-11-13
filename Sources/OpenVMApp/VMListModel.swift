@@ -12,8 +12,6 @@ final class VMListModel: ObservableObject {
     @Published var lastError: String?
     /// Set while the host does not answer; clears when it does.
     @Published private(set) var hostProblem: String?
-    /// A VM the person has asked to delete and not yet confirmed.
-    @Published private(set) var pendingDelete: VmSummary?
 
     let transport: any HostTransport
     private let interval: Duration
@@ -93,24 +91,7 @@ final class VMListModel: ObservableObject {
         }
     }
 
-    /// Asks to delete a VM. The view confirms with the person before `confirmDelete`.
-    func requestDelete(_ vm: VmSummary) {
-        guard vm.state == .stopped else {
-            lastError = "Stop \(vm.name) before deleting it."
-            return
-        }
-        pendingDelete = vm
-    }
-
-    func cancelDelete() { pendingDelete = nil }
-
-    /// Takes the VM the confirmation was shown for, rather than reading `pendingDelete`:
-    /// dismissing the dialog clears that, and may happen before this runs.
-    func confirmDelete(_ vm: VmSummary) async {
-        pendingDelete = nil
-        await delete(vm)
-    }
-
+    /// Deletes a stopped VM and its disk. The caller has asked the person first (VMCommand.delete).
     func delete(_ vm: VmSummary) async {
         guard vm.state == .stopped else {
             lastError = "Stop \(vm.name) before deleting it."

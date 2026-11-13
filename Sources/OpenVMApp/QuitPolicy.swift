@@ -41,6 +41,7 @@ func quitMessage(running: [String], installing: [String], dropping: [String]) ->
 /// The Dock icon stays while there is a window to come back to. With none open and a guest
 /// still running, the app lives in the menu bar only, so a running VM is not a Dock icon
 /// with nothing to show.
-func activationPolicy(openWindows: Int, anyGuestLive: Bool) -> NSApplication.ActivationPolicy {
-    openWindows == 0 && anyGuestLive ? .accessory : .regular
+/// That needs the menu-bar icon as the way back: with the icon turned off in Settings, the Dock icon stays.
+func activationPolicy(openWindows: Int, anyGuestLive: Bool, menuBarIcon: Bool = true) -> NSApplication.ActivationPolicy {
+    openWindows == 0 && anyGuestLive && menuBarIcon ? .accessory : .regular
 }

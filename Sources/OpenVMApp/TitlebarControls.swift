@@ -1,18 +1,18 @@
 // TitlebarControls — the few round buttons at the right of a VM window's title bar: power, pause,
-// full screen and settings. They fade back when the pointer is away so the guest is what you look at,
-// and the same commands are in the Machine menu. Which are live follows the VM (VMToolbarLogic).
+// full screen and settings. They fade back when the pointer is away so the guest is what you look at.
+// What each says and whether it is live comes from the one list of commands (VMCommand).
 import AppKit
 import Combine
 import SwiftUI
 
 @MainActor
 final class TitlebarControlsModel: ObservableObject {
-    @Published var state = ToolbarState(power: .start, pause: .disabled, fullScreenEnabled: false)
+    @Published var power = VMCommand.power.state(for: nil)
+    @Published var pause = VMCommand.pause.state(for: nil)
+    @Published var settings = VMCommand.settings.state(for: nil)
     @Published var hovering = false
-    var onPower: () -> Void = {}
-    var onPause: () -> Void = {}
+    var run: (VMCommand) -> Void = { _ in }
     var onFullScreen: () -> Void = {}
-    var onSettings: () -> Void = {}
 }
 
 struct TitlebarControls: View {
@@ -20,13 +20,12 @@ struct TitlebarControls: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            round(model.state.power.symbol, model.state.power.title, enabled: model.state.power != .disabled,
-                  action: model.onPower)
-            round(model.state.pause.symbol, model.state.pause.title, enabled: model.state.pause != .disabled,
-                  action: model.onPause)
-            round("arrow.up.left.and.arrow.down.right", "Full Screen", enabled: model.state.fullScreenEnabled,
-                  action: model.onFullScreen)
-            round("gearshape", "Settings", enabled: true, action: model.onSettings)
+            round(model.power) { model.run(.power) }
+            round(model.pause) { model.run(.pause) }
+            round(
+                VMCommandState(title: "Full Screen", symbol: "arrow.up.left.and.arrow.down.right", enabled: true),
+                action: model.onFullScreen)
+            round(model.settings) { model.run(.settings) }
         }
         .padding(.horizontal, 10)
         .frame(height: 28)
@@ -35,16 +34,17 @@ struct TitlebarControls: View {
         .onHover { model.hovering = $0 }
     }
 
-    private func round(_ symbol: String, _ help: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+    private func round(_ state: VMCommandState, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Image(systemName: symbol)
+            Image(systemName: state.symbol)
                 .font(.system(size: 12, weight: .semibold))
                 .frame(width: 24, height: 24)
-                .background(Circle().fill(Color.white.opacity(enabled ? 0.16 : 0.07)))
-                .foregroundStyle(Color.white.opacity(enabled ? 0.95 : 0.35))
+                .background(Circle().fill(Color.white.opacity(state.enabled ? 0.16 : 0.07)))
+                .foregroundStyle(Color.white.opacity(state.enabled ? 0.95 : 0.35))
         }
         .buttonStyle(.plain)
-        .disabled(!enabled)
-        .help(help)
+        .disabled(!state.enabled)
+        .help(state.title.replacingOccurrences(of: "…", with: ""))
+        .accessibilityLabel(state.title.replacingOccurrences(of: "…", with: ""))
     }
 }

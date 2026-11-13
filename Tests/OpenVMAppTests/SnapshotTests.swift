@@ -96,13 +96,13 @@ struct SnapshotTests {
             FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
             FakeTransport.row("scratch", state: "stopped", bootMode: "linux-iso"),
         ])
-        Snapshot.check("list-mixed-states", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 900, height: 560)
+        Snapshot.check("list-mixed-states", VMListView(model: model, run: { _, _ in }, newVM: {}), width: 900, height: 560)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
     func emptyList() async {
         let model = await model([])
-        Snapshot.check("list-empty", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 900, height: 560)
+        Snapshot.check("list-empty", VMListView(model: model, run: { _, _ in }, newVM: {}), width: 900, height: 560)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
@@ -112,7 +112,7 @@ struct SnapshotTests {
         let model = VMListModel(transport: host)
         await model.refresh()
         model.lastError = "scratch is busy: start"
-        Snapshot.check("list-action-error", VMListView(model: model, open: { _ in }, settings: { _ in }, newVM: {}), width: 900, height: 560)
+        Snapshot.check("list-action-error", VMListView(model: model, run: { _, _ in }, newVM: {}), width: 900, height: 560)
     }
 }
 
@@ -245,7 +245,7 @@ extension SnapshotTests {
             "library-vm-page",
             LibraryDetailView(
                 model: model, nav: nav, thumbnails: ThumbnailStore(directory: FileManager.default.temporaryDirectory),
-                open: { _ in }, settings: { _ in }, newVM: {}),
+                run: { _, _ in }, newVM: {}),
             width: 700, height: 640)
     }
 

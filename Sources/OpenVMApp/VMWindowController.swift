@@ -16,7 +16,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private let cover = VMStatusView()
     /// The same model the list and the menus use, so every button acts the way theirs do.
     private let model: VMListModel
-    private let showSettings: (VmSummary) -> Void
+    private let context: VMCommandContext
     private let resizer: ResizeCoalescer
     private let clipboard: ClipboardSync
     private let drops: DropSession
@@ -25,10 +25,10 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private(set) var vm: VmSummary
     private(set) var state: VMWindowState = .stopped
 
-    init(vm: VmSummary, model: VMListModel, showSettings: @escaping (VmSummary) -> Void) {
+    init(vm: VmSummary, model: VMListModel, context: VMCommandContext) {
         self.vm = vm
         self.model = model
-        self.showSettings = showSettings
+        self.context = context
         let uuid = vm.uuid
         let transport = model.transport
         self.resizer = ResizeCoalescer { mode in
@@ -58,6 +58,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         window.delegate = self
         sync.onNotice = { [weak window] notice in window?.subtitle = notice ?? "" }
         wireDrops()
+        machineView.guestHasKeyboard = { [weak self] in self?.guestHasKeyboard ?? false }
         wireTitlebar(window)
         startThumbnailTimer()
         updateMinimumSize()
@@ -156,10 +157,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     // MARK: title bar buttons
 
     private func wireTitlebar(_ window: NSWindow) {
-        controls.onPower = { [weak self] in self?.machinePower(nil) }
-        controls.onPause = { [weak self] in self?.machinePause(nil) }
-        controls.onFullScreen = { [weak self] in self?.machineFullScreen(nil) }
-        controls.onSettings = { [weak self] in self?.machineSettings(nil) }
+        controls.run = { [weak self] command in self?.run(command) }
+        controls.onFullScreen = { [weak self] in self?.window?.toggleFullScreen(nil) }
         let hosting = NSHostingView(rootView: TitlebarControls(model: controls))
         hosting.frame.size = hosting.fittingSize
         let accessory = NSTitlebarAccessoryViewController()
@@ -168,32 +167,23 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         window.addTitlebarAccessoryViewController(accessory)
     }
 
-    // MARK: commands, from the title bar and the menus
+    // MARK: commands, from the title bar and the menu bar
 
-    @objc func machinePower(_ sender: Any?) {
-        switch VMToolbarLogic.state(for: vm).power {
-        case .start: Task { await model.start(vm) }
-        // Shutting down asks the guest to stop, as the list's Stop does. Cancel stops a boot.
-        case .shutDown, .cancel: Task { await model.stop(vm) }
-        case .disabled: break
-        }
+    private func run(_ command: VMCommand) {
+        Task { await command.perform(on: vm, in: context) }
     }
 
-    @objc func machinePause(_ sender: Any?) {
-        switch VMToolbarLogic.state(for: vm).pause {
-        case .pause: Task { await model.suspend(vm) }
-        case .resume: Task { await model.resume(vm) }
-        case .disabled: break
-        }
+    /// A menu-bar command with this window in front is for this VM (VMCommandResponder).
+    @objc func performVMCommand(_ sender: Any?) {
+        if let command = VMCommand.from(sender) { run(command) }
     }
 
-    @objc func machineFullScreen(_ sender: Any?) { window?.toggleFullScreen(nil) }
-    @objc func machineShareFolder(_ sender: Any?) { shareFolder() }
-    @objc func machineSettings(_ sender: Any?) { showSettings(vm) }
+    /// Whether the guest's screen has the keyboard, so key combinations are the guest's (GuestKeys).
+    private var guestHasKeyboard: Bool { state.showsScreen && window?.firstResponder === machineView }
 
     /// Shares one folder with the guest. The guest can change what is in it, so the panel
     /// says so before anything is shared.
-    private func shareFolder() {
+    func shareFolder() {
         guard let window else { return }
         let panel = NSOpenPanel()
         panel.canChooseFiles = false
@@ -231,7 +221,9 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
             machineView.virtualMachine = nil
         }
         machineView.isHidden = !state.showsScreen
-        controls.state = VMToolbarLogic.state(for: vm)
+        controls.power = VMCommand.power.state(for: vm)
+        controls.pause = VMCommand.pause.state(for: vm)
+        controls.settings = VMCommand.settings.state(for: vm)
         cover.show(state) { [weak self] in
             guard let self else { return }
             Task { await self.model.start(self.vm) }
@@ -337,4 +329,12 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
 
     func windowDidEnterFullScreen(_ notification: Notification) { machineView.capturesSystemKeys = true }
     func windowDidExitFullScreen(_ notification: Notification) { machineView.capturesSystemKeys = false }
+}
+
+extension VMWindowController: NSMenuItemValidation {
+    /// Shows each Virtual Machine command as it is for this VM. Other items validate themselves.
+    func validateMenuItem(_ item: NSMenuItem) -> Bool {
+        if item.action == VMCommand.action { return VMCommand.validate(item, for: vm) }
+        return true
+    }
 }

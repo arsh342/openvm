@@ -1,4 +1,4 @@
-// What a row in the VM list offers and says, for each state the host can report.
+// What the library says about a VM: its system and size, and what deleting it loses.
 import Foundation
 import OpenVMCore
 import Testing
@@ -7,47 +7,15 @@ import Testing
 
 struct VMRowLogicTests {
     private func vm(
-        _ name: String = "w", state: String = "stopped", activity: String? = nil, bootMode: String = "linux-iso",
-        cpus: UInt64 = 4, memoryMB: UInt64 = 4096, diskBytes: UInt64? = 32 << 30
+        _ name: String = "w", bootMode: String = "linux-iso", cpus: UInt64 = 4, memoryMB: UInt64 = 4096,
+        diskBytes: UInt64? = 32 << 30
     ) -> VmSummary {
         var fields: [(key: String, value: CBOR)] = [
-            ("name", .text(name)), ("state", .text(state)), ("uuid", .text("u-\(name)")),
+            ("name", .text(name)), ("state", .text("stopped")), ("uuid", .text("u-\(name)")),
             ("cpus", .uint(cpus)), ("memoryMB", .uint(memoryMB)), ("bootMode", .text(bootMode)),
         ]
-        if let activity { fields.append(("activity", .text(activity))) }
         if let diskBytes { fields.append(("diskBytes", .uint(diskBytes))) }
         return VmSummary(row: .map(fields))!
-    }
-
-    @Test func eachStateOffersItsOwnActions() {
-        // Settings is always there: a stopped VM has no window to reach it from.
-        #expect(VMRowLogic.actions(for: vm(state: "stopped")) == [.start, .settings, .delete])
-        #expect(VMRowLogic.actions(for: vm(state: "running")) == [.open, .pause, .stop, .settings])
-        #expect(VMRowLogic.actions(for: vm(state: "suspended")) == [.open, .resume, .stop, .settings])
-    }
-
-    /// While the host is doing something to a VM, the only safe things left are to watch it and
-    /// to look at its settings (which lock what cannot change now).
-    @Test func aBusyVmOffersOnlyToWatchIt() {
-        for activity in ["start", "stop", "suspend", "resume", "delete"] {
-            for state in ["stopped", "running", "suspended"] {
-                #expect(VMRowLogic.actions(for: vm(state: state, activity: activity)) == [.open, .settings])
-            }
-        }
-    }
-
-    @Test func aLiveVmCannotBeDeleted() {
-        for state in ["running", "suspended"] {
-            #expect(!VMRowLogic.actions(for: vm(state: state)).contains(.delete))
-        }
-    }
-
-    @Test func statusSaysWhatIsHappening() {
-        #expect(VMRowLogic.statusText(for: vm(state: "stopped")) == "Stopped")
-        #expect(VMRowLogic.statusText(for: vm(state: "running")) == "Running")
-        #expect(VMRowLogic.statusText(for: vm(state: "suspended")) == "Paused")
-        #expect(VMRowLogic.statusText(for: vm(state: "stopped", activity: "start")) == "Starting…")
-        #expect(VMRowLogic.statusText(for: vm(state: "running", activity: "stop")) == "Shutting down…")
     }
 
     @Test func subtitleDescribesTheMachine() {
@@ -69,27 +37,7 @@ struct VMRowLogicTests {
         #expect(c.message.contains("cannot be undone"))
         #expect(!VMRowLogic.deleteConfirmation(for: vm("lab", diskBytes: nil)).message.contains("("))
     }
-}
 
-extension VMRowLogicTests {
-    /// The menu-bar popover shows one button per VM: the thing a person most likely wants.
-    @Test func eachVmHasOneObviousAction() {
-        #expect(VMRowLogic.primaryAction(for: vm(state: "stopped")) == .start)
-        #expect(VMRowLogic.primaryAction(for: vm(state: "running")) == .open)
-        #expect(VMRowLogic.primaryAction(for: vm(state: "suspended")) == .resume)
-        #expect(VMRowLogic.primaryAction(for: vm(state: "stopped", activity: "start")) == .open)
-        #expect(VMRowLogic.primaryAction(for: vm(state: "running", activity: "stop")) == .open)
-    }
-
-    /// Delete is never the obvious action, however the list is arranged.
-    @Test func theObviousActionIsNeverDelete() {
-        for state in ["stopped", "running", "suspended"] {
-            #expect(VMRowLogic.primaryAction(for: vm(state: state)) != .delete)
-        }
-    }
-}
-
-struct VMDetailsTests {
     @Test func detailsListWhatTheVmIs() {
         let vm = VmSummary(row: FakeTransport.row("w", state: "running", bootMode: "windows", cpus: 4, memoryMB: 8192, clipboardSync: false, outbox: true))!
         let rows = VMRowLogic.details(for: vm)

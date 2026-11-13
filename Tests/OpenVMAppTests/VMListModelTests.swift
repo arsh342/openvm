@@ -95,41 +95,23 @@ extension VMListModelTests {
 }
 
 extension VMListModelTests {
-    /// The confirmation is the model's state, not the view's, so it can be tested and
-    /// so the view needs no property-wrapper macros (the Command Line Tools lack their plugin).
-    @Test func deleteAsksBeforeItActs() async {
+    /// The person is asked before this is called (VMCommand.delete asks through the app).
+    @Test func deletingAStoppedVmSendsIt() async {
         let host = FakeTransport()
         host.rows = [FakeTransport.row("a")]
         let model = VMListModel(transport: host)
         await model.refresh()
-        model.requestDelete(model.vms[0])
-        #expect(model.pendingDelete?.name == "a")
-        #expect(!host.calls.contains("delete"))  // nothing happens until it is confirmed
-        model.cancelDelete()
-        #expect(model.pendingDelete == nil)
-        #expect(!host.calls.contains("delete"))
+        await model.delete(model.vms[0])
+        #expect(host.arg("delete", "id") == .text("uuid-a"))
     }
 
-    @Test func confirmingDeleteSendsIt() async {
-        let host = FakeTransport()
-        host.rows = [FakeTransport.row("a")]
-        let model = VMListModel(transport: host)
-        await model.refresh()
-        let vm = model.vms[0]
-        model.requestDelete(vm)
-        model.cancelDelete()  // the dialog dismisses itself as the button is tapped
-        await model.confirmDelete(vm)  // and the confirm still goes through
-        #expect(host.calls.contains("delete"))
-        #expect(model.pendingDelete == nil)
-    }
-
-    @Test func aLiveVmCannotEvenBeAskedAbout() async {
+    @Test func aLiveVmIsNeverDeleted() async {
         let host = FakeTransport()
         host.rows = [FakeTransport.row("a", state: "running")]
         let model = VMListModel(transport: host)
         await model.refresh()
-        model.requestDelete(model.vms[0])
-        #expect(model.pendingDelete == nil)
+        await model.delete(model.vms[0])
+        #expect(!host.calls.contains("delete"))
         #expect(model.lastError?.contains("Stop") == true)
     }
 }

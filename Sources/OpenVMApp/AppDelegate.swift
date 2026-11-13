@@ -21,15 +21,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusMenu: StatusMenuController?
     private var machine: MachineMenus?
     private var wizard: CreateWizardWindowController?
+    private var appSettings: AppSettingsWindowController?
+    private let settings = AppSettingsModel.shared
+    private var subscriptions: [AnyCancellable] = []
     private var subscription: AnyCancellable?
     private var observers: [NSObjectProtocol] = []
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        WindowRegistry.shared.context = context
         let machine = makeMachineMenus()
         self.machine = machine
         let menu = AppMenu(
             model: model, machine: machine, showLibrary: { [weak self] in self?.showLibrary() },
-            newVM: { [weak self] in self?.showWizard() })
+            newVM: { [weak self] in self?.showWizard() }, showSettings: { [weak self] in self?.showAppSettings() },
+            openVM: { [weak self] vm in self?.openWindow(vm) })
         self.menu = menu
         NSApp.mainMenu = menu.build()
         do {
@@ -82,10 +87,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showLibrary() {
         let controller =
             library
-            ?? LibraryWindowController(
-                model: model, open: { [weak self] vm in self?.openWindow(vm) },
-                settings: { [weak self] vm in self?.showSettings(vm) },
-                newVM: { [weak self] in self?.showWizard() })
+            ?? LibraryWindowController(model: model, context: context, newVM: { [weak self] in self?.showWizard() })
         library = controller
         NSApp.setActivationPolicy(.regular)  // a window needs the Dock icon back
         controller.showWindow(nil)
@@ -118,29 +120,65 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         WindowRegistry.shared.show(vm, model: model)
     }
 
+    /// openVM's own settings (openVM ▸ Settings…).
+    private func showAppSettings() {
+        let controller = appSettings ?? AppSettingsWindowController(model: settings)
+        appSettings = controller
+        NSApp.setActivationPolicy(.regular)
+        controller.showWindow(nil)
+        NSApp.activate()
+    }
+
+    // MARK: commands on a VM
+
+    /// What every command on a VM is carried out with, wherever it was chosen.
+    private var context: VMCommandContext {
+        VMCommandContext(
+            model: model,
+            openWindow: { [weak self] vm in self?.openWindow(vm) },
+            showSettings: { [weak self] vm in self?.showSettings(vm) },
+            shareFolder: { [weak self] vm in
+                self?.openWindow(vm)
+                WindowRegistry.shared.controller(for: vm.uuid)?.shareFolder()
+            },
+            confirmDelete: { [weak self] vm in self?.confirmDelete(vm) })
+    }
+
+    /// Asks before a VM is deleted, naming the disk that is lost, as a sheet on the window in front.
+    private func confirmDelete(_ vm: VmSummary) {
+        let text = VMRowLogic.deleteConfirmation(for: vm)
+        let alert = NSAlert()
+        alert.alertStyle = .warning
+        alert.messageText = text.title
+        alert.informativeText = text.message
+        alert.addButton(withTitle: "Delete").hasDestructiveAction = true
+        alert.addButton(withTitle: "Cancel")
+        let delete = { [model] in Task { await model.delete(vm) } }
+        if let window = NSApp.keyWindow ?? NSApp.mainWindow {
+            alert.beginSheetModal(for: window) { response in
+                if response == .alertFirstButtonReturn { _ = MainActor.assumeIsolated { delete() } }
+            }
+        } else if alert.runModal() == .alertFirstButtonReturn {
+            _ = delete()
+        }
+    }
+
     // MARK: the menu-bar icon
 
     private func installStatusMenu() {
-        if let machine { statusMenu = StatusMenuController(menus: machine) }
+        if let machine { statusMenu = StatusMenuController(menus: machine, settings: settings) }
+        // Turning the icon off or on changes whether the Dock icon has to stay.
+        subscriptions.append(settings.$showsMenuBarIcon.dropFirst().sink { [weak self] _ in
+            DispatchQueue.main.async { MainActor.assumeIsolated { self?.refreshActivationPolicy() } }
+        })
     }
 
     private func makeMachineMenus() -> MachineMenus {
         MachineMenus(
-            model: model,
+            model: model, context: context,
             actions: MachineMenuActions(
-                openWindow: { [weak self] vm in self?.openWindow(vm) },
-                showSettings: { [weak self] vm in self?.showSettings(vm) },
                 showLibrary: { [weak self] in self?.showLibrary() },
                 newVM: { [weak self] in self?.showWizard() },
-                toggleFullScreen: { [weak self] vm in
-                    self?.openWindow(vm)
-                    WindowRegistry.shared.controller(for: vm.uuid)?.machineFullScreen(nil)
-                },
-                shareFolder: { [weak self] vm in
-                    self?.openWindow(vm)
-                    WindowRegistry.shared.controller(for: vm.uuid)?.machineShareFolder(nil)
-                },
-                isFullScreen: { uuid in WindowRegistry.shared.controller(for: uuid)?.isFullScreen ?? false },
                 lastUsed: { WindowRegistry.shared.lastUsed },
                 use: { uuid in WindowRegistry.shared.lastUsed = uuid }))
     }
@@ -170,7 +208,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func refreshActivationPolicy() {
         let open = NSApp.windows.filter { $0.styleMask.contains(.titled) && ($0.isVisible || $0.isMiniaturized) }.count
         let live = model.vms.contains { $0.state == .running || $0.state == .suspended || $0.activity == "start" }
-        let wanted = activationPolicy(openWindows: open, anyGuestLive: live)
+        let wanted = activationPolicy(openWindows: open, anyGuestLive: live, menuBarIcon: settings.showsMenuBarIcon)
         if NSApp.activationPolicy() != wanted { NSApp.setActivationPolicy(wanted) }
     }
 

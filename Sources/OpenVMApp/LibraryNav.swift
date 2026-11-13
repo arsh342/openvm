@@ -29,3 +29,12 @@ extension LibraryNav {
         return selection
     }
 }
+
+extension LibraryNav {
+    /// The VM a selection names, if it still exists. This is the VM the menu bar's commands act on
+    /// while the library is in front.
+    nonisolated static func selectedVM(_ selection: LibrarySelection, in vms: [VmSummary]) -> VmSummary? {
+        guard case .vm(let uuid) = selection else { return nil }
+        return vms.first { $0.uuid == uuid }
+    }
+}

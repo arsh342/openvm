@@ -83,3 +83,12 @@ struct QuitPolicyTests {
         #expect(activationPolicy(openWindows: 0, anyGuestLive: true) == .accessory)
     }
 }
+
+extension QuitPolicyTests {
+    /// The menu-bar icon is the way back to a running VM with no window open. With the icon turned off
+    /// in Settings there would be none, so the Dock icon stays.
+    @Test func withTheMenuBarIconOffTheDockIconStays() {
+        #expect(activationPolicy(openWindows: 0, anyGuestLive: true, menuBarIcon: false) == .regular)
+        #expect(activationPolicy(openWindows: 0, anyGuestLive: true, menuBarIcon: true) == .accessory)
+    }
+}

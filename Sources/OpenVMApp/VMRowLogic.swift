@@ -1,46 +1,10 @@
-// VMRowLogic — what a row in the VM list offers and says. Plain functions of a VM's
-// summary, so every state can be tested without a window.
+// VMRowLogic — what the library says about a VM: its system, its size, and what deleting it loses.
+// Plain functions of a VM's summary, so they can be tested without a window. What a VM can be asked
+// to do, and its status, are in VMCommand.
 import Foundation
 import OpenVMCore
 
-enum VMAction: Equatable {
-    case open, start, pause, resume, stop, settings, delete
-}
-
 enum VMRowLogic {
-    /// The actions a row offers, in the order they are shown.
-    static func actions(for vm: VmSummary) -> [VMAction] {
-        // While the host is doing something to the VM, watching it and reading its settings are safe.
-        if vm.activity != nil { return [.open, .settings] }
-        switch vm.state {
-        case .stopped: return [.start, .settings, .delete]
-        case .running: return [.open, .pause, .stop, .settings]
-        case .suspended: return [.open, .resume, .stop, .settings]
-        case .starting, .stopping: return [.open, .settings]
-        }
-    }
-
-    /// The one action the menu-bar popover offers for a VM.
-    static func primaryAction(for vm: VmSummary) -> VMAction {
-        if vm.activity != nil { return .open }
-        switch vm.state {
-        case .stopped: return .start
-        case .suspended: return .resume
-        case .running, .starting, .stopping: return .open
-        }
-    }
-
-    static func statusText(for vm: VmSummary) -> String {
-        if let activity = vm.activity { return VMWindowState.label(for: activity) }
-        switch vm.state {
-        case .stopped: return "Stopped"
-        case .running: return "Running"
-        case .suspended: return "Paused"
-        case .starting: return "Starting…"
-        case .stopping: return "Shutting down…"
-        }
-    }
-
     /// What a VM runs, in a word or two. An Alpine guest is one an earlier openVM made, and it says so,
     /// because it can no longer be started.
     static func system(for vm: VmSummary) -> String {
@@ -83,12 +47,12 @@ enum VMRowLogic {
         )
     }
 
-    private static func memory(_ megabytes: Int) -> String {
+    static func memory(_ megabytes: Int) -> String {
         megabytes >= 1024 && megabytes % 1024 == 0 ? "\(megabytes / 1024) GB" : "\(megabytes) MB"
     }
 
     /// Binary units, because disks are made in MiB: 32768 MiB reads as "32 GB", not "34.4 GB".
-    private static func size(_ bytes: UInt64) -> String {
+    static func size(_ bytes: UInt64) -> String {
         let formatter = ByteCountFormatter()
         formatter.countStyle = .binary
         formatter.allowedUnits = [.useMB, .useGB, .useTB]

@@ -63,3 +63,17 @@ struct WindowsWizardStepsTests {
         #expect(!WizardSteps.all(for: .os, os: .linuxISO).map(\.title).contains("Account"))
     }
 }
+
+/// With the library in front, the menu bar's commands act on the VM chosen in it, and on nothing else.
+struct LibraryTargetTests {
+    private func vms(_ names: [String]) -> [VmSummary] { names.map { VmSummary(row: FakeTransport.row($0))! } }
+
+    @Test func theChosenVmIsTheTarget() {
+        #expect(LibraryNav.selectedVM(.vm("uuid-b"), in: vms(["a", "b"]))?.name == "b")
+    }
+
+    @Test func withNothingChosenOrAVmThatIsGoneThereIsNoTarget() {
+        #expect(LibraryNav.selectedVM(.all, in: vms(["a"])) == nil)
+        #expect(LibraryNav.selectedVM(.vm("uuid-gone"), in: vms(["a"])) == nil)
+    }
+}

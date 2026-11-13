@@ -89,8 +89,8 @@ struct LibraryDetailView: View {
     @ObservedObject var model: VMListModel
     @ObservedObject var nav: LibraryNav
     @ObservedObject var thumbnails: ThumbnailStore
-    let open: (VmSummary) -> Void
-    let settings: (VmSummary) -> Void
+    /// Carries out a command for a VM.
+    let run: (VMCommand, VmSummary) -> Void
     let newVM: () -> Void
 
     var body: some View {
@@ -100,31 +100,17 @@ struct LibraryDetailView: View {
         }
         .frame(minWidth: 480, maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(nsColor: .windowBackgroundColor))
-        .confirmationDialog(
-            model.pendingDelete.map { VMRowLogic.deleteConfirmation(for: $0).title } ?? "", isPresented: isDeleting,
-            titleVisibility: .visible, presenting: model.pendingDelete
-        ) { vm in
-            Button("Delete", role: .destructive) { Task { await model.confirmDelete(vm) } }
-            Button("Cancel", role: .cancel) { model.cancelDelete() }
-        } message: { vm in
-            Text(VMRowLogic.deleteConfirmation(for: vm).message)
-        }
     }
 
     @ViewBuilder private var page: some View {
         switch LibraryNav.resolve(nav.selection, in: model.vms) {
         case .all:
-            VMListView(
-                model: model, thumbnails: thumbnails, open: { open($0) }, settings: { settings($0) }, newVM: newVM)
+            VMListView(model: model, thumbnails: thumbnails, run: run, newVM: newVM)
         case .vm(let uuid):
             if let vm = model.vm(uuid: uuid) {
-                VMPage(vm: vm, image: thumbnails.image(for: uuid)) { perform($0, on: vm) }
+                VMPage(vm: vm, image: thumbnails.image(for: uuid)) { run($0, vm) }
             }
         }
-    }
-
-    private var isDeleting: Binding<Bool> {
-        Binding(get: { model.pendingDelete != nil }, set: { if !$0 { model.cancelDelete() } })
     }
 
     @ViewBuilder private var banners: some View {
@@ -136,24 +122,13 @@ struct LibraryDetailView: View {
         }
     }
 
-    private func perform(_ action: VMAction, on vm: VmSummary) {
-        switch action {
-        case .open: open(vm)
-        case .settings: settings(vm)
-        case .start: Task { await model.start(vm) }
-        case .pause: Task { await model.suspend(vm) }
-        case .resume: Task { await model.resume(vm) }
-        case .stop: Task { await model.stop(vm) }
-        case .delete: model.requestDelete(vm)
-        }
-    }
 }
 
 /// One VM's page, laid out like a Settings pane: a header, then grouped rows.
 private struct VMPage: View {
     let vm: VmSummary
     let image: NSImage?
-    let perform: (VMAction) -> Void
+    let perform: (VMCommand) -> Void
 
     var body: some View {
         ScrollView {
@@ -193,7 +168,7 @@ private struct VMPage: View {
                 } else {
                     Circle().fill(LibraryColors.dot(for: vm)).frame(width: 9, height: 9)
                 }
-                Text(VMRowLogic.statusText(for: vm)).foregroundStyle(.secondary)
+                Text(VMStatus.of(vm).word).foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity)
@@ -202,12 +177,13 @@ private struct VMPage: View {
     }
 
     private var actionRows: [AnyView] {
-        VMRowLogic.actions(for: vm).map { action in
-            AnyView(
-                Button { perform(action) } label: {
+        VMCommand.pageRows.filter { $0.state(for: vm).enabled }.map { command in
+            let state = command.state(for: vm)
+            return AnyView(
+                Button { perform(command) } label: {
                     HStack(spacing: 12) {
-                        SidebarIcon(symbol: action.symbol, color: color(for: action))
-                        Text(action.title).foregroundStyle(action == .delete ? Color.red : Color.primary)
+                        SidebarIcon(symbol: state.symbol, color: color(for: command))
+                        Text(state.title).foregroundStyle(command == .delete ? Color.red : Color.primary)
                         Spacer()
                         Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
                     }
@@ -228,14 +204,13 @@ private struct VMPage: View {
         }
     }
 
-    private func color(for action: VMAction) -> Color {
-        switch action {
+    private func color(for command: VMCommand) -> Color {
+        switch command {
         case .open: return .blue
-        case .start, .resume: return .green
-        case .pause: return .orange
-        case .stop: return .gray
-        case .settings: return .gray
+        case .power: return VMPower.of(vm) == .start ? .green : .gray
+        case .pause: return VMPause.of(vm) == .resume ? .green : .orange
         case .delete: return .red
+        default: return .gray
         }
     }
 

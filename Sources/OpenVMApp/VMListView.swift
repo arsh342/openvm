@@ -7,21 +7,18 @@ import SwiftUI
 struct VMListView: View {
     @ObservedObject var model: VMListModel
     @ObservedObject var thumbnails: ThumbnailStore
-    /// Opens a VM's window.
-    let open: (VmSummary) -> Void
-    /// Opens a VM's settings.
-    let settings: (VmSummary) -> Void
+    /// Carries out a command for a VM.
+    let run: (VMCommand, VmSummary) -> Void
     /// Starts the creation wizard.
     let newVM: () -> Void
 
     init(
-        model: VMListModel, thumbnails: ThumbnailStore = .shared, open: @escaping (VmSummary) -> Void,
-        settings: @escaping (VmSummary) -> Void, newVM: @escaping () -> Void
+        model: VMListModel, thumbnails: ThumbnailStore = .shared, run: @escaping (VMCommand, VmSummary) -> Void,
+        newVM: @escaping () -> Void
     ) {
         self.model = model
         self.thumbnails = thumbnails
-        self.open = open
-        self.settings = settings
+        self.run = run
         self.newVM = newVM
     }
 
@@ -35,7 +32,7 @@ struct VMListView: View {
                 ScrollView {
                     LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
                         ForEach(model.vms) { vm in
-                            VMCard(vm: vm, image: thumbnails.image(for: vm.uuid)) { perform($0, on: vm) }
+                            VMCard(vm: vm, image: thumbnails.image(for: vm.uuid)) { run($0, vm) }
                         }
                         NewVMCard(action: newVM)
                     }
@@ -52,24 +49,12 @@ struct VMListView: View {
             Image(systemName: "desktopcomputer").font(.system(size: 40)).foregroundStyle(.secondary)
             Text("No virtual machines").font(.title3.weight(.medium))
             Text("Create one to get started.").foregroundStyle(.secondary)
-            Button("New VM…", action: newVM).padding(.top, 4)
+            Button("New Virtual Machine…", action: newVM).padding(.top, 4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(32)
     }
 
-    /// The card's actions go to the library's owner, which knows how to start, pause or delete.
-    private func perform(_ action: VMAction, on vm: VmSummary) {
-        switch action {
-        case .open: open(vm)
-        case .settings: settings(vm)
-        case .start: Task { await model.start(vm) }
-        case .pause: Task { await model.suspend(vm) }
-        case .resume: Task { await model.resume(vm) }
-        case .stop: Task { await model.stop(vm) }
-        case .delete: model.requestDelete(vm)
-        }
-    }
 }
 
 // MARK: pieces
@@ -77,7 +62,7 @@ struct VMListView: View {
 private struct VMCard: View {
     let vm: VmSummary
     let image: NSImage?
-    let perform: (VMAction) -> Void
+    let perform: (VMCommand) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -95,16 +80,18 @@ private struct VMCard: View {
                 }
                 Text(vm.name).font(.headline).lineLimit(1)
             }
-            Text(VMRowLogic.statusText(for: vm) + " · " + VMRowLogic.subtitle(for: vm))
+            Text(MachineMenus.summary(vm))
                 .font(.caption).foregroundStyle(.secondary).lineLimit(1)
         }
         .contentShape(Rectangle())
         .onTapGesture { perform(.open) }
         .contextMenu {
-            ForEach(VMRowLogic.actions(for: vm), id: \.self) { action in
-                Button(role: action == .delete ? .destructive : nil) { perform(action) } label: {
-                    Label(action.title, systemImage: action.symbol)
+            ForEach(VMCommand.pageRows, id: \.self) { command in
+                let state = command.state(for: vm)
+                Button(role: command == .delete ? .destructive : nil) { perform(command) } label: {
+                    Label(state.title, systemImage: state.symbol)
                 }
+                .disabled(!state.enabled)
             }
         }
     }
@@ -128,15 +115,17 @@ private struct VMCard: View {
 
     /// The one thing most wanted from a card: start it, resume it, or open it.
     private var playButton: some View {
-        let action = VMRowLogic.primaryAction(for: vm)
-        return Button { perform(action) } label: {
-            Image(systemName: action == .open ? "macwindow" : "play.fill")
+        let command = VMCommand.primary(for: vm)
+        let state = command.state(for: vm)
+        return Button { perform(command) } label: {
+            Image(systemName: command == .open ? "macwindow" : "play.fill")
                 .font(.system(size: 13, weight: .bold))
                 .frame(width: 30, height: 30)
                 .background(Circle().fill(.regularMaterial))
         }
         .buttonStyle(.plain)
-        .help(action.title)
+        .help(state.title)
+        .accessibilityLabel("\(state.title) \(vm.name)")
     }
 
     private var dot: Color {
@@ -159,7 +148,7 @@ private struct NewVMCard: View {
                 .overlay(
                     VStack(spacing: 8) {
                         Image(systemName: "plus").font(.system(size: 30, weight: .light))
-                        Text("New VM…").font(.headline)
+                        Text("New Virtual Machine…").font(.headline)
                     }
                     .foregroundStyle(.secondary))
                 .overlay(
@@ -172,28 +161,3 @@ private struct NewVMCard: View {
     }
 }
 
-extension VMAction {
-    var title: String {
-        switch self {
-        case .open: return "Open"
-        case .start: return "Start"
-        case .pause: return "Pause"
-        case .resume: return "Resume"
-        case .stop: return "Shut Down"
-        case .settings: return "Settings"
-        case .delete: return "Delete"
-        }
-    }
-
-    var symbol: String {
-        switch self {
-        case .open: return "macwindow"
-        case .start: return "play.fill"
-        case .pause: return "pause.fill"
-        case .resume: return "play.fill"
-        case .stop: return "power"
-        case .settings: return "gearshape"
-        case .delete: return "trash"
-        }
-    }
-}

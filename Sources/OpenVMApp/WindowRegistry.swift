@@ -9,16 +9,15 @@ final class WindowRegistry {
     private var controllers: [String: VMWindowController] = [:]
     /// The VM last in front, or last chosen from the menu-bar icon: what the menus act on.
     var lastUsed: String?
+    /// What a VM window needs to carry out a command. Set once, at launch.
+    var context: VMCommandContext?
 
     func controller(for uuid: String) -> VMWindowController? { controllers[uuid] }
 
     /// Opens (or brings forward) the window for a VM.
     func show(_ vm: VmSummary, model: VMListModel) {
-        let controller =
-            controllers[vm.uuid]
-            ?? VMWindowController(vm: vm, model: model) { vm in
-                SettingsWindows.shared.show(vm, transport: model.transport)
-            }
+        guard let context else { return }
+        let controller = controllers[vm.uuid] ?? VMWindowController(vm: vm, model: model, context: context)
         controllers[vm.uuid] = controller
         controller.update(vm)
         controller.showWindow(nil)

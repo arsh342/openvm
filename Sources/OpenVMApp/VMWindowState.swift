@@ -25,21 +25,12 @@ enum VMWindowState: Equatable {
         switch vm.state {
         case .stopped: return .stopped
         case .starting: return .busy("Starting…")
-        case .stopping: return .busy("Shutting down…")
+        case .stopping: return .busy("Shutting Down…")
         case .running:
             return hasMachine ? .running : .failed("The host has no live machine for this VM. Stop it and start it again.")
         case .suspended: return hasMachine ? .paused : .failed("The paused machine is gone. Stop the VM and start it again.")
         }
     }
 
-    static func label(for activity: String) -> String {
-        switch activity {
-        case "start": return "Starting…"
-        case "stop": return "Shutting down…"
-        case "suspend": return "Pausing…"
-        case "resume": return "Resuming…"
-        case "delete": return "Deleting…"
-        default: return "Working…"
-        }
-    }
+    static func label(for activity: String) -> String { VMStatus.activityWord(activity) }
 }
