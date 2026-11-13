@@ -44,7 +44,7 @@ case "create":
                 exit(2)
             }
             args.append((key, .text(mode)))
-        } else if key == "variable-store-path" || key == "install-media" {
+        } else if key == "variable-store-path" || key == "install-media" || key == "system-name" {
             args.append((key, .text(argv[i + 1])))
         } else {
             print(usage)

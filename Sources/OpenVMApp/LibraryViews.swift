@@ -1,116 +1,148 @@
-// LibraryViews — the library window's two panes: a Settings-style sidebar (search, the VMs, a way to make
-// a new one) and the page for what is chosen: every VM as cards, or one VM's page.
+// LibraryViews — the library window's three panes, all standard controls: a sidebar of groups, a
+// sortable table of VMs, and a detail pane for the selected one. Keyboard focus, arrow keys and
+// VoiceOver come with the controls. None keeps state of its own: it is in LibraryNav.
 import OpenVMCore
 import SwiftUI
+
+// MARK: status
+
+/// A VM's status as a symbol and a word, never colour alone.
+struct StatusBadge: View {
+    let status: VMStatus
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: status.symbol).foregroundStyle(tint).accessibilityHidden(true)
+            Text(status.word)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var tint: Color {
+        switch status.tone {
+        case .running: return .green
+        case .busy: return .orange
+        case .idle: return .secondary
+        }
+    }
+}
+
+/// The neutral glyph for what a VM runs. No vendor logos.
+enum SystemGlyph {
+    static func symbol(for vm: VmSummary) -> String { vm.bootMode == .windows ? "macwindow" : "terminal" }
+}
+
+// MARK: sidebar
 
 struct LibrarySidebarView: View {
     @ObservedObject var model: VMListModel
     @ObservedObject var nav: LibraryNav
-    let newVM: () -> Void
 
     var body: some View {
-        VStack(spacing: 0) {
-            searchField.padding(.horizontal, 14).padding(.top, 52).padding(.bottom, 8)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 2) {
-                    sidebarRow(selected: nav.selection == .all, choose: { nav.selection = .all }) {
-                        SidebarIcon(symbol: "square.grid.2x2.fill", color: .gray)
-                        Text("All Virtual Machines")
-                    }
-                    Text("Virtual Machines")
-                        .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                        .padding(.horizontal, 10).padding(.top, 14).padding(.bottom, 4)
-                    ForEach(LibraryNav.visible(model.vms, search: nav.search)) { vm in
-                        sidebarRow(selected: nav.selection == .vm(vm.uuid), choose: { nav.selection = .vm(vm.uuid) }) {
-                            SidebarIcon(
-                                symbol: vm.bootMode == .windows ? "macwindow" : "terminal",
-                                color: vm.bootMode == .windows ? .blue : .indigo)
-                            Text(vm.name).lineLimit(1)
-                            Spacer(minLength: 4)
-                            if vm.activity != nil {
-                                ProgressView().controlSize(.mini)
-                            } else {
-                                Circle().fill(LibraryColors.dot(for: vm)).frame(width: 7, height: 7)
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, 8)
-            }
-            Divider()
-            Button(action: newVM) {
-                HStack(spacing: 10) {
-                    SidebarIcon(symbol: "plus", color: .green)
-                    Text("New Virtual Machine…")
-                    Spacer()
+        List(selection: $nav.group) {
+            Section("Virtual Machines") {
+                ForEach(LibraryGroup.allCases, id: \.self) { group in
+                    Label(group.title, systemImage: group.symbol)
+                        .badge(group == .running ? LibraryNav.members(model.vms, of: .running).count : 0)
+                        .tag(group)
                 }
             }
-            .buttonStyle(.plain)
-            .padding(12)
         }
-    }
-
-    /// A row in the Settings style: icon and title, filled with the accent colour when chosen.
-    private func sidebarRow<Content: View>(
-        selected: Bool, choose: @escaping () -> Void, @ViewBuilder content: () -> Content
-    ) -> some View {
-        HStack(spacing: 10) { content() }
-            .foregroundStyle(selected ? Color.white : Color.primary)
-            .padding(.horizontal, 10).padding(.vertical, 6)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoundedRectangle(cornerRadius: 8).fill(selected ? Color.accentColor : Color.clear))
-            .contentShape(Rectangle())
-            .onTapGesture(perform: choose)
-    }
-
-    private var searchField: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-            TextField("Search", text: Binding(get: { nav.search }, set: { nav.search = $0 }))
-                .textFieldStyle(.plain)
-        }
-        .padding(.horizontal, 10).padding(.vertical, 6)
-        .background(RoundedRectangle(cornerRadius: 9).fill(Color.primary.opacity(0.08)))
+        .listStyle(.sidebar)
     }
 }
 
-enum LibraryColors {
-    static func dot(for vm: VmSummary) -> Color {
-        switch vm.state {
-        case .running: return .green
-        case .suspended: return .orange
-        case .stopped, .starting, .stopping: return .gray
-        }
-    }
-}
+// MARK: table
 
-/// The right-hand pane: banners, then the chosen page. It also owns the delete confirmation.
-struct LibraryDetailView: View {
+struct VMTableView: View {
     @ObservedObject var model: VMListModel
     @ObservedObject var nav: LibraryNav
-    @ObservedObject var thumbnails: ThumbnailStore
     /// Carries out a command for a VM.
     let run: (VMCommand, VmSummary) -> Void
+    /// Starts the creation wizard.
     let newVM: () -> Void
+
+    private var rows: [VMTableRow] {
+        LibraryNav.rows(model.vms, group: nav.group ?? .all, search: nav.search, sortOrder: nav.sortOrder)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             banners
-            page
+            content
         }
-        .frame(minWidth: 480, maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .windowBackgroundColor))
+        .frame(minWidth: 420, maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    @ViewBuilder private var page: some View {
-        switch LibraryNav.resolve(nav.selection, in: model.vms) {
-        case .all:
-            VMListView(model: model, thumbnails: thumbnails, run: run, newVM: newVM)
-        case .vm(let uuid):
-            if let vm = model.vm(uuid: uuid) {
-                VMPage(vm: vm, image: thumbnails.image(for: uuid)) { run($0, vm) }
-            }
+    @ViewBuilder private var content: some View {
+        let rows = rows
+        if model.vms.isEmpty {
+            empty(
+                "desktopcomputer", "No Virtual Machines", "Create one to get started.",
+                button: ("New Virtual Machine…", newVM))
+        } else if rows.isEmpty, !nav.search.trimmingCharacters(in: .whitespaces).isEmpty {
+            empty("magnifyingglass", "No Results", "No virtual machine has “\(nav.search)” in its name.")
+        } else if rows.isEmpty {
+            empty("play.circle", "Nothing Is Running", "Virtual machines that are running or paused show here.")
+        } else {
+            table(rows)
         }
+    }
+
+    private func table(_ rows: [VMTableRow]) -> some View {
+        Table(rows, selection: $nav.selection, sortOrder: $nav.sortOrder) {
+            TableColumn("Name", value: \.name) { row in
+                Label(row.name, systemImage: SystemGlyph.symbol(for: row.vm))
+            }
+            .width(min: 120, ideal: 160)
+            TableColumn("System", value: \.system).width(min: 90, ideal: 120)
+            TableColumn("Status", value: \.statusRank) { row in StatusBadge(status: VMStatus.of(row.vm)) }
+                .width(min: 100, ideal: 120)
+            TableColumn("Last Used", value: \.lastUsed) { row in
+                Text(VMRowLogic.date(row.vm.lastStarted)).foregroundStyle(.secondary)
+            }
+            .width(min: 90, ideal: 130)
+            TableColumn("Size on Disk", value: \.sizeOnDisk) { row in
+                Text(row.vm.diskUsedBytes.map { $0 == 0 ? "Empty" : VMRowLogic.size($0) } ?? "—")
+                    .foregroundStyle(.secondary)
+            }
+            .width(min: 80, ideal: 90)
+        }
+        .contextMenu(forSelectionType: String.self) { ids in
+            if let vm = LibraryNav.selectedVM(ids.first, in: model.vms) {
+                ForEach(VMCommand.pageRows, id: \.self) { command in
+                    let state = command.state(for: vm)
+                    Button(role: command == .delete ? .destructive : nil) { run(command, vm) } label: {
+                        Label(state.title, systemImage: state.symbol)
+                    }
+                    .disabled(!state.enabled)
+                }
+            } else {
+                Button("New Virtual Machine…", action: newVM)
+            }
+        } primaryAction: { ids in
+            // Return, or a double click: open its window.
+            if let vm = LibraryNav.selectedVM(ids.first, in: model.vms) { run(.open, vm) }
+        }
+        .onKeyPress(.space) {
+            // Space starts or resumes the selected VM, when that is the obvious thing to do.
+            guard let vm = LibraryNav.selectedVM(nav.selection, in: model.vms) else { return .ignored }
+            let command = VMCommand.primary(for: vm)
+            guard command != .open else { return .ignored }
+            run(command, vm)
+            return .handled
+        }
+    }
+
+    private func empty(_ symbol: String, _ title: String, _ text: String, button: (String, () -> Void)? = nil) -> some View {
+        VStack(spacing: 8) {
+            Image(systemName: symbol).font(.system(size: 40)).foregroundStyle(.secondary).accessibilityHidden(true)
+            Text(title).font(.title3.weight(.medium))
+            Text(text).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            if let button { Button(button.0, action: button.1).padding(.top, 4) }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(32)
     }
 
     @ViewBuilder private var banners: some View {
@@ -121,108 +153,85 @@ struct LibraryDetailView: View {
             Banner(text: error, systemImage: "exclamationmark.triangle", tint: .orange) { model.lastError = nil }
         }
     }
-
 }
 
-/// One VM's page, laid out like a Settings pane: a header, then grouped rows.
-private struct VMPage: View {
-    let vm: VmSummary
-    let image: NSImage?
-    let perform: (VMCommand) -> Void
+// MARK: detail
+
+/// The pane at the right: the selected VM's preview, status, the commands most wanted, and its facts.
+struct VMDetailPane: View {
+    @ObservedObject var model: VMListModel
+    @ObservedObject var nav: LibraryNav
+    @ObservedObject var thumbnails: ThumbnailStore
+    @ObservedObject var settings: AppSettingsModel
+    let run: (VMCommand, VmSummary) -> Void
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 18) {
-                header
-                group(actionRows)
-                group(detailRows)
-            }
-            .padding(.horizontal, 24).padding(.top, 44).padding(.bottom, 24)
+        if let vm = LibraryNav.selectedVM(nav.selection, in: model.vms) {
+            ScrollView { detail(vm).padding(16) }
+        } else {
+            Text("No Selection").font(.title3).foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
-    private var header: some View {
-        VStack(spacing: 10) {
-            Group {
-                if let image {
-                    Image(nsImage: image).resizable().scaledToFill()
-                } else {
-                    ZStack {
-                        LinearGradient(
-                            colors: vm.bootMode == .windows
-                                ? [Color(red: 0.10, green: 0.30, blue: 0.62), Color(red: 0.05, green: 0.14, blue: 0.34)]
-                                : [Color(red: 0.16, green: 0.18, blue: 0.30), Color(red: 0.07, green: 0.08, blue: 0.16)],
-                            startPoint: .topLeading, endPoint: .bottomTrailing)
-                        Image(systemName: vm.bootMode == .windows ? "macwindow" : "terminal")
-                            .font(.system(size: 38, weight: .light)).foregroundStyle(.white.opacity(0.55))
+    private func detail(_ vm: VmSummary) -> some View {
+        let status = VMStatus.of(vm)
+        let primary = VMCommand.primary(for: vm)
+        return VStack(alignment: .leading, spacing: 12) {
+            preview(vm)
+            Text(vm.name).font(.title2.weight(.semibold)).lineLimit(2)
+            VStack(alignment: .leading, spacing: 2) {
+                StatusBadge(status: status)
+                if let note = status.note { Text(note).font(.callout).foregroundStyle(.secondary) }
+            }
+            HStack {
+                button(primary, vm).keyboardShortcut(.defaultAction)
+                if primary != .open { button(.open, vm) }
+                Spacer()
+            }
+            Divider()
+            Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 12, verticalSpacing: 6) {
+                ForEach(VMRowLogic.details(for: vm), id: \.label) { row in
+                    GridRow {
+                        Text(row.label).foregroundStyle(.secondary).gridColumnAlignment(.trailing)
+                        Text(row.value).textSelection(.enabled)
                     }
                 }
             }
-            .frame(width: 260, height: 163)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .shadow(color: .black.opacity(0.2), radius: 6, y: 3)
-            Text(vm.name).font(.title.weight(.bold))
-            HStack(spacing: 6) {
-                if vm.activity != nil {
-                    ProgressView().controlSize(.small)
-                } else {
-                    Circle().fill(LibraryColors.dot(for: vm)).frame(width: 9, height: 9)
+            .font(.callout)
+            Divider()
+            button(.settings, vm)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func button(_ command: VMCommand, _ vm: VmSummary) -> some View {
+        let state = command.state(for: vm)
+        return Button { run(command, vm) } label: { Label(state.title, systemImage: state.symbol) }
+            .disabled(!state.enabled)
+    }
+
+    /// The last picture taken of the guest's screen, or a plain tile with the system's glyph: when there
+    /// is no picture yet, or previews are turned off in Settings.
+    private func preview(_ vm: VmSummary) -> some View {
+        let image = settings.showsPreviews ? thumbnails.image(for: vm.uuid) : nil
+        return Group {
+            if let image {
+                Image(nsImage: image).resizable().scaledToFill()
+                    .accessibilityLabel("Preview of \(vm.name)’s screen")
+            } else {
+                ZStack {
+                    Rectangle().fill(.quaternary)
+                    Image(systemName: SystemGlyph.symbol(for: vm)).font(.system(size: 34, weight: .light))
+                        .foregroundStyle(.secondary)
                 }
-                Text(VMStatus.of(vm).word).foregroundStyle(.secondary)
+                .accessibilityHidden(true)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 18)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.primary.opacity(0.05)))
-    }
-
-    private var actionRows: [AnyView] {
-        VMCommand.pageRows.filter { $0.state(for: vm).enabled }.map { command in
-            let state = command.state(for: vm)
-            return AnyView(
-                Button { perform(command) } label: {
-                    HStack(spacing: 12) {
-                        SidebarIcon(symbol: state.symbol, color: color(for: command))
-                        Text(state.title).foregroundStyle(command == .delete ? Color.red : Color.primary)
-                        Spacer()
-                        Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain))
-        }
-    }
-
-    private var detailRows: [AnyView] {
-        VMRowLogic.details(for: vm).map { row in
-            AnyView(
-                HStack {
-                    Text(row.label)
-                    Spacer()
-                    Text(row.value).foregroundStyle(.secondary)
-                })
-        }
-    }
-
-    private func color(for command: VMCommand) -> Color {
-        switch command {
-        case .open: return .blue
-        case .power: return VMPower.of(vm) == .start ? .green : .gray
-        case .pause: return VMPause.of(vm) == .resume ? .green : .orange
-        case .delete: return .red
-        default: return .gray
-        }
-    }
-
-    /// Rows in a rounded group with hairlines between them, as in a Settings pane.
-    private func group(_ rows: [AnyView]) -> some View {
-        VStack(spacing: 0) {
-            ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
-                if index > 0 { Divider().padding(.leading, 14) }
-                row.padding(.horizontal, 14).padding(.vertical, 10)
-            }
-        }
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.primary.opacity(0.05)))
+        .aspectRatio(16.0 / 10.0, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(.separator))
     }
 }
 

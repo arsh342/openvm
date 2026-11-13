@@ -1,21 +1,69 @@
-// LibraryNav — which page of the library is showing, and which VMs the sidebar lists. Plain functions
-// plus a small observable holder, so the choices can be tested without a window.
+// LibraryNav — what the library is showing: which group, which VM is selected, the search text and the
+// table's sort order. It lives here, not in the views, so it can be tested without a window and the
+// views need no state of their own.
 import Combine
+import Foundation
 import OpenVMCore
 
-enum LibrarySelection: Hashable {
-    case all
-    case vm(String)
+/// The groups in the library's sidebar.
+enum LibraryGroup: String, Hashable, CaseIterable {
+    case all, running
+
+    var title: String { self == .all ? "All" : "Running" }
+    var symbol: String { self == .all ? "square.grid.2x2" : "play.circle" }
+}
+
+/// One row of the library's table: a VM with the values its columns show and sort by.
+nonisolated struct VMTableRow: Identifiable, Equatable, Sendable {
+    let vm: VmSummary
+    var id: String { vm.uuid }
+    let name: String
+    let system: String
+    /// Sorting by status puts what is live first: running, busy, paused, stopped.
+    let statusRank: Int
+    /// A VM never started sorts as the oldest.
+    let lastUsed: Date
+    let sizeOnDisk: UInt64
+
+    @MainActor
+    init(_ vm: VmSummary) {
+        self.vm = vm
+        name = vm.name
+        system = VMRowLogic.systemName(for: vm)
+        if vm.installing || vm.activity != nil {
+            statusRank = 1
+        } else {
+            switch vm.state {
+            case .running: statusRank = 0
+            case .starting, .stopping: statusRank = 1
+            case .suspended: statusRank = 2
+            case .stopped: statusRank = 3
+            }
+        }
+        lastUsed = vm.lastStarted ?? .distantPast
+        sizeOnDisk = vm.diskUsedBytes ?? 0
+    }
 }
 
 @MainActor
 final class LibraryNav: ObservableObject {
-    @Published var selection: LibrarySelection = .all
+    @Published var group: LibraryGroup? = .all
+    /// The selected VM's uuid. The menu bar's commands act on it while the library is in front.
+    @Published var selection: String?
     @Published var search = ""
+    @Published var sortOrder: [KeyPathComparator<VMTableRow>] = [KeyPathComparator(\VMTableRow.name)]
 }
 
-
 extension LibraryNav {
+    /// The VMs a group lists. Running means anything that holds a live guest: running, paused or booting.
+    nonisolated static func members(_ vms: [VmSummary], of group: LibraryGroup) -> [VmSummary] {
+        switch group {
+        case .all: return vms
+        case .running:
+            return vms.filter { $0.state == .running || $0.state == .suspended || $0.activity == "start" }
+        }
+    }
+
     /// The VMs whose names contain the search text, ignoring case and surrounding spaces.
     nonisolated static func visible(_ vms: [VmSummary], search: String) -> [VmSummary] {
         let needle = search.trimmingCharacters(in: .whitespaces).lowercased()
@@ -23,18 +71,22 @@ extension LibraryNav {
         return vms.filter { $0.name.lowercased().contains(needle) }
     }
 
-    /// A chosen VM that no longer exists (deleted from the CLI, say) gives way to the overview.
-    nonisolated static func resolve(_ selection: LibrarySelection, in vms: [VmSummary]) -> LibrarySelection {
-        if case .vm(let uuid) = selection, !vms.contains(where: { $0.uuid == uuid }) { return .all }
-        return selection
+    /// The table's rows: the group's VMs that match the search, in the chosen order.
+    static func rows(
+        _ vms: [VmSummary], group: LibraryGroup, search: String, sortOrder: [KeyPathComparator<VMTableRow>]
+    ) -> [VMTableRow] {
+        visible(members(vms, of: group), search: search).map { VMTableRow($0) }.sorted(using: sortOrder)
     }
-}
 
-extension LibraryNav {
-    /// The VM a selection names, if it still exists. This is the VM the menu bar's commands act on
-    /// while the library is in front.
-    nonisolated static func selectedVM(_ selection: LibrarySelection, in vms: [VmSummary]) -> VmSummary? {
-        guard case .vm(let uuid) = selection else { return nil }
-        return vms.first { $0.uuid == uuid }
+    /// The VM a selection names, if it still exists (it may have been deleted from the command line).
+    nonisolated static func selectedVM(_ selection: String?, in vms: [VmSummary]) -> VmSummary? {
+        guard let selection else { return nil }
+        return vms.first { $0.uuid == selection }
+    }
+
+    /// What to select when the list changes: the current selection while it exists, else the first VM,
+    /// so a command in the menu bar has something to act on.
+    nonisolated static func resolve(_ selection: String?, in vms: [VmSummary]) -> String? {
+        selectedVM(selection, in: vms)?.uuid ?? vms.first?.uuid
     }
 }

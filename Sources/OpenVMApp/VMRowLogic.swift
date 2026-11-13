@@ -15,6 +15,20 @@ enum VMRowLogic {
         }
     }
 
+    /// What it runs, as the library's table says it: the name given when it was made ("Ubuntu 26.04"),
+    /// else the kind of system.
+    static func systemName(for vm: VmSummary) -> String { vm.systemName ?? system(for: vm) }
+
+    /// When something happened, for a table cell: "Today, 10:42", "12 Nov 2026", or "Never".
+    static func date(_ date: Date?, never: String = "Never") -> String {
+        guard let date else { return never }
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        formatter.doesRelativeDateFormatting = true
+        return formatter.string(from: date)
+    }
+
     /// "Linux · 4 CPUs · 4 GB memory · 32 GB disk"
     static func subtitle(for vm: VmSummary) -> String {
         var parts = [system(for: vm)]
@@ -22,20 +36,6 @@ enum VMRowLogic {
         parts.append("\(memory(vm.memoryMB)) memory")
         if let disk = vm.diskBytes { parts.append("\(size(disk)) disk") }
         return parts.joined(separator: " · ")
-    }
-
-    /// The facts shown for a VM in the library, in order.
-    static func details(for vm: VmSummary) -> [(label: String, value: String)] {
-        var rows: [(label: String, value: String)] = [
-            ("System", system(for: vm)),
-            ("CPUs", "\(vm.cpus)"),
-            ("Memory", memory(vm.memoryMB)),
-        ]
-        if let disk = vm.diskBytes { rows.append(("Disk", size(disk))) }
-        if let zone = vm.timezone { rows.append(("Time zone", zone)) }
-        rows.append(("Clipboard sharing", vm.clipboardSync ? "On" : "Off"))
-        rows.append(("Receiving files from the VM", vm.outbox ? "On" : "Off"))
-        return rows
     }
 
     /// What the confirmation says. It names the disk, because the disk is what is lost.
@@ -57,5 +57,22 @@ enum VMRowLogic {
         formatter.countStyle = .binary
         formatter.allowedUnits = [.useMB, .useGB, .useTB]
         return formatter.string(fromByteCount: Int64(bytes))
+    }
+}
+
+extension VMRowLogic {
+    /// The facts the library's detail pane lists for a VM, in order. Sharing switches are not repeated
+    /// here: Settings… has them.
+    static func details(for vm: VmSummary) -> [(label: String, value: String)] {
+        var rows: [(label: String, value: String)] = [
+            ("System", systemName(for: vm)),
+            ("CPUs", "\(vm.cpus)"),
+            ("Memory", memory(vm.memoryMB)),
+        ]
+        if let disk = vm.diskBytes { rows.append(("Disk", "\(size(disk)) at most")) }
+        if let used = vm.diskUsedBytes { rows.append(("Size on Disk", used == 0 ? "Empty" : size(used))) }
+        if let created = vm.created { rows.append(("Created", date(created))) }
+        rows.append(("Last Used", date(vm.lastStarted)))
+        return rows
     }
 }

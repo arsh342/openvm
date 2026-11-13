@@ -17,6 +17,9 @@ nonisolated func vmRow(_ rec: VmRecord) -> [(key: String, value: CBOR)] {
         if let size = (try? FileManager.default.attributesOfItem(atPath: disk))?[.size] as? NSNumber {
             row.append(("diskBytes", .uint(size.uint64Value)))
         }
+        // What it really takes on the Mac, for the library's Size on Disk.
+        let used = try? URL(fileURLWithPath: disk).resourceValues(forKeys: [.totalFileAllocatedSizeKey])
+        if let bytes = used?.totalFileAllocatedSize { row.append(("diskUsedBytes", .uint(UInt64(max(0, bytes))))) }
     }
     row.append(("bootMode", .text(rec.mode.rawValue)))
     if let tz = rec.timezone { row.append(("timezone", .text(tz))) }
@@ -28,6 +31,9 @@ nonisolated func vmRow(_ rec: VmRecord) -> [(key: String, value: CBOR)] {
     row.append(("clipboardSync", .bool(rec.syncsClipboard)))
     row.append(("outbox", .bool(rec.acceptsOutbox)))
     if rec.bootMode == .linuxISO, rec.installMediaPath != nil { row.append(("installerAttached", .bool(true))) }
+    if let started = rec.lastStartedAt { row.append(("lastStartedAt", .text(started))) }
+    if let system = rec.systemName { row.append(("systemName", .text(system))) }
+    row.append(("createdAt", .text(rec.createdAt)))
     return row
 }
 
@@ -88,6 +94,11 @@ nonisolated func createVm(_ r: VmRequest) throws -> Envelope {
         installMediaPath = URL(fileURLWithPath: path).standardizedFileURL.path
     }
     if bootMode == .linuxISO, installMediaPath == nil { return r.fail("--boot-mode linux-iso needs --install-media <iso>") }
+    var systemName: String?
+    if case .text(let system)? = r.arg("system-name") {
+        guard VmRegistry.validSystemName(system) else { return r.fail("system-name must be one line of 1 to 80 characters") }
+        systemName = system
+    }
     guard !((try registry.list()).contains { $0.name == name }) else {
         return r.fail("nameExists")
     }
@@ -117,7 +128,7 @@ nonisolated func createVm(_ r: VmRequest) throws -> Envelope {
             name: name, cpus: cpus, memoryMB: memoryMB,
             diskPath: diskURL.path, bootMode: bootMode,
             variableStorePath: variableStorePath,
-            installMediaPath: installMediaPath)
+            installMediaPath: installMediaPath, systemName: systemName)
     } catch {
         try? FileManager.default.removeItem(at: diskDirectory)
         throw error

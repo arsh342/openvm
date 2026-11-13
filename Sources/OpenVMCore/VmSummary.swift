@@ -24,6 +24,14 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
     public let outbox: Bool
     /// A distribution's installer ISO is still attached to this VM.
     public let installerAttached: Bool
+    /// When the VM was last started. Nil if never, or if the host is older than this field.
+    public let lastStarted: Date?
+    /// When the VM was made.
+    public let created: Date?
+    /// What it runs, as given when it was made ("Ubuntu 26.04"). Nil for a VM made before this field.
+    public let systemName: String?
+    /// The space the disk really takes on the Mac. `diskBytes` is its limit: the file is sparse.
+    public let diskUsedBytes: UInt64?
 
     /// Rows from an older host lack the newer fields, and still decode.
     public init?(row: CBOR) {
@@ -57,6 +65,10 @@ public nonisolated struct VmSummary: Sendable, Equatable, Identifiable {
         self.installing = flag("installing")
         self.installerAttached = flag("installerAttached")
         self.dropping = flag("dropping")
+        self.lastStarted = text("lastStartedAt").flatMap(VmRegistry.iso8601.date(from:))
+        self.created = text("createdAt").flatMap(VmRegistry.iso8601.date(from:))
+        self.systemName = text("systemName")
+        self.diskUsedBytes = number("diskUsedBytes")
         if case .bool(let sync)? = fields.first(where: { $0.key == "clipboardSync" })?.value {
             self.clipboardSync = sync
         } else {

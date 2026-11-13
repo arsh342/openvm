@@ -162,12 +162,6 @@ extension VMCommand {
         .command(.settings),
     ]
 
-    /// A VM's context menu in the library.
-    static let contextMenu: [MenuEntry] = [
-        .command(.open), .separator, .command(.power), .command(.restart), .command(.pause), .separator,
-        .command(.settings), .separator, .command(.delete),
-    ]
-
     /// The one thing most wanted from a VM: start it, resume it, or open its window.
     static func primary(for vm: VmSummary) -> VMCommand {
         if VMPower.of(vm) == .start { return .power }
@@ -330,6 +324,6 @@ struct VMStatus: Equatable {
 }
 
 extension VMCommand {
-    /// The commands shown as rows and in the context menu of a VM in the library.
-    static let pageRows: [VMCommand] = [.open, .power, .pause, .settings, .delete]
+    /// A VM's context menu in the library's table.
+    static let pageRows: [VMCommand] = [.open, .power, .restart, .pause, .settings, .delete]
 }

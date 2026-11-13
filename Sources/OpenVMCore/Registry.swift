@@ -44,6 +44,8 @@ public nonisolated struct VmRecord: Codable, Sendable, Equatable {
     public var machineIdentifier: String?  // Windows: base64 VZGenericMachineIdentifier, stable across boots
     public var clipboardSync: Bool? = nil  // share the clipboard when the VM's window is active; nil = on
     public var outbox: Bool? = nil  // take files the guest sends to the Mac; nil = on
+    public var lastStartedAt: String? = nil  // ISO8601; when the VM was last started; nil = never, or before this field
+    public var systemName: String? = nil  // what it runs, for the library ("Ubuntu 26.04"); nil = say it from bootMode
     public var createdAt: String  // ISO8601; the registry stays human-readable
 
     /// Whether the clipboard is shared with this VM. A record from before the setting existed
@@ -144,7 +146,13 @@ public nonisolated struct VmRegistry: Sendable {
 
     /// start: only `stopped` may become `running`.
     public func start(_ id: String) throws -> VmRecord {
-        try transition(id, from: [.stopped], to: .running)
+        _ = try transition(id, from: [.stopped], to: .running)
+        // When it was last used, for the library. Kept through a stop.
+        return try mutate { vms in
+            guard let idx = Self.index(of: id, in: vms) else { throw VmRegistryError.notFound }
+            vms[idx].lastStartedAt = Self.iso8601.string(from: Date())
+            return vms[idx]
+        }
     }
 
     /// stop: `running` or `suspended` may become `stopped`; a suspended guest
@@ -214,11 +222,18 @@ public nonisolated struct VmRegistry: Sendable {
         }
     }
 
+    /// What a VM runs, as the library shows it: one printable line of 1 to 80 characters.
+    public static func validSystemName(_ name: String) -> Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty, name.count <= 80 else { return false }
+        return name.unicodeScalars.allSatisfy { !CharacterSet.controlCharacters.contains($0) && !CharacterSet.newlines.contains($0) }
+    }
+
     /// Adds a stopped VM. The name must be valid and unused.
     public func create(
         name: String, cpus: Int = 4, memoryMB: Int = 4096,
         diskPath: String? = nil, bootMode: BootMode,
-        variableStorePath: String? = nil, installMediaPath: String? = nil
+        variableStorePath: String? = nil, installMediaPath: String? = nil, systemName: String? = nil
     ) throws -> VmRecord {
         guard Self.validName(name) else { throw VmRegistryError.nameInvalid }
         return try mutate { vms in
@@ -229,7 +244,7 @@ public nonisolated struct VmRegistry: Sendable {
                 state: .stopped,
                 cpus: cpus, memoryMB: memoryMB, diskPath: diskPath, timezone: nil, shares: nil,
                 bootMode: bootMode, variableStorePath: variableStorePath,
-                installMediaPath: installMediaPath, machineIdentifier: nil,
+                installMediaPath: installMediaPath, machineIdentifier: nil, systemName: systemName,
                 createdAt: Self.iso8601.string(from: Date()))
             vms.append(vm)
             return vm

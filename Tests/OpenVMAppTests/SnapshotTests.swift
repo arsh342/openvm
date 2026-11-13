@@ -17,11 +17,20 @@ enum Snapshot {
     /// Renders through a real hosting view, so AppKit-backed controls (buttons, spinners)
     /// draw as they do on screen. Light appearance and a fixed size keep it repeatable.
     @MainActor
-    static func render<V: View>(_ view: V, width: CGFloat, height: CGFloat) -> NSBitmapImageRep? {
-        let host = NSHostingView(rootView: view)
+    static func render<V: View>(_ view: V, width: CGFloat, height: CGFloat, dark: Bool = false) -> NSBitmapImageRep? {
+        // The window gives the view a background and an appearance to inherit, as on screen.
+        let host = NSHostingView(rootView: view.background(Color(nsColor: .windowBackgroundColor)))
         host.frame = NSRect(x: 0, y: 0, width: width, height: height)
-        host.appearance = NSAppearance(named: .aqua)
+        host.appearance = NSAppearance(named: dark ? .darkAqua : .aqua)
+        // Lists and tables make their rows only inside a window, and a turn of the run loop later.
+        let window = NSWindow(
+            contentRect: host.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+        window.appearance = host.appearance
+        window.contentView = host
         host.layoutSubtreeIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.15))
+        host.layoutSubtreeIfNeeded()
+        window.displayIfNeeded()
         guard let rep = host.bitmapImageRepForCachingDisplay(in: host.bounds) else { return nil }
         host.cacheDisplay(in: host.bounds, to: rep)
         return rep
@@ -49,11 +58,20 @@ enum Snapshot {
         return different
     }
 
+    /// Checks a view in light and in dark: `name` and `name-dark`.
     @MainActor
     static func check<V: View>(
         _ name: String, _ view: V, width: CGFloat, height: CGFloat, sourceLocation: SourceLocation = #_sourceLocation
     ) {
-        guard let rep = render(view, width: width, height: height) else {
+        checkOne(name, view, width: width, height: height, dark: false, sourceLocation: sourceLocation)
+        checkOne("\(name)-dark", view, width: width, height: height, dark: true, sourceLocation: sourceLocation)
+    }
+
+    @MainActor
+    private static func checkOne<V: View>(
+        _ name: String, _ view: V, width: CGFloat, height: CGFloat, dark: Bool, sourceLocation: SourceLocation
+    ) {
+        guard let rep = render(view, width: width, height: height, dark: dark) else {
             Issue.record("could not render \(name)", sourceLocation: sourceLocation)
             return
         }
@@ -89,30 +107,66 @@ struct SnapshotTests {
         return model
     }
 
-    @Test(.enabled(if: Snapshot.enabled))
-    func listWithMixedStates() async {
-        let model = await model([
+    private var mixed: [CBOR] {
+        [
             FakeTransport.row("ubuntu-lab", state: "running", bootMode: "linux-iso"),
             FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
             FakeTransport.row("scratch", state: "stopped", bootMode: "linux-iso"),
-        ])
-        Snapshot.check("list-mixed-states", VMListView(model: model, run: { _, _ in }, newVM: {}), width: 900, height: 560)
+        ]
+    }
+
+    private func nav(selecting uuid: String? = nil) -> LibraryNav {
+        let nav = LibraryNav()
+        nav.selection = uuid
+        return nav
     }
 
     @Test(.enabled(if: Snapshot.enabled))
-    func emptyList() async {
+    func libraryTableWithMixedStates() async {
+        let model = await model(mixed)
+        Snapshot.check(
+            "library-table", VMTableView(model: model, nav: nav(selecting: "uuid-windows-11"), run: { _, _ in }, newVM: {}),
+            width: 700, height: 420)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func libraryWithNoVms() async {
         let model = await model([])
-        Snapshot.check("list-empty", VMListView(model: model, run: { _, _ in }, newVM: {}), width: 900, height: 560)
+        Snapshot.check("library-empty", VMTableView(model: model, nav: nav(), run: { _, _ in }, newVM: {}), width: 700, height: 420)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
-    func actionError() async {
-        let host = FakeTransport()
-        host.rows = [FakeTransport.row("scratch", state: "stopped", bootMode: "linux-iso")]
-        let model = VMListModel(transport: host)
-        await model.refresh()
+    func libraryAfterAFailedAction() async {
+        let model = await model([FakeTransport.row("scratch", state: "stopped", bootMode: "linux-iso")])
         model.lastError = "scratch is busy: start"
-        Snapshot.check("list-action-error", VMListView(model: model, run: { _, _ in }, newVM: {}), width: 900, height: 560)
+        Snapshot.check("library-error", VMTableView(model: model, nav: nav(), run: { _, _ in }, newVM: {}), width: 700, height: 420)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func librarySidebar() async {
+        let model = await model(mixed)
+        Snapshot.check("library-sidebar", LibrarySidebarView(model: model, nav: nav()), width: 220, height: 420)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func libraryDetailOfAPausedVm() async {
+        let model = await model([FakeTransport.row("windows-11", state: "suspended", bootMode: "windows", memoryMB: 8192)])
+        let defaults = UserDefaults(suiteName: "openvm-snapshots")!
+        defaults.removePersistentDomain(forName: "openvm-snapshots")
+        Snapshot.check(
+            "library-detail",
+            VMDetailPane(
+                model: model, nav: nav(selecting: "uuid-windows-11"),
+                thumbnails: ThumbnailStore(directory: FileManager.default.temporaryDirectory),
+                settings: AppSettingsModel(defaults: defaults), run: { _, _ in }),
+            width: 280, height: 560)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func appSettings() async {
+        let defaults = UserDefaults(suiteName: "openvm-snapshots")!
+        defaults.removePersistentDomain(forName: "openvm-snapshots")
+        Snapshot.check("app-settings", AppSettingsView(model: AppSettingsModel(defaults: defaults)), width: 480, height: 260)
     }
 }
 
@@ -224,31 +278,6 @@ extension SnapshotTests {
 }
 
 extension SnapshotTests {
-    @Test(.enabled(if: Snapshot.enabled))
-    func librarySidebar() async {
-        let model = await model([
-            FakeTransport.row("ubuntu-lab", state: "running", bootMode: "linux-iso"),
-            FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
-            FakeTransport.row("scratch", state: "stopped", bootMode: "linux-iso"),
-        ])
-        let nav = LibraryNav()
-        nav.selection = .vm("uuid-ubuntu-lab")
-        Snapshot.check("library-sidebar", LibrarySidebarView(model: model, nav: nav, newVM: {}), width: 260, height: 520)
-    }
-
-    @Test(.enabled(if: Snapshot.enabled))
-    func libraryPageOfOneVm() async {
-        let model = await model([FakeTransport.row("windows-11", state: "suspended", bootMode: "windows", memoryMB: 8192)])
-        let nav = LibraryNav()
-        nav.selection = .vm("uuid-windows-11")
-        Snapshot.check(
-            "library-vm-page",
-            LibraryDetailView(
-                model: model, nav: nav, thumbnails: ThumbnailStore(directory: FileManager.default.temporaryDirectory),
-                run: { _, _ in }, newVM: {}),
-            width: 700, height: 640)
-    }
-
     @Test(.enabled(if: Snapshot.enabled))
     func wizardSidebarOnTheResourcesStep() async {
         let wizard = CreateWizardModel(transport: FakeTransport(), existingNames: [], openWindow: { _ in })

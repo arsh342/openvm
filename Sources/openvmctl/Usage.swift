@@ -3,7 +3,7 @@ import Foundation
 
 let usage = """
     Usage:
-      openvmctl create <name> [--cpus N] [--memoryMB N] [--diskSizeMB N] --boot-mode windows|linux-iso [--variable-store-path PATH] [--install-media MEDIA.raw|FILE.iso]
+      openvmctl create <name> [--cpus N] [--memoryMB N] [--diskSizeMB N] --boot-mode windows|linux-iso [--variable-store-path PATH] [--install-media MEDIA.raw|FILE.iso] [--system-name "Ubuntu 26.04"]
       openvmctl list
       openvmctl info <name|uuid>
       openvmctl start <name|uuid>

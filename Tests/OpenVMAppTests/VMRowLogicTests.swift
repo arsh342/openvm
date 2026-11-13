@@ -39,13 +39,18 @@ struct VMRowLogicTests {
     }
 
     @Test func detailsListWhatTheVmIs() {
-        let vm = VmSummary(row: FakeTransport.row("w", state: "running", bootMode: "windows", cpus: 4, memoryMB: 8192, clipboardSync: false, outbox: true))!
-        let rows = VMRowLogic.details(for: vm)
+        let row = CBOR.map([
+            ("name", .text("w")), ("state", .text("running")), ("uuid", .text("u")), ("cpus", .uint(4)),
+            ("memoryMB", .uint(8192)), ("bootMode", .text("windows")), ("diskBytes", .uint(64 << 30)),
+            ("diskUsedBytes", .uint(21 << 30)), ("systemName", .text("Windows 11")),
+        ])
+        let rows = VMRowLogic.details(for: VmSummary(row: row)!)
         let byLabel = Dictionary(uniqueKeysWithValues: rows.map { ($0.label, $0.value) })
-        #expect(byLabel["System"] == "Windows")
+        #expect(byLabel["System"] == "Windows 11")
         #expect(byLabel["CPUs"] == "4")
         #expect(byLabel["Memory"] == "8 GB")
-        #expect(byLabel["Clipboard sharing"] == "Off")
-        #expect(byLabel["Receiving files from the VM"] == "On")
+        #expect(byLabel["Disk"] == "64 GB at most")
+        #expect(byLabel["Size on Disk"] == "21 GB")
+        #expect(byLabel["Last Used"] == "Never")
     }
 }

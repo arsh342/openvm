@@ -111,6 +111,9 @@ final class AppMenu: NSObject, NSMenuDelegate {
         let sidebar = menu.addItem(
             withTitle: "Show Sidebar", action: #selector(NSSplitViewController.toggleSidebar(_:)), keyEquivalent: "s")
         sidebar.keyEquivalentModifierMask = [.command, .control]
+        let toolbar = menu.addItem(
+            withTitle: "Show Toolbar", action: #selector(NSWindow.toggleToolbarShown(_:)), keyEquivalent: "t")
+        toolbar.keyEquivalentModifierMask = [.command, .option]
         menu.addItem(.separator())
         let full = menu.addItem(
             withTitle: "Enter Full Screen", action: #selector(NSWindow.toggleFullScreen(_:)), keyEquivalent: "f")

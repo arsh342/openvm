@@ -20,6 +20,8 @@ per-VM config file yet; the record *is* the config.
   "timezone":  "Europe/Berlin",         // optional IANA zone; absent = guest default
   "clipboardSync": true,                 // optional; share the clipboard with this VM; absent = true, false for linux-iso
   "outbox":    true,                       // optional; take files the guest sends to the Mac; absent = true
+  "lastStartedAt": "2026-11-13T08:00:00Z", // optional; when it was last started; absent = never, or before this field
+  "systemName": "Ubuntu 26.04",          // optional; what it runs, for the library; absent = said from bootMode
   "shares":    [                          // optional shared folders; absent = none
     {"hostPath": "/Users/me/Projects", "guestPath": "/mnt/openvm/Projects"}
   ],
@@ -59,6 +61,9 @@ Field semantics beyond the obvious:
   a host directory with the path it is mounted on in the guest; the mount
   itself is established by the daemon (see `docs/daemon-protocol.md`), the
   record only carries the configuration.
+* `lastStartedAt` and `systemName` are optional text, for the library's table. `start` writes the first; `create`
+  takes the second (`--system-name`, one printable line of at most 80 characters). Neither is an enum: a value the
+  reader does not know would fail the whole registry read.
 * Derived paths are intentionally not persisted: console `<name>.console.log`
   and socket `openvmd.sock` derive from `$OPENVM_HOME`.
 
