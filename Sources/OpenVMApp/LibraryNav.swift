@@ -8,9 +8,27 @@ import OpenVMCore
 /// The groups in the library's sidebar.
 enum LibraryGroup: String, Hashable, CaseIterable {
     case all, running
+    /// The installers openVM downloaded, and downloads in flight.
+    case installers
 
-    var title: String { self == .all ? "All" : "Running" }
-    var symbol: String { self == .all ? "square.grid.2x2" : "play.circle" }
+    /// The groups that list VMs.
+    static let machines: [LibraryGroup] = [.all, .running]
+
+    var title: String {
+        switch self {
+        case .all: return "All"
+        case .running: return "Running"
+        case .installers: return "Downloaded"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .all: return "square.grid.2x2"
+        case .running: return "play.circle"
+        case .installers: return "arrow.down.circle"
+        }
+    }
 }
 
 /// One row of the library's table: a VM with the values its columns show and sort by.
@@ -58,7 +76,7 @@ extension LibraryNav {
     /// The VMs a group lists. Running means anything that holds a live guest: running, paused or booting.
     nonisolated static func members(_ vms: [VmSummary], of group: LibraryGroup) -> [VmSummary] {
         switch group {
-        case .all: return vms
+        case .all, .installers: return vms
         case .running:
             return vms.filter { $0.state == .running || $0.state == .suspended || $0.activity == "start" }
         }

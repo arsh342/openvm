@@ -53,6 +53,8 @@ the daemon replies on the same id.
 | share-list | `id` | lists the record's shares as `hostPath`/`guestPath` rows |
 | linux-iso-check | `iso` | whether an ISO can start here: `usable`, with `problem` when it cannot and `unknown` when its boot files were not found |
 | installer-identify | `iso` | what kind of installer a file is, for a file dropped on the gallery: `kind` (`windows` or `linux`), `usable`, and when it cannot be used `problem` and a `code` (`not-an-iso`, `iso-incomplete`, `linux-intel`, `windows-intel`, `windows-no-image`). The Windows check runs first, because a Windows Arm ISO also holds the boot file the Linux check looks for. `linux-iso-check` and `windows-iso-check` carry the same `code` |
+| installers-list | | the installer cache: `installers`, a list of rows with `entry`, `name`, `file`, `path`, `bytes` and `complete`; a row whose download is running also has `taskId`, `bytesTotal` and `bytesPerSecond`. `directory` is where they are kept |
+| installer-remove | `entry` | removes an entry's installer and any unfinished download of it, stopping a running one first: `freedBytes`. Refused while a VM still starts from that installer |
 | eject-installer | `id` | takes a stopped `linux-iso` VM's installer ISO away, so it starts from its disk |
 | drag | `id`, `op` (`enter`, `leave`, `drop`, `status`, `send`); `paths` for `drop`, `path` (a guest path) for `send` | stages host files and has the guest put them on the user's Desktop; `send` runs the guest's send tool as the desktop user, which is what the file manager's "Send to Mac" does. A guest too old to know `send` is told so in plain words |
 | printer | `id`, `op` (`list`, `test`), `name` for `test` | lists the guest's queues, or prints a test page |
@@ -185,3 +187,25 @@ image. It takes a second or two. A path that is not an acceptable ISO file is an
 The build uses `wimlib-imagex` on the Mac if there is one, because it is faster, and otherwise a
 helper VM (see `docs/windows-guests.md`), which needs its files fetched (`fetch-linux`). With neither, the
 task is refused and says which is missing.
+
+## Installer downloads
+
+`task-start` with `kind` `fetch-iso` and `entry` (a catalog id such as `ubuntu-lts`) starts a download in the
+host, or returns the one already running for that entry. A client names a catalog entry and nothing else:
+never an address, a path or a file name. The host reads the vendor's own index over HTTPS (Ubuntu's
+`SHA256SUMS`, Fedora's `releases.json`) to find the file and its SHA-256, and refuses an index that redirects
+to another host. The file itself may come from a mirror the vendor redirects to, over HTTPS only.
+
+The download is written to `<home>/isos/<entry>-<file>.part`. After the last byte the host checks the size,
+hashes the whole file, and runs the same check `linux-iso-check` does; only then is the file renamed into
+place, with its hash beside it (`.sha256`). A file that fails is removed and never used. A download that
+stops (cancelled, the network went, the host quit) keeps its part, and the next `task-start` for the entry
+asks the server for the rest with a Range request.
+
+`task-status` for a download answers `state` (`running`, `done`, `failed`, `cancelled`), `entry`, `bytesDone`,
+`bytesTotal` once the server has said, `bytesPerSecond`, a `progress` line, `path` when done, and on failure
+`error` with a `code`: `download-failed`, `download-damaged`, `no-space` or `installer-not-found`.
+`task-cancel` stops it and keeps the part. Installers are never removed by deleting a VM: only
+`installer-remove` does that.
+
+What is not checked: the vendor's signature on the index. The trust is HTTPS to the vendor's own host.

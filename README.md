@@ -65,7 +65,15 @@ make app
 open .build/openvm.app
 ```
 
-The app's wizard creates Windows and Linux guests for you: it checks your ISO, converts a Windows one into install media, and installs. The commands below do the same by hand.
+The app opens on its library. With no virtual machines yet, the library is a gallery: drop an installer file on it, choose one, or pick a system. **File ▸ New Virtual Machine** (Command-N) opens the same gallery later, and **File ▸ Open Installer File…** or an installer dropped on the Dock icon starts from that file. openVM tells Windows from Linux by the file, converts a Windows one into install media, and installs. The commands below do the same by hand.
+
+**Windows 11.** Choosing the Windows 11 tile opens a page with a button to Microsoft's own download page for Windows 11 for Arm, and says what to expect: Windows asks for a licence, setup takes 15 to 30 minutes, and the picture can be wrong at some window sizes until Windows' display driver is updated. Drop the downloaded file on that page, or choose it.
+
+**Linux downloads.** openVM can download a Linux installer itself, into `~/.openvm/isos`, and keeps it for later virtual machines. A system gets a tile only once a full install through openVM is on record (`docs/evidence`); none is yet, so the tiles are hidden. To try them before that, run `defaults write dev.openvm.app show-untested-installers -bool yes`; they are then marked "Not tested yet". From the command line: `openvmctl installer list`, `installer fetch ubuntu-lts`, `task status <task-id>`, `installer remove ubuntu-lts`.
+
+**What a download is checked against.** openVM reads the file's SHA-256 from its maker's own index over HTTPS (Ubuntu's `SHA256SUMS`, Fedora's `releases.json`), and uses the file only if its hash and size match. That catches a damaged file or one a mirror swapped. It does **not** check the maker's signature on that index yet: the trust is HTTPS to the maker's own host. A download that stops picks up where it left off.
+
+**The menus.** openVM, File, Edit, View, Virtual Machine, Window and Help. A command under Virtual Machine acts on the window in front: a virtual machine's window on that machine, the library on the one selected in it. **openVM ▸ Settings…** (Command-comma) is the app's: the menu-bar icon, previews in the library, and the downloaded installers. A virtual machine's own settings are under **Virtual Machine ▸ Settings…** (Option-Command-comma). While a guest has the keyboard, key combinations go to the guest, except Command-Q, Command-H, Option-Command-H, Control-Command-F, Command-` and Option-Command-comma.
 
 ### Create a Windows guest
 
@@ -85,7 +93,7 @@ From the wizard you choose the Windows user name and password. Built by hand, th
 
 ### Create a Linux guest
 
-Use **New Virtual Machine ▸ Linux, from an ISO** in the app, or:
+Drop the installer file on the gallery in the app, or:
 
 ```sh
 .build/debug/openvmctl linux-iso check ~/Downloads/distro-arm64.iso

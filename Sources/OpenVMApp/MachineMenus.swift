@@ -66,7 +66,9 @@ final class MachineMenus: NSObject, NSMenuDelegate {
         let menu = NSMenu(title: "openVM")
         menu.delegate = self
         statusRoot = menu
-        for item in VMCommand.items(VMCommand.statusItem, shortcuts: false, delegate: self) { menu.addItem(item) }
+        for item in VMCommand.items(VMCommand.statusItem, shortcuts: false, delegate: self) {
+            menu.addItem(item)
+        }
         statusMenus = [menu] + menu.items.compactMap(\.submenu)
         for owned in statusMenus {
             owned.autoenablesItems = false  // each item is set in `menuNeedsUpdate`
@@ -126,6 +128,15 @@ final class MachineMenus: NSObject, NSMenuDelegate {
         let summary = NSMenuItem(title: text, action: nil, keyEquivalent: "")
         summary.isEnabled = false
         rows.append(summary)
+        // A download goes on with every window closed, so it shows here too.
+        for row in model.downloading {
+            let percent =
+                DownloadText.fraction(done: row.bytes, total: row.bytesTotal).map { " \(Int($0 * 100))%" }
+                ?? ""
+            let line = NSMenuItem(title: "Downloading \(row.name)\(percent)", action: nil, keyEquivalent: "")
+            line.isEnabled = false
+            rows.append(line)
+        }
         rows.append(.separator())
         for (index, row) in rows.enumerated() {
             row.tag = Self.dynamicTag

@@ -4,8 +4,9 @@ import SwiftUI
 
 @MainActor
 final class AppSettingsWindowController: NSWindowController {
-    init(model: AppSettingsModel) {
-        let hosting = NSHostingController(rootView: AppSettingsView(model: model))
+    init(model: AppSettingsModel, vms: VMListModel) {
+        let hosting = NSHostingController(
+            rootView: AppSettingsView(model: model, installers: InstallerSettings(vms: vms)))
         let window = NSWindow(contentViewController: hosting)
         window.styleMask = [.titled, .closable]
         window.title = "Settings"

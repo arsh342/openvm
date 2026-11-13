@@ -15,6 +15,10 @@ let usage = """
       openvmctl task start windows-media --iso <file.iso> --name <name>
       openvmctl windows-iso check <file.iso>
       openvmctl linux-iso check <file.iso>
+      openvmctl installer list                (what openVM can download, and what it has)
+      openvmctl installer fetch <entry>       (downloads a Linux installer; follow it with task status <task-id>)
+      openvmctl installer remove <entry>
+      openvmctl installer identify <file.iso> (is it Windows or Linux, and can it be used)
       openvmctl eject <name|uuid>
       openvmctl task status|cancel <task-id>
       openvmctl delete <name|uuid>

@@ -284,6 +284,71 @@ extension SnapshotTests {
     }
 
     @Test(.enabled(if: Snapshot.enabled))
+    func galleryWithDownloadTiles() async {
+        let defaults = UserDefaults(suiteName: "openvm-snapshots")!
+        defaults.removePersistentDomain(forName: "openvm-snapshots")
+        defaults.set(true, forKey: "show-untested-installers")
+        let model = await wizardModel()
+        let gallery = GalleryModel(transport: FakeTransport(), defaults: defaults)
+        Snapshot.check(
+            "wizard-gallery-downloads", CreateWizardView(model: model, gallery: gallery, close: {}),
+            width: 600, height: 760)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func wizardWhileItsInstallerDownloads() async {
+        let host = FakeTransport()
+        host.respond("task-start", with: [("taskId", .text("iso-1"))])
+        host.respond(
+            "task-status",
+            with: [
+                ("state", .text("running")), ("bytesDone", .uint(1_200_000_000)),
+                ("bytesTotal", .uint(3_900_000_000)),
+                ("bytesPerSecond", .uint(12_000_000)),
+            ])
+        let model = await wizardModel(host)
+        let following = Task { await model.chooseDownload(InstallerCatalog.entry("ubuntu-lts")!) }
+        for _ in 0..<200 where model.download?.done != 1_200_000_000 {
+            try? await Task.sleep(for: .milliseconds(2))
+        }
+        Snapshot.check("wizard-downloading", wizardView(model), width: 600, height: 540)
+        await model.pauseDownload()
+        await following.value
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
+    func libraryInstallers() async {
+        let host = FakeTransport()
+        host.respond(
+            "installers-list",
+            with: [
+                (
+                    "installers",
+                    .array([
+                        .map([
+                            ("entry", .text("ubuntu-lts")), ("name", .text("Ubuntu")),
+                            ("file", .text("ubuntu-26.04.1-desktop-arm64.iso")),
+                            ("path", .text("/x/a.iso")), ("bytes", .uint(3_900_000_000)),
+                            ("complete", .bool(true)),
+                        ]),
+                        .map([
+                            ("entry", .text("fedora-workstation")), ("name", .text("Fedora Workstation")),
+                            ("file", .text("Fedora-Workstation-Live-45-1.4.aarch64.iso")),
+                            ("path", .text("/x/b.iso.part")),
+                            ("bytes", .uint(1_200_000_000)), ("complete", .bool(false)),
+                            ("taskId", .text("iso-2")),
+                            ("bytesTotal", .uint(2_987_100_160)), ("bytesPerSecond", .uint(12_000_000)),
+                        ]),
+                    ])
+                )
+            ])
+        let model = VMListModel(transport: host)
+        await model.refresh()
+        Snapshot.check(
+            "library-installers", InstallersView(model: model, newVM: { _ in }), width: 700, height: 300)
+    }
+
+    @Test(.enabled(if: Snapshot.enabled))
     func wizardGetsWindowsFromMicrosoft() async {
         let model = await wizardModel()
         model.chooseSystem(.windows)

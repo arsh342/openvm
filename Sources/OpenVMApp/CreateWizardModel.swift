@@ -36,6 +36,20 @@ final class CreateWizardModel: ObservableObject {
         var state: StepState
     }
 
+    /// A download the wizard started, or joined: the host runs it, and it outlives this window.
+    struct Download: Equatable {
+        enum State: Equatable {
+            case running, paused, verified
+            case failed(FailureMessage)
+        }
+        let entry: InstallerCatalog.Entry
+        var taskId: String?
+        var state: State = .running
+        var done: UInt64 = 0
+        var total: UInt64?
+        var bytesPerSecond: UInt64 = 0
+    }
+
     /// Why the run stopped: not a failure, the person asked.
     private struct Cancelled: Error {}
 
@@ -49,6 +63,7 @@ final class CreateWizardModel: ObservableObject {
             iso = .none
             isoUnchecked = false
             isoFailure = nil
+            download = nil
         }
     }
     @Published var name = ""
@@ -68,6 +83,8 @@ final class CreateWizardModel: ObservableObject {
     @Published private(set) var isoFailure: FailureMessage?
     /// The technical text of a failure is on show.
     @Published var detailsShown = false
+    /// The installer this VM is waiting for, when it was chosen from a download tile.
+    @Published private(set) var download: Download?
     @Published private(set) var fetch: FetchState = .idle
     @Published private(set) var host: HostInfo?
     @Published private(set) var steps: [Step] = []
@@ -174,6 +191,7 @@ final class CreateWizardModel: ObservableObject {
     /// Takes a file dropped or chosen in the gallery: the host says whether it is Windows or Linux, and
     /// a usable one moves the wizard on. This is what makes the gallery one step instead of two.
     func useInstaller(_ path: String) async {
+        download = nil  // a file of the person's own replaces a download; the host keeps the download
         isoPath = path
         iso = .checking
         isoFailure = nil
@@ -188,8 +206,84 @@ final class CreateWizardModel: ObservableObject {
         }
     }
 
+    /// A download tile was chosen. The host starts the download, and the wizard goes on to the sizes
+    /// while it runs: only Create waits for the file to be verified.
+    func chooseDownload(_ entry: InstallerCatalog.Entry) async {
+        os = .linuxISO
+        isoPath = nil
+        iso = .none
+        isoFailure = nil
+        download = Download(entry: entry)
+        page = .resources
+        await startDownload()
+    }
+
+    /// Starts the download, or picks it up, and follows it until it stops.
+    func startDownload() async {
+        guard var current = download else { return }
+        do {
+            let started = try await transport.send(
+                "task-start", [("kind", .text("fetch-iso")), ("entry", .text(current.entry.id))])
+            guard case .text(let id)? = DaemonClient.field(started, "taskId") else {
+                throw HostError.remote("The host did not start the download.")
+            }
+            current.taskId = id
+            current.state = .running
+            download = current
+            while let now = download, now.taskId == id, now.state == .running {
+                let status = try await transport.send("task-status", [("taskId", .text(id))])
+                guard var fresh = download, fresh.taskId == id else { return }
+                if case .uint(let done)? = DaemonClient.field(status, "bytesDone") { fresh.done = done }
+                if case .uint(let total)? = DaemonClient.field(status, "bytesTotal") { fresh.total = total }
+                if case .uint(let speed)? = DaemonClient.field(status, "bytesPerSecond") {
+                    fresh.bytesPerSecond = speed
+                }
+                switch text(status, "state") {
+                case "done":
+                    fresh.state = .verified
+                    isoPath = text(status, "path")
+                    iso = .usable
+                case "failed":
+                    let code = text(status, "code")
+                    fresh.state = .failed(
+                        FailureMessage.of(
+                            code: code.isEmpty ? "download-failed" : code, details: text(status, "error"),
+                            page: fresh.entry.page))
+                case "cancelled": fresh.state = .paused
+                default: break
+                }
+                download = fresh
+                if fresh.state == .running { try await Task.sleep(for: pollInterval) }
+            }
+        } catch {
+            guard var failed = download else { return }
+            failed.state = .failed(
+                FailureMessage.of(code: "download-failed", details: "\(error)", page: failed.entry.page))
+            download = failed
+        }
+    }
+
+    /// Stops the download. The host keeps what it has, so it can be picked up again.
+    func pauseDownload() async {
+        guard let id = download?.taskId, download?.state == .running else { return }
+        _ = try? await transport.send("task-cancel", [("taskId", .text(id))])
+        if download?.taskId == id { download?.state = .paused }
+    }
+
+    /// Why Create must wait, or nil: the installer is still downloading, or its download stopped.
+    var createBlocked: String? {
+        guard let download else { return nil }
+        switch download.state {
+        case .verified: return nil
+        case .running: return "Waiting for \(download.entry.name) to finish downloading."
+        case .paused: return "The download of \(download.entry.name) is paused."
+        case .failed: return "\(download.entry.name) did not download."
+        }
+    }
+
     /// A tile was chosen: the installer page is next, where its file is brought in.
     func chooseSystem(_ system: OS) {
+        download = nil
         os = system
         page = .source
     }
@@ -225,6 +319,7 @@ final class CreateWizardModel: ObservableObject {
     /// What the VM runs, for the library: "Windows 11", or the Linux file's name without ".iso".
     var systemName: String {
         if os == .windows { return "Windows 11" }
+        if let download { return download.entry.name }
         guard let isoPath else { return "Linux" }
         return URL(fileURLWithPath: isoPath).deletingPathExtension().lastPathComponent
     }
@@ -378,7 +473,8 @@ final class CreateWizardModel: ObservableObject {
     func back() {
         switch page {
         case .source: page = .gallery
-        case .resources: page = .source
+        // A downloaded installer has no file page: the gallery is where it was chosen.
+        case .resources: page = download == nil ? .source : .gallery
         case .account: page = .resources
         case .summary: page = os == .windows ? .account : .resources
         default: break
@@ -395,7 +491,7 @@ final class CreateWizardModel: ObservableObject {
 
     /// Does everything the pages asked for. Stops, quietly, if cancelled; says why if it fails.
     func create() async {
-        guard page == .summary else { return }
+        guard page == .summary, createBlocked == nil else { return }
         cancelled = false
         createdName = nil
         mediaTask = nil

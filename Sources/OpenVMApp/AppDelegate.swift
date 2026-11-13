@@ -151,7 +151,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// openVM's own settings (openVM ▸ Settings…).
     private func showAppSettings() {
-        let controller = appSettings ?? AppSettingsWindowController(model: settings)
+        let controller = appSettings ?? AppSettingsWindowController(model: settings, vms: model)
         appSettings = controller
         NSApp.setActivationPolicy(.regular)
         controller.showWindow(nil)
@@ -251,13 +251,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     // MARK: quitting
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        guard case .confirm(let running, let installing, let dropping) = quitDecision(model.vms) else {
+        let downloading = model.downloading.map(\.name)
+        guard
+            case .confirm(let running, let installing, let dropping) = quitDecision(
+                model.vms, downloading: downloading)
+        else {
             return .terminateNow
         }
         let alert = NSAlert()
         alert.messageText = "Quit openVM?"
-        alert.informativeText = quitMessage(running: running, installing: installing, dropping: dropping)
-        alert.addButton(withTitle: "Shut Down and Quit")
+        alert.informativeText = quitMessage(
+            running: running, installing: installing, dropping: dropping, downloading: downloading)
+        alert.addButton(withTitle: quitButtonTitle(running: running, installing: installing))
         alert.addButton(withTitle: "Cancel")
         guard alert.runModal() == .alertFirstButtonReturn else { return .terminateCancel }
         // Every guest is asked to shut down, in parallel, before the app goes: quitting with

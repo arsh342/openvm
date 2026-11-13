@@ -12,6 +12,8 @@ final class VMListModel: ObservableObject {
     @Published var lastError: String?
     /// Set while the host does not answer; clears when it does.
     @Published private(set) var hostProblem: String?
+    /// openVM's installer cache: finished installers and downloads in flight.
+    @Published private(set) var installers: [InstallerRow] = []
 
     let transport: any HostTransport
     private let interval: Duration
@@ -45,12 +47,58 @@ final class VMListModel: ObservableObject {
             let fresh = try await transport.listVMs()
             if fresh != vms { vms = fresh }  // no republish when nothing changed
             if hostProblem != nil { hostProblem = nil }
+            await refreshInstallers()
         } catch {
             hostProblem = "openVM's host is not reachable: \(error)"
         }
     }
 
     func vm(uuid: String) -> VmSummary? { vms.first { $0.uuid == uuid } }
+
+    // MARK: installers
+
+    /// A host from before downloads does not know the op: then there are none.
+    private func refreshInstallers() async {
+        var fresh: [InstallerRow] = []
+        if let reply = try? await transport.send("installers-list", []),
+            case .array(let rows)? = DaemonClient.field(reply, "installers")
+        {
+            fresh = rows.compactMap(InstallerRow.init(row:))
+        }
+        if fresh != installers { installers = fresh }
+    }
+
+    /// The names of the installers that are downloading now, for the quit dialog and the menu-bar icon.
+    var downloading: [InstallerRow] { installers.filter(\.downloading) }
+
+    /// Stops a download. What it has is kept, so it can be picked up again.
+    func pauseDownload(_ row: InstallerRow) async {
+        guard let id = row.taskId else { return }
+        _ = try? await transport.send("task-cancel", [("taskId", .text(id))])
+        await refreshInstallers()
+    }
+
+    /// Starts, or picks up, the download of a catalog entry.
+    func startDownload(entry: String) async {
+        do {
+            _ = try await transport.send(
+                "task-start", [("kind", .text("fetch-iso")), ("entry", .text(entry))])
+            lastError = nil
+        } catch {
+            lastError = "\(error)"
+        }
+        await refreshInstallers()
+    }
+
+    func removeInstaller(entry: String) async {
+        do {
+            _ = try await transport.send("installer-remove", [("entry", .text(entry))])
+            lastError = nil
+        } catch {
+            lastError = "\(error)"
+        }
+        await refreshInstallers()
+    }
 
     // MARK: actions
 

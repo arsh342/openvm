@@ -16,6 +16,10 @@ struct CreateWizardView: View {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(24)
+            if let download = model.download {
+                Divider()
+                downloadBar(download).padding(.horizontal, 16).padding(.vertical, 10)
+            }
             Divider()
             footer.padding(12)
         }
@@ -72,7 +76,13 @@ struct CreateWizardView: View {
         case .chooseAnotherFile: chooseISO()
         case .getWindows: NSWorkspace.shared.open(InstallerCatalog.windowsPage)
         case .openPage(let url): NSWorkspace.shared.open(url)
-        case .downloadAgain, .tryAgain: Task { await model.fetchLinux() }
+        case .downloadAgain: Task { await model.startDownload() }
+        case .tryAgain:
+            if model.download != nil {
+                Task { await model.startDownload() }
+            } else {
+                Task { await model.fetchLinux() }
+            }
         }
     }
 
@@ -247,7 +257,10 @@ struct CreateWizardView: View {
     private var systemLabel: String {
         switch model.os {
         case .windows: return "Windows 11 (ARM64)"
-        case .linuxISO: return model.isoPath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "Linux"
+        case .linuxISO:
+            return model.download?.entry.name ?? model.isoPath.map {
+                URL(fileURLWithPath: $0).lastPathComponent
+            } ?? "Linux"
         }
     }
 
@@ -335,9 +348,48 @@ struct CreateWizardView: View {
         return problem
     }
 
+    /// The installer this VM waits for: how far it is, with Pause and Resume. It runs in openVM's host,
+    /// so it carries on if this window is closed.
+    private func downloadBar(_ download: CreateWizardModel.Download) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            switch download.state {
+            case .running:
+                HStack(spacing: 10) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Downloading \(download.entry.name)").font(.callout.weight(.medium))
+                        ProgressView(value: DownloadText.fraction(done: download.done, total: download.total))
+                            .accessibilityLabel("Download of \(download.entry.name)")
+                        Text(
+                            DownloadText.progress(
+                                done: download.done, total: download.total,
+                                bytesPerSecond: download.bytesPerSecond)
+                        )
+                        .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                    }
+                    Button("Pause") { Task { await model.pauseDownload() } }
+                }
+            case .paused:
+                HStack {
+                    Label("The download of \(download.entry.name) is paused", systemImage: "pause.circle")
+                    Spacer()
+                    Button("Resume") { Task { await model.startDownload() } }
+                }
+            case .verified:
+                Label(
+                    "\(download.entry.name) is downloaded and checked", systemImage: "checkmark.circle.fill"
+                )
+                .foregroundStyle(.green)
+            case .failed(let failure):
+                FailureView(failure: failure, detailsShown: $model.detailsShown, act: act)
+            }
+        }
+    }
+
     private var footer: some View {
         HStack {
-            if let problem = footerProblem {
+            if model.page == .summary, let waiting = model.createBlocked {
+                Text(waiting).font(.callout).foregroundStyle(.secondary).lineLimit(2)
+            } else if let problem = footerProblem {
                 Text(problem).font(.callout).foregroundStyle(.secondary).lineLimit(2)
             }
             Spacer()
@@ -352,6 +404,7 @@ struct CreateWizardView: View {
                 if model.page != .gallery { Button("Back") { model.back() } }
                 if model.page == .summary {
                     Button("Create") { Task { await model.create() } }.keyboardShortcut(.defaultAction)
+                        .disabled(model.createBlocked != nil)
                 } else if model.page == .gallery && model.iso != .usable {
                     // The gallery moves on by itself when a file or a system is chosen.
                     EmptyView()

@@ -124,6 +124,24 @@ case "task":
         print(usage)
         exit(2)
     }
+case "installer":
+    // The systems openVM can download, and its installer cache. A download is named by a catalog entry.
+    if argv.count == 2, argv[1] == "list" {
+        requestOp = "installers-list"
+    } else if argv.count == 3, argv[1] == "fetch" {
+        requestOp = "task-start"
+        args.append(("kind", .text("fetch-iso")))
+        args.append(("entry", .text(argv[2])))
+    } else if argv.count == 3, argv[1] == "remove" {
+        requestOp = "installer-remove"
+        args.append(("entry", .text(argv[2])))
+    } else if argv.count == 3, argv[1] == "identify" {
+        requestOp = "installer-identify"
+        args.append(("iso", .text(URL(fileURLWithPath: argv[2]).standardizedFileURL.path)))
+    } else {
+        print(usage)
+        exit(2)
+    }
 case "windows-iso" where argv.count == 3 && argv[1] == "check":
     // Is this ISO something a Windows guest can be built from?
     requestOp = "windows-iso-check"
@@ -353,7 +371,20 @@ do {
         {
             for row in rows { printRow(row) }
         }
-        if ["host-info", "task-start", "task-status", "task-cancel", "windows-iso-check", "linux-iso-check"].contains(requestOp),
+        if requestOp == "installers-list", case .map(let res)? = (entries.first { $0.key == "result" }?.value)
+        {
+            // What can be fetched, then what is in the cache.
+            for entry in InstallerCatalog.entries where entry.kind == .linux {
+                print("entry=\(entry.id)  name=\(entry.name)  tested=\(entry.evidence != nil)")
+            }
+            if case .array(let rows)? = (res.first { $0.key == "installers" }?.value) {
+                for row in rows { printRow(row) }
+            }
+        }
+        if [
+            "host-info", "task-start", "task-status", "task-cancel", "windows-iso-check", "linux-iso-check",
+            "installer-identify", "installer-remove",
+        ].contains(requestOp),
             case .map(let res)? = (entries.first { $0.key == "result" }?.value)
         {
             print(

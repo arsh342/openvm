@@ -127,7 +127,6 @@ struct VMListOutboxTests {
     }
 }
 
-
 @MainActor
 struct VMRestartTests {
     @Test func restartStopsThenStarts() async {
@@ -135,7 +134,7 @@ struct VMRestartTests {
         host.rows = [FakeTransport.row("w", state: "stopped")]  // what the host says after the stop
         let model = VMListModel(transport: host)
         await model.restart(FakeTransport.summary(state: "running"))
-        #expect(host.calls.filter { $0 != "list" } == ["stop", "start"])
+        #expect(host.calls.filter { $0 != "list" && $0 != "installers-list" } == ["stop", "start"])
     }
 
     @Test func aRefusedStopDoesNotStartAgain() async {

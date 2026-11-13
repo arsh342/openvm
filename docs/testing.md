@@ -15,7 +15,7 @@ Run `make check` before every commit. Run the Windows smoke when a change touche
 | --- | --- |
 | `Tests/OpenVMCoreTests` | The codec, registry and feature rules, including old Alpine records, and the helper VM's job script run against fake commands |
 | `Tests/OpenVMDaemonTests` | Host policy: readiness, shutdown, the clock push, host sleep, host tasks, the host lock, the helper VM's endpoint and command line, outbox intake, and what `create` refuses |
-| `Tests/OpenVMAppTests` | The app's models and menus without a window: the wizard, settings, the library, the clipboard rules, drops |
+| `Tests/OpenVMAppTests` | The app's models and menus without a window: the one list of VM commands, the menu bar and which keys the Mac keeps, the library, the gallery and the wizard, failure messages, downloads, settings, the clipboard rules, drops |
 | `tools/test/test-*-agent` | Each Linux agent feature (kept for a later Linux guest; no guest installs it now), including hostile input, the Windows agent's build, codec, and hostile input to its drop parser, and `test-send-agent` for the guest send tool |
 | `tools/test/conformance.sh` | Golden bytes through the mock guest |
 
@@ -37,8 +37,11 @@ Printing uses a stand-in for CUPS, so no paper is involved. Output from passing 
 
 ## UI snapshots
 
-`Tests/OpenVMAppTests/SnapshotTests.swift` renders the VM list to a PNG and compares it with
-the baselines in `Tests/OpenVMAppTests/Snapshots`. They are opt-in (`OPENVM_UI_SNAPSHOTS=1`),
+`Tests/OpenVMAppTests/SnapshotTests.swift` renders each content view to a PNG, in light and in dark (`name.png`
+and `name-dark.png`), and compares it with the baselines in `Tests/OpenVMAppTests/Snapshots`. A view is rendered
+inside an offscreen window, after a turn of the run loop, because lists and tables make their rows only there.
+Window chrome (toolbars, the sidebar's glass, menus, the icon) is not captured: only a person sees that.
+The baselines were recorded on macOS 27. They are opt-in (`OPENVM_UI_SNAPSHOTS=1`),
 because how text and controls draw depends on the macOS version, so a baseline recorded on one
 Mac fails on another and on CI. After a deliberate change to a view, refresh them with
 `OPENVM_UI_SNAPSHOTS=1 OPENVM_UI_RECORD=1 make test`, then open the PNGs and look at them
@@ -59,3 +62,15 @@ OPENVM_E2E=1 make test                        # cancel a Windows media build (ab
 
 It needs `make payload` run and the ISO in `windowsImage/`. It leaves no files, mounts or processes
 behind.
+
+## Installer downloads
+
+`Tests/OpenVMDaemonTests/InstallerDownloadsTests.swift` runs the host's download job against a small HTTP
+server the test starts on this Mac: a good download, a damaged one, a file the installer check refuses, a
+missing file, a cut-off download picked up again, cancel and resume, a full disk, a second start, an index
+that redirects to another host, and plain HTTP refused. The server is plain HTTP on 127.0.0.1, so each test
+turns the HTTPS rule off for itself; the rule (HTTPS only, and the index from the vendor's own host) is tested
+as a plain function in `Tests/OpenVMCoreTests/InstallerSourcesTests.swift`.
+
+These tests wait with `Task.sleep`, never `Thread.sleep`: URLSession needs the threads the tests run on, and
+tests that sleep on them stalled every download until they timed out (measured, with a sample of the process).

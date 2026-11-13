@@ -4,6 +4,17 @@
 
 First public version.
 
+* The app is redesigned around standard Mac controls. A gallery starts a new virtual machine: drop or choose an installer file (openVM tells Windows from Linux by the file), or pick a system. The Windows 11 tile opens Microsoft's download page and says what to expect
+* The library is a sidebar, a sortable table (name, system, status, last used, size on disk) and a detail pane. Status is a symbol and a word. Return opens a virtual machine, Space starts or resumes it, Command-Delete deletes after asking
+* The menu bar is openVM, File, Edit, View, Virtual Machine, Window and Help. Commands under Virtual Machine act on the window in front, where before they acted on the machine last used. Copy and paste work in openVM's own text fields
+* openVM has its own Settings (Command-comma): the menu-bar icon, previews, and downloaded installers. A virtual machine's settings moved to Option-Command-comma
+* While a guest has the keyboard, every key combination but a short fixed list goes to the guest
+* Each virtual machine's window has a standard toolbar, in place of the round buttons that faded in the title bar
+* openVM can download Linux installers itself (`openvmctl installer`, and tiles in the gallery once each system has an install on record), checked against the maker's published SHA-256, resumable, and kept in `~/.openvm/isos`
+* Failures are a plain title, one sentence and one action, with the technical text behind Details
+* A stopped Linux virtual machine that still has its installer offers Remove Installer and Start
+* `create --system-name`, and `list` rows with `lastStartedAt`, `systemName`, `createdAt` and `diskUsedBytes`
+
 * openVM no longer makes its own Alpine Linux guest: Linux installs from the distribution's own ISO, as Windows does. Alpine VMs made earlier are listed but not started, and can be deleted. `create` now needs `--boot-mode windows` or `--boot-mode linux-iso`. The View menu's Retina Resolution items went with it, as no remaining guest used them
 
 * Windows 11 ARM64 guests, installed unattended from your own ISO

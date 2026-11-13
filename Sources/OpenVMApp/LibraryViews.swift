@@ -41,11 +41,16 @@ struct LibrarySidebarView: View {
     var body: some View {
         List(selection: $nav.group) {
             Section("Virtual Machines") {
-                ForEach(LibraryGroup.allCases, id: \.self) { group in
+                ForEach(LibraryGroup.machines, id: \.self) { group in
                     Label(group.title, systemImage: group.symbol)
                         .badge(group == .running ? LibraryNav.members(model.vms, of: .running).count : 0)
                         .tag(group)
                 }
+            }
+            Section("Installers") {
+                Label(LibraryGroup.installers.title, systemImage: LibraryGroup.installers.symbol)
+                    .badge(model.downloading.count)
+                    .tag(LibraryGroup.installers)
             }
         }
         .listStyle(.sidebar)
@@ -78,14 +83,18 @@ struct VMTableView: View {
 
     @ViewBuilder private var content: some View {
         let rows = rows
-        if model.vms.isEmpty {
+        if nav.group == .installers {
+            InstallersView(model: model, newVM: newVM)
+        } else if model.vms.isEmpty {
             // With no VMs the library is the gallery: the same first screen the creation window opens on.
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Create your first virtual machine").font(.title2.weight(.semibold))
                     GalleryView(
                         gallery: gallery, status: .none, chooseFile: { newVM(.file($0)) },
-                        chooseTile: { newVM(.system($0.entry.kind)) }, act: { _ in })
+                        chooseTile: {
+                            newVM($0.entry.kind == .windows ? .system(.windows) : .entry($0.entry.id))
+                        }, act: { _ in })
                 }
                 .frame(maxWidth: 560, alignment: .leading)
                 .padding(24)
@@ -271,5 +280,76 @@ struct Banner: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .background(tint.opacity(0.12))
+    }
+}
+
+// MARK: installers
+
+/// The installers openVM downloaded, and downloads in flight: what each is, how big, and what can be done
+/// with it. An installer is kept for later VMs and removed only here or in Settings, never by itself.
+struct InstallersView: View {
+    @ObservedObject var model: VMListModel
+    let newVM: (NewVMStart) -> Void
+
+    var body: some View {
+        if model.installers.isEmpty {
+            VStack(spacing: 8) {
+                Image(systemName: "arrow.down.circle").font(.system(size: 40)).foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+                Text("No Installers").font(.title3.weight(.medium))
+                Text(
+                    "Installers that openVM downloads are kept here, so a second virtual machine needs no second download."
+                )
+                .foregroundStyle(.secondary).multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(32)
+        } else {
+            List(model.installers) { row in
+                HStack(spacing: 12) {
+                    Image(systemName: row.complete ? "opticaldisc" : "arrow.down.circle").font(.title2)
+                        .foregroundStyle(.secondary).frame(width: 30).accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(row.name).font(.headline)
+                        Text(row.file).font(.callout).foregroundStyle(.secondary).lineLimit(1).truncationMode(
+                            .middle)
+                        status(row)
+                    }
+                    Spacer(minLength: 8)
+                    buttons(row)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
+
+    @ViewBuilder private func status(_ row: InstallerRow) -> some View {
+        if row.complete {
+            Text("\(DownloadText.size(row.bytes)) · Downloaded and checked").font(.callout).foregroundStyle(
+                .secondary)
+        } else if row.downloading {
+            ProgressView(value: DownloadText.fraction(done: row.bytes, total: row.bytesTotal))
+                .accessibilityLabel("Download of \(row.name)")
+            Text(
+                DownloadText.progress(
+                    done: row.bytes, total: row.bytesTotal, bytesPerSecond: row.bytesPerSecond)
+            )
+            .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+        } else {
+            Text("\(DownloadText.size(row.bytes)) downloaded · Paused").font(.callout).foregroundStyle(
+                .secondary)
+        }
+    }
+
+    @ViewBuilder private func buttons(_ row: InstallerRow) -> some View {
+        if row.complete {
+            Button("New Virtual Machine…") { newVM(.file(URL(fileURLWithPath: row.path))) }
+        } else if row.downloading {
+            Button("Pause") { Task { await model.pauseDownload(row) } }
+        } else {
+            Button("Resume") { Task { await model.startDownload(entry: row.entry) } }
+        }
+        Button("Remove", role: .destructive) { Task { await model.removeInstaller(entry: row.entry) } }
+            .help("Remove this installer from the Mac")
     }
 }

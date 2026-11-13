@@ -41,7 +41,8 @@ and write the result next to each line.
       clicked at scale 2, and on Windows.
 * [ ] Cmd+C, Cmd+V, Cmd+W, Cmd+Q and Cmd+Tab: what each does windowed and in full screen.
       Cmd+Q must not quit the app silently while a guest has focus.
-* [ ] A menu key equivalent does not swallow a guest shortcut.
+* [ ] A menu key equivalent does not swallow a guest shortcut. Since 2026-11-13 the VM view claims key
+      combinations before the menu bar ("The redesign", Keys); still to press by hand in a guest.
 * [ ] The boot screen shows through a Windows install.
 * [ ] A 12-minute idle stays responsive (past Windows' Modern Standby timer of about 5.5
       minutes).
@@ -135,7 +136,11 @@ everything, and Shut Down and Quit shuts a guest down cleanly (on Windows, no Ke
 afterwards); closing the last window with a guest running removes the Dock icon, and the
 menu-bar icon brings a window back; host sleep with a window open pauses and resumes.
 
-## The menus, the library and settings
+## The menus, the library and settings (as built in M4)
+
+**Superseded on 2026-11-13** by "The redesign" at the end of this file: the View, Actions and Devices menus, the
+card library, the title-bar buttons and "no Edit menu" described here are gone. Kept as the record of what was
+measured then.
 
 * **View, Actions and Devices** are in the menu bar and, as submenus, under the menu-bar icon. One
   piece of code (`MachineMenus`) feeds both, so they cannot disagree.
@@ -494,3 +499,128 @@ at the view's size. Asked to stop from the host, that guest did not stop within 
 off, so shut these guests down from inside. Alpine's ARM64 and x86_64 virt ISOs were told apart by the
 check, and a cut-off file was refused. An installed Omarchy 7.3 started from its disk and was used on
 2026-11-11. Not yet seen on a real guest: live resizing, and any distribution other than Omarchy.
+
+## The redesign (2026-11-13)
+
+Built from standard AppKit and SwiftUI controls, so macOS draws them in its own style. The design, with what
+changed after the code was read, is `design_ui_redesign.md` (kept outside this repository).
+
+### One list of commands
+
+`VMCommand` defines every command on a VM once: its name, symbol, shortcut, when it is live and what it does.
+The menu bar, the menu under the menu-bar icon, the library's context menu and detail pane, and the VM
+window's toolbar all render from it. Before, three lists (`VMAction`, `MachineCommand` and the toolbar's
+buttons) had drifted apart ("Settings" and "Settings…", "New VM…" and "New Virtual Machine…").
+
+A menu-bar command has no target. AppKit's responder chain delivers it to the window in front: a VM's window
+answers for its VM, the library for the VM selected in its table, and with neither in front the command is
+off. Before, the menu bar acted on the VM last used, which could start a VM other than the one selected. The
+"current VM" remains only under the menu-bar icon, whose menu opens with no window of ours in front.
+
+### The menu bar
+
+openVM, File, Edit, View, Virtual Machine, Window, Help. Actions and Devices folded into Virtual Machine
+(Devices is a submenu). Settings on Command-comma is the app's; a VM's settings are Option-Command-comma.
+Help is registered with the system, which gives its menu search. Only commands that work are listed.
+
+### Keys
+
+**The rule.** While a guest's screen has the keyboard, every key combination is the guest's, except a short
+fixed list the Mac keeps (`GuestKeys`): Command-Q, Command-H, Option-Command-H, Control-Command-F, Command-`
+and Option-Command-comma. In a Windows guest Command is the Windows key, so almost every Command shortcut
+means something there too.
+
+**How.** AppKit offers a key combination to the views of the window in front before the menu bar. The VM view
+(`DropMachineView.performKeyEquivalent`) claims it there and passes it on as an ordinary key press, which is
+the path such a key took before there was an Edit menu to compete for it.
+
+**Measured** (a probe outside the app, 2026-11-13): Apple's `VZVirtualMachineView` does not claim key
+combinations itself (`performKeyEquivalent` returned false for Command-C and Command-N), and does not answer
+`copy:`. **Not measured:** the order itself, in a real window with a guest. The probe could not make its
+window key from the terminal, so its view never saw the event. The order is AppKit's documented one; it still
+has to be pressed by hand (`docs/manual-checks.md`, "The redesign").
+
+**A test holds the list to the menu bar:** every shortcut the Mac keeps is one the menu bar has, and no two
+menu items share a shortcut.
+
+### The library
+
+Three panes under a standard toolbar (New, Start or Shut Down for the selection, search, the detail pane's
+switch):
+
+* **Sidebar** (a `List` in the sidebar style): Virtual Machines (All, Running) and Installers (Downloaded).
+  Running means anything that holds a live guest: running, paused or booting.
+* **Table** (a `Table`): Name, System, Status, Last Used, Size on Disk. A header click sorts. Return or a double
+  click opens the VM, Space starts or resumes it, Command-Delete deletes after a sheet with a red Delete button.
+  The first VM is selected when nothing is, so a menu command has something to act on.
+* **Detail pane** (an inspector): the preview, or a plain glyph when there is none or previews are off in
+  Settings; the status in words; the command most wanted; the VM's facts.
+* **Status** is a symbol and a word everywhere (`VMStatus`), never colour alone. Paused says "Not saved if
+  openVM quits", and is not coloured as a warning.
+* **With no VMs** the table's place is the gallery.
+
+Three fields feed the table, all optional so older records and rows still read: `lastStartedAt` (the host
+writes it at `start`), `systemName` (`create --system-name`), and `diskUsedBytes` on a row, the space the sparse
+disk really takes. `diskBytes` is still the disk's limit.
+
+### The gallery and the wizard
+
+The creation window opens on the gallery: "Install from a file" (a drop area and Choose File…, which starts
+in Downloads) and a tile for each system. The library shows the same view while there are no VMs.
+
+* **A file says what it is.** The host's `installer-identify` runs the Windows check first and the Linux check
+  only for a file that is not Windows, because a Windows Arm ISO also holds `bootaa64.efi`, which is all the
+  Linux check looks for. A usable file moves the wizard straight to the sizes.
+* **Windows 11** leads to a page with a button to Microsoft's download page, the three choices to make there,
+  and what to expect, said before anything is downloaded. The file is dropped on that page or chosen.
+* **Linux download tiles** start the host's download and move on to the sizes while it runs; only Create
+  waits for the verified file. The download belongs to the host, so closing the wizard leaves it running, and
+  it shows in the library (Installers), under the menu-bar icon, and in the quit dialog.
+* **A tile is a support promise.** A Linux entry is listed only once its `evidence` names a file in
+  `docs/evidence` recording a full install through openVM. Neither Ubuntu nor Fedora has one yet, so no Linux
+  tile shows. `defaults write dev.openvm.app show-untested-installers -bool yes` lists them, marked
+  "Not tested yet".
+* **A tile says its cost first**: download size, free space needed, rough time, known limits. It is off, with
+  the reason, when the Mac lacks the space.
+* **Words.** The screens say Ubuntu, Windows 11, installer file and Arm. ARM64 and aarch64 appear only where a
+  person has to find the right file on a download page.
+
+### Failures
+
+`FailureMessage` turns a failure into a title, one sentence, one action and the technical text behind Details
+(with Copy). The host names the known failures with a `code`; the app maps codes, never sentences, and shows
+anything else as "Something went wrong" with the host's text as its details.
+
+### After a Linux install, and shutting down
+
+A stopped Linux VM whose installer is still attached shows "Remove Installer and Start" beside Start. There
+is no sheet: the host cannot tell an installer's "Restart now" from any other shutdown, and an installed VM
+may keep its installer attached. A guest without openVM's tools that is being stopped says so under its title
+("Asking <name> to shut down. This can take up to two minutes."). There is no Force Off: force stop is still
+not built.
+
+### The VM window
+
+A standard `NSToolbar` (unified compact): Start or Shut Down, Pause or Resume, a Devices menu and Settings,
+from the one list of commands. The round buttons that faded in the title bar are gone. Full screen is on the
+green window button, and in full screen the toolbar hides with the menu bar.
+
+**Not measured:** the guest's size against the content area with the toolbar, windowed and in full screen.
+The fit reads the machine view's own size, which Auto Layout holds to the content area, so it should follow;
+it has to be seen on a running guest (`docs/manual-checks.md`).
+
+### App Settings and the Dock icon
+
+openVM ▸ Settings… holds: show openVM in the menu bar; show previews in the library; the downloaded
+installers, where they are kept, the space they use, and Remove. With the menu-bar icon off, the Dock icon
+stays while a guest runs with no window open: the icon was the only way back.
+
+### What is not done
+
+* **The app icon.** Three directions are drawn as Icon Composer documents and rendered; the owner picks one.
+  Until then the app keeps its old icon. The menu-bar glyph is already the new one (a screen holding a second
+  screen), drawn in code.
+* **Evidence installs** of Ubuntu and Fedora, which gate their tiles.
+* **By hand:** the key rule in a guest, the toolbar and the guest's size, VoiceOver and keyboard passes,
+  Increase Contrast and Reduce Transparency.
+* **macOS 14 and 26.** Built and looked at on macOS 27 only. The compiler holds the code to macOS 14's APIs.

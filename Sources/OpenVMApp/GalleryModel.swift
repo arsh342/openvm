@@ -61,7 +61,7 @@ final class GalleryModel: ObservableObject {
     }
 
     /// Whether this build can download a Linux installer itself.
-    static let canDownload = false
+    static let canDownload = true
 
     /// The tiles to show. A Linux entry needs evidence of a full install (or the untested switch) and a
     /// build that can download it; Windows is always there, because its file comes from Microsoft's page.
@@ -92,4 +92,6 @@ enum NewVMStart: Equatable {
     case gallery
     case file(URL)
     case system(InstallerCatalog.Kind)
+    /// A download tile: the catalog entry's id.
+    case entry(String)
 }

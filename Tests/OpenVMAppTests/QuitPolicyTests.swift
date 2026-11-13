@@ -92,3 +92,18 @@ extension QuitPolicyTests {
         #expect(activationPolicy(openWindows: 0, anyGuestLive: true, menuBarIcon: true) == .accessory)
     }
 }
+
+extension QuitPolicyTests {
+    /// A download stops with the app. It keeps what it has, but quitting still says so first.
+    @Test func aRunningDownloadIsNamedBeforeQuitting() {
+        #expect(
+            quitDecision([], downloading: ["Ubuntu"]) == .confirm(running: [], installing: [], dropping: []))
+        #expect(quitDecision([], downloading: []) == .quitNow)
+        let text = quitMessage(running: [], installing: [], dropping: [], downloading: ["Ubuntu"])
+        #expect(text.contains("Ubuntu is still downloading"))
+        #expect(text.contains("picks up where it left off"))
+        // Nothing is shut down when only a download is running, so the button does not say so.
+        #expect(quitButtonTitle(running: [], installing: []) == "Quit")
+        #expect(quitButtonTitle(running: ["a"], installing: []) == "Shut Down and Quit")
+    }
+}

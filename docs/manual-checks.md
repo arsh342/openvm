@@ -78,3 +78,40 @@ A failure goes back as a bug with the step that showed it.
 - [ ] **Clean account.** On a new macOS user with no developer tools, do the whole of the above that
       the app offers. Any step that needs the terminal fails this. Moved to the final acceptance before a
       release (owner, 2026-11-12); it does not hold M4 open.
+
+## The redesign (2026-11-13)
+
+None of these has been done yet. The app was built and its views rendered and compared on macOS 27; a person
+has not used it.
+
+- [ ] **Keys in a guest.** In a windowed Windows guest and a Linux guest, with the guest's screen clicked:
+      Command-C and Command-V copy and paste inside the guest; Command-W, Command-N, Command-M and Command-0 go to
+      the guest and do nothing in openVM; Command-Q asks to quit; Command-H hides openVM; Control-Command-F
+      toggles full screen; Option-Command-comma opens the VM's settings.
+- [ ] **Edit in openVM's fields.** In the wizard's name field and the library's search field: Command-C, V, X,
+      A and Z work.
+- [ ] **Menu commands follow the window in front.** With three VMs and one running, select a stopped VM in
+      the library and choose Virtual Machine ▸ Start: that VM starts. With a VM's window in front the same menu
+      acts on that VM. With the wizard or Settings in front the commands are off.
+- [ ] **Library with the keyboard.** Arrows move the selection, Return opens, Space starts or resumes,
+      Command-Delete asks with a red Delete button. A header click sorts each column both ways.
+- [ ] **VoiceOver** reads every row's status as a word, names every toolbar button, and can reach the gallery's
+      drop area, tiles and buttons.
+- [ ] **Light, dark, Increase Contrast, Reduce Transparency**: the library, the gallery, the wizard and Settings.
+- [ ] **The VM window toolbar.** Its buttons follow the VM's state; the Devices menu ticks what is on. The guest
+      fills the area under the toolbar, windowed and in full screen, where the toolbar hides. Write the guest's
+      size against the window's in `docs/evidence`.
+- [ ] **The gallery.** Drop a Windows 11 Arm ISO, a Linux Arm ISO, a Linux ISO for Intel and a file that is not
+      an ISO: each is recognised or refused in plain words. The Windows tile opens Microsoft's page.
+- [ ] **A download** (with `show-untested-installers` on): Ubuntu downloads with size, speed and time left;
+      Pause and Resume work; closing the wizard leaves it running and the library's Installers shows it; quitting
+      names it; starting it again picks up where it stopped; the finished file is "Downloaded and checked".
+- [ ] **Evidence installs.** Install Ubuntu and Fedora from their tiles, and write
+      `docs/evidence/linux-iso-ubuntu-<date>.md` and `linux-iso-fedora-<date>.md`: installer reached, installed
+      desktop running, sound with and without the PipeWire setting, resizing, the exact file. Then name each
+      file in its catalog entry's `evidence`, which lists the tile.
+- [ ] **Remove Installer and Start** appears on a stopped Linux VM that still has its installer, and starts
+      the installed system.
+- [ ] **Settings.** Turning the menu-bar icon off removes it, and the Dock icon then stays with a guest running
+      and no window open. Turning previews off hides guest screens in the library.
+- [ ] **The app icon**: pick one of the three directions.
