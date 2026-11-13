@@ -576,10 +576,12 @@ in Downloads) and a tile for each system. The library shows the same view while 
 * **Linux download tiles** start the host's download and move on to the sizes while it runs; only Create
   waits for the verified file. The download belongs to the host, so closing the wizard leaves it running, and
   it shows in the library (Installers), under the menu-bar icon, and in the quit dialog.
-* **A tile is a support promise.** A Linux entry is listed only once its `evidence` names a file in
-  `docs/evidence` recording a full install through openVM. Neither Ubuntu nor Fedora has one yet, so no Linux
-  tile shows. `defaults write dev.openvm.app show-untested-installers -bool yes` lists them, marked
-  "Not tested yet".
+* **Every system in the catalog has a tile** (the owner's choice, 2026-11-13). Until then a Linux entry was
+  listed only once its `evidence` named a file in `docs/evidence` recording a full install, and others could be
+  shown with a preference, marked "Not tested yet"; that rule, the preference and the label are gone. The
+  catalog still records which entries have an install on record: Ubuntu does
+  (`docs/evidence/linux-iso-ubuntu-2026-11-13.md`, the owner's report), Fedora does not, and is listed because
+  Ubuntu, which installs the same way, works.
 * **A tile says its cost first**: download size, free space needed, rough time, known limits. It is off, with
   the reason, when the Mac lacks the space.
 * **Marks.** Windows, Ubuntu and Fedora show their own marks on their tiles and beside their VMs in the library
@@ -644,7 +646,8 @@ Not yet seen in the Dock or the menu bar by a person.
 
 ### What is not done
 
-* **Evidence installs** of Ubuntu and Fedora, which gate their tiles.
-* **By hand:** the key rule in a guest, the toolbar and the guest's size, VoiceOver and keyboard passes,
-  Increase Contrast and Reduce Transparency.
+* **A Fedora install on record.** Its tile is listed without one.
+* **By hand:** the key rule in a guest, Edit shortcuts in openVM's own fields, menu commands following the
+  window in front, VoiceOver, and the Settings switches. The owner did the rest on 2026-11-13
+  (`docs/evidence/manual-checks-2026-11-13.md`).
 * **macOS 14 and 26.** Built and looked at on macOS 27 only. The compiler holds the code to macOS 14's APIs.

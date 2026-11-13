@@ -295,18 +295,6 @@ extension SnapshotTests {
     }
 
     @Test(.enabled(if: Snapshot.enabled))
-    func galleryWithDownloadTiles() async {
-        let defaults = UserDefaults(suiteName: "openvm-snapshots")!
-        defaults.removePersistentDomain(forName: "openvm-snapshots")
-        defaults.set(true, forKey: "show-untested-installers")
-        let model = await wizardModel()
-        let gallery = GalleryModel(transport: FakeTransport(), defaults: defaults)
-        Snapshot.check(
-            "wizard-gallery-downloads", CreateWizardView(model: model, gallery: gallery, close: {}),
-            width: 600, height: 760)
-    }
-
-    @Test(.enabled(if: Snapshot.enabled))
     func wizardWhileItsInstallerDownloads() async {
         let host = FakeTransport()
         host.respond("task-start", with: [("taskId", .text("iso-1"))])

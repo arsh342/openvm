@@ -3,8 +3,8 @@
 // (resolved when a download starts, so a point release does not break it), and Windows only the page
 // where Microsoft gives out its installer.
 //
-// Each entry is a support promise. One is listed only once `evidence` names a file in docs/evidence
-// that records a full install through openVM.
+// Every entry is listed in the gallery (the owner's choice, 2026-11-13). `evidence` records which have a
+// full install through openVM on record in docs/evidence, and which are listed without one.
 import Foundation
 
 public nonisolated enum InstallerCatalog {
@@ -35,7 +35,7 @@ public nonisolated enum InstallerCatalog {
         public let time: String
         /// What does not work, or needs a step, said before anything is downloaded.
         public let limits: [String]
-        /// The file under docs/evidence that records a full install through openVM. Nil: not tested yet.
+        /// The file under docs/evidence that records a full install through openVM. Nil: none is on record.
         public let evidence: String?
         /// The vendor's own download page: the way out when a download fails, and all there is for Windows.
         public let page: URL
@@ -74,7 +74,8 @@ public nonisolated enum InstallerCatalog {
                 "No sound until you add the PipeWire setting from openVM’s Help.",
                 "The clipboard and files are not shared with the Mac yet.",
             ],
-            evidence: nil, page: URL(string: "https://ubuntu.com/download/desktop")!,
+            evidence: "linux-iso-ubuntu-2026-11-13.md",
+            page: URL(string: "https://ubuntu.com/download/desktop")!,
             symbol: "circle.hexagongrid"),
         Entry(
             id: "fedora-workstation", name: "Fedora Workstation",
@@ -85,6 +86,7 @@ public nonisolated enum InstallerCatalog {
                 "No sound until you add the PipeWire setting from openVM’s Help.",
                 "The clipboard and files are not shared with the Mac yet.",
             ],
+            // No install on record: listed because Ubuntu, which installs the same way, works (the owner).
             evidence: nil, page: URL(string: "https://fedoraproject.org/workstation/download")!,
             symbol: "hexagon"),
         Entry(

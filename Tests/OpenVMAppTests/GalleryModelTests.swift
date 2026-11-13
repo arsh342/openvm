@@ -18,46 +18,40 @@ struct GalleryModelTests {
 
     private var entries: [InstallerCatalog.Entry] {
         [
-            entry("tested", kind: .linux, evidence: "linux-iso-ubuntu.md"),
-            entry("untested", kind: .linux, evidence: nil),
+            entry("recorded", kind: .linux, evidence: "linux-iso-ubuntu.md"),
+            entry("unrecorded", kind: .linux, evidence: nil),
             entry("windows", kind: .windows, evidence: "w.txt", neededGB: 42),
         ]
     }
 
-    private func ids(free: UInt64? = 500_000, untested: Bool = false, canDownload: Bool = true) -> [String] {
-        GalleryModel.tiles(entries, freeDiskMB: free, showUntested: untested, canDownload: canDownload).map(
-            \.id)
+    private func ids(free: UInt64? = 500_000, canDownload: Bool = true) -> [String] {
+        GalleryModel.tiles(entries, freeDiskMB: free, canDownload: canDownload).map(\.id)
     }
 
-    /// A tile is a support promise: a Linux system is listed only once a full install is on record.
-    @Test func aLinuxSystemNeedsEvidenceToBeListed() {
-        #expect(ids() == ["tested", "windows"])
-    }
-
-    @Test func theUntestedSwitchListsTheRestAndMarksThem() {
-        let tiles = GalleryModel.tiles(entries, freeDiskMB: 500_000, showUntested: true, canDownload: true)
-        #expect(tiles.map(\.id) == ["tested", "untested", "windows"])
-        #expect(tiles.map(\.untested) == [false, true, false])
+    /// Every system in the catalog has a tile, whether or not an install of it is on record (the owner's
+    /// choice, 2026-11-13). The record itself stays in the catalog.
+    @Test func everySystemInTheCatalogIsListed() {
+        #expect(ids() == ["recorded", "unrecorded", "windows"])
     }
 
     /// Windows comes from Microsoft's page, so it is offered whether or not this build can download.
     @Test func withoutDownloadsOnlyWindowsIsATile() {
-        #expect(ids(untested: true, canDownload: false) == ["windows"])
+        #expect(ids(canDownload: false) == ["windows"])
     }
 
     @Test func aTileIsOffWithTheReasonWhenTheMacLacksTheSpace() {
-        let tiles = GalleryModel.tiles(entries, freeDiskMB: 30 * 1024, showUntested: false, canDownload: true)
+        let tiles = GalleryModel.tiles(entries, freeDiskMB: 30 * 1024, canDownload: true)
         #expect(tiles[0].disabledReason == nil)  // needs 24 GB
-        #expect(tiles[1].disabledReason == "Needs 42 GB of free space. This Mac has 30 GB.")
+        #expect(tiles[2].disabledReason == "Needs 42 GB of free space. This Mac has 30 GB.")
         // Until the host has said how much is free, nothing is refused.
         #expect(
-            GalleryModel.tiles(entries, freeDiskMB: nil, showUntested: false, canDownload: true).allSatisfy {
+            GalleryModel.tiles(entries, freeDiskMB: nil, canDownload: true).allSatisfy {
                 $0.disabledReason == nil
             })
     }
 
     @Test func aTileSaysItsCostUpFront() {
-        let tile = GalleryModel.tiles(entries, freeDiskMB: nil, showUntested: false, canDownload: true)[0]
+        let tile = GalleryModel.tiles(entries, freeDiskMB: nil, canDownload: true)[0]
         #expect(tile.cost == "3.9 GB download · 24 GB free space needed · About 20 minutes")
     }
 
@@ -221,7 +215,7 @@ struct SystemBrandTests {
 
     @Test func aShortCardSaysSizeAndTime() {
         let tile = GalleryTile(
-            entry: InstallerCatalog.entry("ubuntu-lts")!, disabledReason: nil, untested: true)
+            entry: InstallerCatalog.entry("ubuntu-lts")!, disabledReason: nil)
         #expect(tile.shortCost == "3.9 GB · About 20 minutes")
     }
 }

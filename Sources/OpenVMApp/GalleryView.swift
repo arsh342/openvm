@@ -117,12 +117,6 @@ private struct TileView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
                         Text(tile.entry.name).font(.headline)
-                        if tile.untested {
-                            Text("Not tested yet").font(.caption).padding(.horizontal, 6).padding(
-                                .vertical, 1
-                            )
-                            .background(Capsule().fill(Color.orange.opacity(0.2)))
-                        }
                     }
                     Text(tile.entry.purpose).font(.callout)
                     Text(tile.cost).font(.callout).foregroundStyle(.secondary)
@@ -166,10 +160,6 @@ private struct CompactTileView: View {
                     Text(tile.entry.purpose).font(.callout).lineLimit(2).fixedSize(
                         horizontal: false, vertical: true)
                     Text(tile.shortCost).font(.callout).foregroundStyle(.secondary).lineLimit(1)
-                    if tile.untested {
-                        Text("Not tested yet").font(.caption).padding(.horizontal, 6).padding(.vertical, 1)
-                            .background(Capsule().fill(Color.orange.opacity(0.2)))
-                    }
                     if let reason = tile.disabledReason {
                         Text(reason).font(.caption).foregroundStyle(.orange).fixedSize(
                             horizontal: false, vertical: true)

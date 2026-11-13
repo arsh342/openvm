@@ -81,8 +81,8 @@ A failure goes back as a bug with the step that showed it.
 
 ## The redesign (2026-11-13)
 
-None of these has been done yet. The app was built and its views rendered and compared on macOS 27; a person
-has not used it.
+The owner did the ticked ones by hand on 2026-11-13 and reported that all work
+(`docs/evidence/manual-checks-2026-11-13.md`). The unticked ones have not been reported.
 
 - [ ] **Keys in a guest.** In a windowed Windows guest and a Linux guest, with the guest's screen clicked:
       Command-C and Command-V copy and paste inside the guest; Command-W, Command-N, Command-M and Command-0 go to
@@ -93,26 +93,34 @@ has not used it.
 - [ ] **Menu commands follow the window in front.** With three VMs and one running, select a stopped VM in
       the library and choose Virtual Machine ▸ Start: that VM starts. With a VM's window in front the same menu
       acts on that VM. With the wizard or Settings in front the commands are off.
-- [ ] **Library with the keyboard.** Arrows move the selection, Return opens, Space starts or resumes,
+- [x] **Library with the keyboard.** Arrows move the selection, Return opens, Space starts or resumes,
       Command-Delete asks with a red Delete button. A header click sorts each column both ways.
+      **Passes (2026-11-13, owner).**
 - [ ] **VoiceOver** reads every row's status as a word, names every toolbar button, and can reach the gallery's
       drop area, tiles and buttons.
-- [ ] **Light, dark, Increase Contrast, Reduce Transparency**: the library, the gallery, the wizard and Settings.
-- [ ] **The VM window toolbar.** Its buttons follow the VM's state; the Devices menu ticks what is on. The guest
+- [x] **Light, dark, Increase Contrast, Reduce Transparency**: the library, the gallery, the wizard and Settings.
+      **Passes (2026-11-13, owner).**
+- [x] **The VM window toolbar.** Its buttons follow the VM's state; the Devices menu ticks what is on. The guest
       fills the area under the toolbar, windowed and in full screen, where the toolbar hides. Write the guest's
       size against the window's in `docs/evidence`.
-- [ ] **The gallery.** Drop a Windows 11 Arm ISO, a Linux Arm ISO, a Linux ISO for Intel and a file that is not
+      **Passes (2026-11-13, owner).** The guest's size against the window's was not written down.
+- [x] **The gallery.** Drop a Windows 11 Arm ISO, a Linux Arm ISO, a Linux ISO for Intel and a file that is not
       an ISO: each is recognised or refused in plain words. The Windows tile opens Microsoft's page.
-- [ ] **A download** (with `show-untested-installers` on): Ubuntu downloads with size, speed and time left;
+      **Passes (2026-11-13, owner).**
+- [x] **A download**: Ubuntu downloads with size, speed and time left;
       Pause and Resume work; closing the wizard leaves it running and the library's Installers shows it; quitting
       names it; starting it again picks up where it stopped; the finished file is "Downloaded and checked".
-- [ ] **Evidence installs.** Install Ubuntu and Fedora from their tiles, and write
-      `docs/evidence/linux-iso-ubuntu-<date>.md` and `linux-iso-fedora-<date>.md`: installer reached, installed
-      desktop running, sound with and without the PipeWire setting, resizing, the exact file. Then name each
-      file in its catalog entry's `evidence`, which lists the tile.
-- [ ] **Remove Installer and Start** appears on a stopped Linux VM that still has its installer, and starts
+      **Passes (2026-11-13, owner):** Ubuntu, to "Downloaded and checked".
+- [x] **Evidence install, Ubuntu.** Installed from its tile, with sound (2026-11-13, owner:
+      `docs/evidence/linux-iso-ubuntu-2026-11-13.md`).
+- [ ] **Evidence install, Fedora.** Not installed. Its tile is listed on the strength of Ubuntu's result (the
+      owner's choice). Install it from its tile and write `docs/evidence/linux-iso-fedora-<date>.md`, then name
+      the file in its catalog entry's `evidence`.
+- [x] **Remove Installer and Start** appears on a stopped Linux VM that still has its installer, and starts
       the installed system.
+      **Passes (2026-11-13, owner).**
 - [ ] **Settings.** Turning the menu-bar icon off removes it, and the Dock icon then stays with a guest running
       and no window open. Turning previews off hides guest screens in the library.
-- [ ] **The app icon and the menu-bar mark**: the icon (two screens, chosen 2026-11-13) reads in the Dock, Finder and
+- [x] **The app icon and the menu-bar mark**: the icon (two screens, chosen 2026-11-13) reads in the Dock, Finder and
       the app switcher in light and dark; the menu-bar mark is the same shape and follows the menu bar's colour.
+      **Passes (2026-11-13, owner).**

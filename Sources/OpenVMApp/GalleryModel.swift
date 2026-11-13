@@ -10,8 +10,6 @@ struct GalleryTile: Equatable, Identifiable {
     let entry: InstallerCatalog.Entry
     /// Why it cannot be chosen now, or nil when it can.
     let disabledReason: String?
-    /// Listed only because untested installers were asked for: no install through openVM is on record.
-    let untested: Bool
 
     var id: String { entry.id }
 
@@ -45,43 +43,33 @@ final class GalleryModel: ObservableObject {
     @Published var detailsShown = false
 
     private let transport: any HostTransport
-    private let defaults: UserDefaults
 
-    init(transport: any HostTransport, defaults: UserDefaults = .standard) {
-        self.transport = transport
-        self.defaults = defaults
-    }
+    init(transport: any HostTransport) { self.transport = transport }
 
     func load() async {
         if let info = try? await transport.hostInfo() { freeDiskMB = info.freeDiskMB }
     }
 
-    /// `defaults write dev.openvm.app show-untested-installers -bool yes`
-    var showsUntested: Bool { defaults.bool(forKey: "show-untested-installers") }
-
     var tiles: [GalleryTile] {
-        Self.tiles(
-            InstallerCatalog.entries, freeDiskMB: freeDiskMB, showUntested: showsUntested,
-            canDownload: Self.canDownload)
+        Self.tiles(InstallerCatalog.entries, freeDiskMB: freeDiskMB, canDownload: Self.canDownload)
     }
 
     /// Whether this build can download a Linux installer itself.
     static let canDownload = true
 
-    /// The tiles to show. A Linux entry needs evidence of a full install (or the untested switch) and a
-    /// build that can download it; Windows is always there, because its file comes from Microsoft's page.
+    /// The tiles to show: every system in the catalog. A Linux entry needs a build that can download it;
+    /// Windows is always there, because its file comes from Microsoft's page. Which entries have an
+    /// install on record is in the catalog (`evidence`); the owner chose to list them all (2026-11-13).
     nonisolated static func tiles(
-        _ entries: [InstallerCatalog.Entry], freeDiskMB: UInt64?, showUntested: Bool, canDownload: Bool
+        _ entries: [InstallerCatalog.Entry], freeDiskMB: UInt64?, canDownload: Bool
     ) -> [GalleryTile] {
         entries.compactMap { entry in
-            if entry.kind == .linux {
-                guard canDownload, entry.evidence != nil || showUntested else { return nil }
-            }
+            if entry.kind == .linux, !canDownload { return nil }
             var reason: String?
             if let free = freeDiskMB, free < UInt64(entry.neededGB) * 1024 {
                 reason = "Needs \(entry.neededGB) GB of free space. This Mac has \(free / 1024) GB."
             }
-            return GalleryTile(entry: entry, disabledReason: reason, untested: entry.evidence == nil)
+            return GalleryTile(entry: entry, disabledReason: reason)
         }
     }
 
