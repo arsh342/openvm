@@ -20,7 +20,6 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
     private let resizer: ResizeCoalescer
     private let clipboard: ClipboardSync
     private let drops: DropSession
-    private let controls = TitlebarControlsModel()
     private var thumbnailTimer: Timer?
     private(set) var vm: VmSummary
     private(set) var state: VMWindowState = .stopped
@@ -50,9 +49,8 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         // 1249 wide for a 1280 request).
         let frameName = "vm-window-\(vm.uuid)"
         if !window.setFrameUsingName(frameName) { window.center() }
-        // A dark, slim title bar: the guest is what the window is for.
+        // Dark around the guest, whatever the Mac's appearance: the guest is what the window is for.
         window.appearance = NSAppearance(named: .darkAqua)
-        window.titlebarAppearsTransparent = true
         window.backgroundColor = .black
         window.setFrameAutosaveName(frameName)
         super.init(window: window)
@@ -60,7 +58,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         sync.onNotice = { [weak window] notice in window?.subtitle = notice ?? "" }
         wireDrops()
         machineView.guestHasKeyboard = { [weak self] in self?.guestHasKeyboard ?? false }
-        wireTitlebar(window)
+        installToolbar(window)
         startThumbnailTimer()
         updateMinimumSize()
 
@@ -157,20 +155,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
         }
     }
 
-    // MARK: title bar buttons
-
-    private func wireTitlebar(_ window: NSWindow) {
-        controls.run = { [weak self] command in self?.run(command) }
-        controls.onFullScreen = { [weak self] in self?.window?.toggleFullScreen(nil) }
-        let hosting = NSHostingView(rootView: TitlebarControls(model: controls))
-        hosting.frame.size = hosting.fittingSize
-        let accessory = NSTitlebarAccessoryViewController()
-        accessory.view = hosting
-        accessory.layoutAttribute = .trailing
-        window.addTitlebarAccessoryViewController(accessory)
-    }
-
-    // MARK: commands, from the title bar and the menu bar
+    // MARK: commands, from the toolbar and the menu bar
 
     private func run(_ command: VMCommand) {
         Task { await command.perform(on: vm, in: context) }
@@ -225,9 +210,7 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
             machineView.virtualMachine = nil
         }
         machineView.isHidden = !state.showsScreen
-        controls.power = VMCommand.power.state(for: vm)
-        controls.pause = VMCommand.pause.state(for: vm)
-        controls.settings = VMCommand.settings.state(for: vm)
+        window?.toolbar?.validateVisibleItems()
         cover.show(
             state, installerAttached: vm.installerAttached,
             onStart: { [weak self] in
@@ -360,6 +343,15 @@ final class VMWindowController: NSWindowController, NSWindowDelegate {
 
     func windowWillClose(_ notification: Notification) { captureThumbnail() }
 
+    /// In full screen the toolbar hides with the menu bar, so the guest has the whole screen; both come
+    /// back when the pointer goes to the top edge.
+    func window(
+        _ window: NSWindow,
+        willUseFullScreenPresentationOptions proposedOptions: NSApplication.PresentationOptions = []
+    ) -> NSApplication.PresentationOptions {
+        [.fullScreen, .autoHideMenuBar, .autoHideToolbar, .autoHideDock]
+    }
+
     func windowDidEnterFullScreen(_ notification: Notification) { machineView.capturesSystemKeys = true }
     func windowDidExitFullScreen(_ notification: Notification) { machineView.capturesSystemKeys = false }
 }
@@ -370,4 +362,76 @@ extension VMWindowController: NSMenuItemValidation {
         if item.action == VMCommand.action { return VMCommand.validate(item, for: vm) }
         return true
     }
+}
+
+// MARK: toolbar
+
+extension NSToolbarItem.Identifier {
+    static let devices = NSToolbarItem.Identifier("devices")
+}
+
+extension VMWindowController: NSToolbarDelegate, NSToolbarItemValidation {
+    /// A standard toolbar: Start or Shut Down, Pause or Resume, a Devices menu and Settings, all from the
+    /// one list of commands. Full screen stays on the green window button.
+    func installToolbar(_ window: NSWindow) {
+        let toolbar = NSToolbar(identifier: "vm-window")
+        toolbar.delegate = self
+        toolbar.displayMode = .iconOnly
+        window.toolbarStyle = .unifiedCompact
+        window.toolbar = toolbar
+    }
+
+    func toolbarDefaultItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        VMWindowToolbar.items
+    }
+
+    func toolbarAllowedItemIdentifiers(_ toolbar: NSToolbar) -> [NSToolbarItem.Identifier] {
+        VMWindowToolbar.items + [.command(.restart), .space]
+    }
+
+    func toolbar(
+        _ toolbar: NSToolbar, itemForItemIdentifier identifier: NSToolbarItem.Identifier,
+        willBeInsertedIntoToolbar flag: Bool
+    ) -> NSToolbarItem? {
+        if identifier == .devices {
+            let item = NSMenuToolbarItem(itemIdentifier: identifier)
+            item.label = "Devices"
+            item.paletteLabel = "Devices"
+            item.toolTip = "Clipboard, files and folders shared with this virtual machine"
+            item.image = NSImage(
+                systemSymbolName: "externaldrive.connected.to.line.below", accessibilityDescription: "Devices"
+            )
+            item.showsIndicator = true
+            let menu = NSMenu(title: "Devices")
+            // Each item is for this window's VM, whichever window is in front when the menu opens.
+            for entry in VMCommand.items(VMCommand.devices, shortcuts: false) {
+                if VMCommand.from(entry) != nil { entry.target = self }
+                menu.addItem(entry)
+            }
+            item.menu = menu
+            return item
+        }
+        guard let command = VMCommand(rawValue: identifier.rawValue) else { return nil }
+        let item = NSToolbarItem(itemIdentifier: identifier)
+        item.target = self
+        item.action = VMCommand.action
+        item.isBordered = true
+        command.show(command.state(for: vm), on: item)
+        return item
+    }
+
+    /// AppKit asks before it draws the toolbar: each command's item follows this VM.
+    func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
+        guard let command = VMCommand.from(item) else { return true }
+        let state = command.state(for: vm)
+        command.show(state, on: item)
+        return state.enabled
+    }
+}
+
+/// What a VM window's toolbar holds, in order.
+enum VMWindowToolbar {
+    static let items: [NSToolbarItem.Identifier] = [
+        .command(.power), .command(.pause), .devices, .flexibleSpace, .command(.settings),
+    ]
 }

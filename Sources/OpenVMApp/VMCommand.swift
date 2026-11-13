@@ -53,7 +53,9 @@ enum VMPause: Equatable {
 extension VMCommand {
     /// `vm` is nil when there is no VM to act on: the command keeps its name and is off.
     func state(for vm: VmSummary?) -> VMCommandState {
-        guard let vm else { return VMCommandState(title: defaultTitle, symbol: defaultSymbol, enabled: false) }
+        guard let vm else {
+            return VMCommandState(title: defaultTitle, symbol: defaultSymbol, enabled: false)
+        }
         let idle = vm.activity == nil
         switch self {
         case .open: return VMCommandState(title: defaultTitle, symbol: defaultSymbol, enabled: true)
@@ -61,11 +63,13 @@ extension VMCommand {
             switch VMPower.of(vm) {
             case .start: return VMCommandState(title: "Start", symbol: "play.fill", enabled: true)
             case .shutDown: return VMCommandState(title: "Shut Down", symbol: "power", enabled: true)
-            case .cancelStart: return VMCommandState(title: "Cancel Start", symbol: "xmark.circle", enabled: true)
+            case .cancelStart:
+                return VMCommandState(title: "Cancel Start", symbol: "xmark.circle", enabled: true)
             case .unavailable: return VMCommandState(title: "Shut Down", symbol: "power", enabled: false)
             }
         case .restart:
-            return VMCommandState(title: defaultTitle, symbol: defaultSymbol, enabled: vm.state == .running && idle)
+            return VMCommandState(
+                title: defaultTitle, symbol: defaultSymbol, enabled: vm.state == .running && idle)
         case .pause:
             switch VMPause.of(vm) {
             case .pause: return VMCommandState(title: "Pause", symbol: "pause.fill", enabled: true)
@@ -76,7 +80,8 @@ extension VMCommand {
         case .shareClipboard:
             let offered = vm.bootMode.hasAgent || vm.bootMode == .linuxISO
             return VMCommandState(
-                title: defaultTitle, symbol: defaultSymbol, enabled: offered, checked: offered && vm.clipboardSync)
+                title: defaultTitle, symbol: defaultSymbol, enabled: offered,
+                checked: offered && vm.clipboardSync)
         // These work through the guest's openVM tools, so a guest without them has nothing to offer.
         case .acceptFiles:
             return VMCommandState(
@@ -91,7 +96,8 @@ extension VMCommand {
         case .settings: return VMCommandState(title: defaultTitle, symbol: defaultSymbol, enabled: true)
         // A running or paused VM cannot be deleted, nor one the host is busy with.
         case .delete:
-            return VMCommandState(title: defaultTitle, symbol: defaultSymbol, enabled: vm.state == .stopped && idle)
+            return VMCommandState(
+                title: defaultTitle, symbol: defaultSymbol, enabled: vm.state == .stopped && idle)
         }
     }
 
@@ -244,7 +250,9 @@ extension VMCommand {
 
     /// The command a menu item or toolbar item stands for.
     static func from(_ sender: Any?) -> VMCommand? {
-        if let item = sender as? NSMenuItem { return (item.representedObject as? String).flatMap(VMCommand.init) }
+        if let item = sender as? NSMenuItem {
+            return (item.representedObject as? String).flatMap(VMCommand.init)
+        }
         if let item = sender as? NSToolbarItem { return VMCommand(rawValue: item.itemIdentifier.rawValue) }
         return nil
     }
@@ -254,6 +262,15 @@ extension VMCommand {
         item.title = state.title
         item.state = state.checked ? .on : .off
         item.image = NSImage(systemSymbolName: state.symbol, accessibilityDescription: nil)
+    }
+
+    /// Shows a state on a toolbar item: its label, its tooltip and its symbol, named for VoiceOver.
+    func show(_ state: VMCommandState, on item: NSToolbarItem) {
+        let title = state.title.replacingOccurrences(of: "…", with: "")
+        item.label = title
+        item.paletteLabel = title
+        item.toolTip = title
+        item.image = NSImage(systemSymbolName: state.symbol, accessibilityDescription: title)
     }
 
     /// For a window's `validateMenuItem`: shows the command as it is for `vm`, and says whether it is live.
@@ -266,7 +283,9 @@ extension VMCommand {
 
     /// Builds the items for a list of entries. `shortcuts` is off for every menu but the menu bar's:
     /// the same shortcut twice would make the choice of menu arbitrary.
-    static func items(_ entries: [MenuEntry], shortcuts: Bool, delegate: NSMenuDelegate? = nil) -> [NSMenuItem] {
+    static func items(_ entries: [MenuEntry], shortcuts: Bool, delegate: NSMenuDelegate? = nil)
+        -> [NSMenuItem]
+    {
         entries.map { entry in
             switch entry {
             case .command(let command): return command.menuItem(shortcuts: shortcuts)

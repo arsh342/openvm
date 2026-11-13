@@ -14,7 +14,8 @@ struct VMCommandTests {
     ) -> VmSummary {
         VmSummary(
             row: FakeTransport.row(
-                "w", state: state, activity: activity, bootMode: bootMode, clipboardSync: clipboardSync, outbox: outbox))!
+                "w", state: state, activity: activity, bootMode: bootMode, clipboardSync: clipboardSync,
+                outbox: outbox))!
     }
 
     @Test func powerFollowsTheState() {
@@ -29,9 +30,15 @@ struct VMCommandTests {
     }
 
     @Test func pauseBecomesResumeWhenPaused() {
-        #expect(VMCommand.pause.state(for: vm("running")) == .init(title: "Pause", symbol: "pause.fill", enabled: true))
-        #expect(VMCommand.pause.state(for: vm("suspended")) == .init(title: "Resume", symbol: "play.fill", enabled: true))
-        #expect(VMCommand.pause.state(for: vm("stopped")) == .init(title: "Pause", symbol: "pause.fill", enabled: false))
+        #expect(
+            VMCommand.pause.state(for: vm("running"))
+                == .init(title: "Pause", symbol: "pause.fill", enabled: true))
+        #expect(
+            VMCommand.pause.state(for: vm("suspended"))
+                == .init(title: "Resume", symbol: "play.fill", enabled: true))
+        #expect(
+            VMCommand.pause.state(for: vm("stopped"))
+                == .init(title: "Pause", symbol: "pause.fill", enabled: false))
     }
 
     @Test func restartNeedsARunningGuestTheHostIsNotBusyWith() {
@@ -77,7 +84,9 @@ struct VMCommandTests {
             let state = command.state(for: nil)
             #expect(!state.enabled, "\(command)")
             #expect(!state.title.isEmpty, "\(command)")
-            #expect(NSImage(systemSymbolName: state.symbol, accessibilityDescription: nil) != nil, "\(command) \(state.symbol)")
+            #expect(
+                NSImage(systemSymbolName: state.symbol, accessibilityDescription: nil) != nil,
+                "\(command) \(state.symbol)")
         }
     }
 
@@ -102,7 +111,9 @@ struct VMCommandTests {
         let clipboard = VMCommand.shareClipboard.state(for: iso)
         #expect(clipboard.enabled)
         #expect(!clipboard.checked)
-        #expect(VMCommand.shareClipboard.state(for: vm("running", bootMode: "linux-iso", clipboardSync: true)).checked)
+        #expect(
+            VMCommand.shareClipboard.state(for: vm("running", bootMode: "linux-iso", clipboardSync: true))
+                .checked)
         #expect(VMCommand.power.state(for: vm("stopped", bootMode: "linux-iso")).title == "Start")
         #expect(VMCommand.pause.state(for: iso).enabled)
         #expect(VMCommand.restart.state(for: iso).enabled)
@@ -121,7 +132,8 @@ struct VMCommandTests {
     @Test func theInstallerEjectsFromAStoppedVmOnly() {
         func iso(_ state: String, attached: Bool) -> VmSummary {
             var fields: [(key: String, value: CBOR)] = [
-                ("name", .text("w")), ("state", .text(state)), ("uuid", .text("u")), ("bootMode", .text("linux-iso")),
+                ("name", .text("w")), ("state", .text(state)), ("uuid", .text("u")),
+                ("bootMode", .text("linux-iso")),
             ]
             if attached { fields.append(("installerAttached", .bool(true))) }
             return VmSummary(row: .map(fields))!
@@ -171,7 +183,8 @@ struct VMCommandTests {
 
     @Test @MainActor func onlyTheMenuBarCarriesShortcuts() {
         #expect(VMCommand.settings.menuItem(shortcuts: true).keyEquivalent == ",")
-        #expect(VMCommand.settings.menuItem(shortcuts: true).keyEquivalentModifierMask == [.command, .option])
+        #expect(
+            VMCommand.settings.menuItem(shortcuts: true).keyEquivalentModifierMask == [.command, .option])
         #expect(VMCommand.settings.menuItem(shortcuts: false).keyEquivalent == "")
     }
 
@@ -209,7 +222,8 @@ struct VMStatusTests {
 
     @Test func anInstallShowsAsOne() {
         let row = CBOR.map([
-            ("name", .text("w")), ("state", .text("stopped")), ("uuid", .text("u")), ("activity", .text("start")),
+            ("name", .text("w")), ("state", .text("stopped")), ("uuid", .text("u")),
+            ("activity", .text("start")),
             ("installing", .bool(true)),
         ])
         #expect(VMStatus.of(VmSummary(row: row)!).word == "Installing…")
@@ -219,7 +233,9 @@ struct VMStatusTests {
     @Test func everyStatusHasASymbol() {
         for summary in [vm("stopped"), vm("running"), vm("suspended"), vm("running", activity: "stop")] {
             let status = VMStatus.of(summary)
-            #expect(NSImage(systemSymbolName: status.symbol, accessibilityDescription: nil) != nil, "\(status.symbol)")
+            #expect(
+                NSImage(systemSymbolName: status.symbol, accessibilityDescription: nil) != nil,
+                "\(status.symbol)")
         }
     }
 }
@@ -253,7 +269,8 @@ struct VMCommandPerformTests {
         let (running, context, host, _) = await make(FakeTransport.row("a", state: "running"))
         await VMCommand.power.perform(on: running, in: context)
         #expect(host.calls.contains("stop"))
-        let (booting, bootContext, bootHost, _) = await make(FakeTransport.row("b", state: "stopped", activity: "start"))
+        let (booting, bootContext, bootHost, _) = await make(
+            FakeTransport.row("b", state: "stopped", activity: "start"))
         await VMCommand.power.perform(on: booting, in: bootContext)
         #expect(bootHost.arg("stop", "id") == .text("uuid-b"))
     }
@@ -299,5 +316,86 @@ struct VMCommandPerformTests {
         await VMCommand.settings.perform(on: vm, in: context)
         await VMCommand.shareFolder.perform(on: vm, in: context)
         #expect(log.calls == ["open a", "settings a", "share a"])
+    }
+}
+
+/// The VM window's toolbar is standard items fed by the one list of commands.
+@MainActor
+struct VMWindowToolbarTests {
+    @Test func itHoldsPowerPauseDevicesAndSettings() {
+        #expect(
+            VMWindowToolbar.items.map(\.rawValue) == [
+                "power", "pause", "devices", NSToolbarItem.Identifier.flexibleSpace.rawValue, "settings",
+            ])
+        // Every command item is named after its command, so the registry can find it.
+        #expect(VMCommand(rawValue: NSToolbarItem.Identifier.command(.power).rawValue) == .power)
+        #expect(
+            NSImage(systemSymbolName: "externaldrive.connected.to.line.below", accessibilityDescription: nil)
+                != nil)
+    }
+
+    /// An item says what it does now, and is named for VoiceOver without the menu's ellipsis.
+    @Test func anItemFollowsItsVmAndHasAName() {
+        let item = NSToolbarItem(itemIdentifier: .command(.settings))
+        VMCommand.settings.show(VMCommand.settings.state(for: nil), on: item)
+        #expect(item.label == "Settings")
+        #expect(item.image?.accessibilityDescription == "Settings")
+        #expect(VMCommand.from(item) == .settings)
+        let power = NSToolbarItem(itemIdentifier: .command(.power))
+        let stopped = VmSummary(row: FakeTransport.row("w", state: "stopped"))!
+        VMCommand.power.show(VMCommand.power.state(for: stopped), on: power)
+        #expect(power.label == "Start")
+        #expect(power.toolTip == "Start")
+    }
+}
+
+/// A real VM window, built without showing it: its toolbar, and that it answers for its own VM.
+@MainActor
+struct VMWindowTests {
+    private func window(_ row: CBOR) async -> (VMWindowController, FakeTransport) {
+        let host = FakeTransport()
+        host.rows = [row]
+        let model = VMListModel(transport: host)
+        await model.refresh()
+        let context = VMCommandContext(
+            model: model, openWindow: { _ in }, showSettings: { _ in }, shareFolder: { _ in },
+            confirmDelete: { _ in })
+        return (VMWindowController(vm: model.vms[0], model: model, context: context), host)
+    }
+
+    @Test func theWindowHasAStandardToolbarWithItsCommands() async {
+        let (controller, _) = await window(FakeTransport.row("a", state: "stopped"))
+        let toolbar = try? #require(controller.window?.toolbar)
+        #expect(toolbar?.items.map(\.itemIdentifier) == VMWindowToolbar.items)
+        #expect(controller.window?.toolbarStyle == .unifiedCompact)
+        #expect(controller.window?.titlebarAccessoryViewControllers.isEmpty == true)  // no custom buttons
+        let power = toolbar?.items.first
+        #expect(power?.label == "Start")
+        #expect(power.map(controller.validateToolbarItem) == true)
+        let devices = toolbar?.items.first { $0.itemIdentifier == .devices } as? NSMenuToolbarItem
+        #expect(devices?.menu.items.filter { !$0.isSeparatorItem }.count == 4)
+    }
+
+    /// A menu-bar command with this window in front is for this window's VM.
+    @Test func itAnswersMenuCommandsForItsOwnVm() async {
+        let (controller, host) = await window(FakeTransport.row("a", state: "running"))
+        let item = VMCommand.pause.menuItem(shortcuts: false)
+        #expect(controller.validateMenuItem(item))
+        #expect(item.title == "Pause")
+        controller.performVMCommand(item)
+        for _ in 0..<50 where !host.calls.contains("suspend") {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+        #expect(host.arg("suspend", "id") == .text("uuid-a"))
+        let delete = VMCommand.delete.menuItem(shortcuts: false)
+        #expect(!controller.validateMenuItem(delete))  // a running VM cannot be deleted
+    }
+
+    /// In full screen the toolbar hides with the menu bar, so the guest keeps the whole screen.
+    @Test func fullScreenHidesTheToolbar() async {
+        let (controller, _) = await window(FakeTransport.row("a", state: "running"))
+        let options = controller.window(controller.window!, willUseFullScreenPresentationOptions: [])
+        #expect(options.contains(.autoHideToolbar))
+        #expect(options.contains(.fullScreen))
     }
 }

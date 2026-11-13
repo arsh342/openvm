@@ -150,24 +150,16 @@ final class LibraryWindowController: NSWindowController, NSMenuItemValidation, N
             item.target = self
             item.action = VMCommand.action
             item.isBordered = true
-            show(command.state(for: selected), on: item)
+            command.show(command.state(for: selected), on: item)
             return item
         }
-    }
-
-    private func show(_ state: VMCommandState, on item: NSToolbarItem) {
-        let title = state.title.replacingOccurrences(of: "…", with: "")
-        item.label = title
-        item.paletteLabel = title
-        item.toolTip = title
-        item.image = NSImage(systemSymbolName: state.symbol, accessibilityDescription: title)
     }
 
     /// AppKit asks before it draws the toolbar: a command's item follows the selected VM.
     func validateToolbarItem(_ item: NSToolbarItem) -> Bool {
         guard let command = VMCommand.from(item) else { return true }
         let state = command.state(for: selected)
-        show(state, on: item)
+        command.show(state, on: item)
         return state.enabled
     }
 
