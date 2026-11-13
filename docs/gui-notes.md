@@ -583,11 +583,13 @@ in Downloads) and a tile for each system. The library shows the same view while 
 * **A tile says its cost first**: download size, free space needed, rough time, known limits. It is off, with
   the reason, when the Mac lacks the space.
 * **Marks.** Windows, Ubuntu and Fedora show their own marks on their tiles and beside their VMs in the library
-  (the owner's choice, 2026-11-13), drawn in code (`SystemLogos`). A VM is matched by its kind and the system
-  name recorded when it was made; any other system keeps a neutral glyph. The Ubuntu and Fedora marks are
-  drawn from memory of their shapes, not from the makers' artwork. All three are trademarks whose usage rules
-  have not been checked: before a public release, check them (and use the official artwork where a policy
-  asks for it) or go back to neutral glyphs.
+  (the owner's choice, 2026-11-13; `SystemLogos`). A VM is matched by its kind and the system name recorded when
+  it was made; any other system keeps a neutral glyph. Ubuntu and Fedora use their makers' own artwork, kept
+  in the source as SVG text: Canonical's Circle of Friends (`assets.ubuntu.com/v1/5924f0b8-CoF-2022.svg`, only
+  its `viewBox` changed to show the square that holds the mark) and the mark from the Fedora design team's
+  `fedora_default-vertical.svg` (`gitlab.com/fedora/design/team/logos/fedora-project-logos`, the logo's own
+  path without the wordmark, on a white disc). The Windows mark is drawn in code. All three are trademarks
+  whose usage rules have not been checked: before a public release, check them or go back to neutral glyphs.
 * **Layout.** Windows comes first, in full. The systems openVM downloads itself follow as short cards side by
   side: mark, name, what it is for, size and time. Their limits are in each card's tooltip and on the
   wizard's summary.

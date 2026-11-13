@@ -225,3 +225,26 @@ struct SystemBrandTests {
         #expect(tile.shortCost == "3.9 GB · About 20 minutes")
     }
 }
+
+/// The Ubuntu and Fedora marks are their makers' artwork, carried as text: it must read as an image, be
+/// square, and still be the file it came from.
+@MainActor
+struct OfficialArtworkTests {
+    @Test func bothMarksReadAsSquareImages() throws {
+        for image in [OfficialArtwork.ubuntuImage, OfficialArtwork.fedoraImage] {
+            let image = try #require(image)
+            #expect(image.size.width > 0)
+            #expect(abs(image.size.width - image.size.height) < 0.01 * image.size.width)
+        }
+    }
+
+    @Test func theArtworkIsTheMakersOwn() {
+        // Canonical's file: its orange, its three circles, and only the viewBox moved to the mark's square.
+        #expect(OfficialArtwork.ubuntu.contains("fill:#e9500e"))
+        #expect(OfficialArtwork.ubuntu.components(separatedBy: "<circle").count == 4)
+        #expect(OfficialArtwork.ubuntu.contains(#"viewBox="0 561.09509 1038.90491 1038.90491""#))
+        // Fedora's mark: the logo's own blue, path and transforms.
+        #expect(OfficialArtwork.fedora.contains(##"fill="#51a2da""##))
+        #expect(OfficialArtwork.fedora.contains("matrix(1.1600518,0,0,1.1600518,654.47677,-112.84527)"))
+    }
+}
