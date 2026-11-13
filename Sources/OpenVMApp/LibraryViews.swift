@@ -27,11 +27,6 @@ struct StatusBadge: View {
     }
 }
 
-/// The neutral glyph for what a VM runs. No vendor logos.
-enum SystemGlyph {
-    static func symbol(for vm: VmSummary) -> String { vm.bootMode == .windows ? "macwindow" : "terminal" }
-}
-
 // MARK: sidebar
 
 struct LibrarySidebarView: View {
@@ -113,7 +108,10 @@ struct VMTableView: View {
     private func table(_ rows: [VMTableRow]) -> some View {
         Table(rows, selection: $nav.selection, sortOrder: $nav.sortOrder) {
             TableColumn("Name", value: \.name) { row in
-                Label(row.name, systemImage: SystemGlyph.symbol(for: row.vm))
+                HStack(spacing: 7) {
+                    SystemLogo(brand: .of(row.vm)).frame(width: 16, height: 16).accessibilityHidden(true)
+                    Text(row.name)
+                }
             }
             .width(min: 120, ideal: 160)
             TableColumn("System", value: \.system).width(min: 90, ideal: 120)
@@ -251,8 +249,7 @@ struct VMDetailPane: View {
             } else {
                 ZStack {
                     Rectangle().fill(.quaternary)
-                    Image(systemName: SystemGlyph.symbol(for: vm)).font(.system(size: 34, weight: .light))
-                        .foregroundStyle(.secondary)
+                    SystemLogo(brand: .of(vm)).frame(width: 48, height: 48)
                 }
                 .accessibilityHidden(true)
             }

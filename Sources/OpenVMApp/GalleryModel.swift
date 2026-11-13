@@ -15,6 +15,11 @@ struct GalleryTile: Equatable, Identifiable {
 
     var id: String { entry.id }
 
+    /// "3.9 GB · About 20 minutes", for a short card.
+    var shortCost: String {
+        "\(entry.downloadGB.formatted(.number.precision(.fractionLength(0...1)))) GB · \(entry.time)"
+    }
+
     /// "3.9 GB download · 24 GB free space needed · About 20 minutes"
     var cost: String {
         let download = entry.downloadGB.formatted(.number.precision(.fractionLength(0...1)))

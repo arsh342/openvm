@@ -189,3 +189,39 @@ struct StoppedCoverTests {
         #expect(!cover.offersRemoveInstaller)
     }
 }
+
+/// Which mark a system gets, on a tile and in the library.
+struct SystemBrandTests {
+    @Test func catalogEntriesGetTheirOwnMarks() {
+        #expect(SystemBrand.of(InstallerCatalog.entry("windows-11")!) == .windows)
+        #expect(SystemBrand.of(InstallerCatalog.entry("ubuntu-lts")!) == .ubuntu)
+        #expect(SystemBrand.of(InstallerCatalog.entry("fedora-workstation")!) == .fedora)
+    }
+
+    private func vm(_ bootMode: String, system: String? = nil) -> VmSummary {
+        var fields: [(key: String, value: CBOR)] = [
+            ("name", .text("v")), ("state", .text("stopped")), ("uuid", .text("u")),
+            ("bootMode", .text(bootMode)),
+        ]
+        if let system { fields.append(("systemName", .text(system))) }
+        return VmSummary(row: .map(fields))!
+    }
+
+    /// A VM is known by its kind, and a Linux one by the name recorded when it was made: a catalog name,
+    /// or the installer file's name. Anything else keeps a neutral glyph.
+    @Test func aVmGetsTheMarkOfWhatItRuns() {
+        #expect(SystemBrand.of(vm("windows")) == .windows)
+        #expect(SystemBrand.of(vm("windows", system: "Windows 11")) == .windows)
+        #expect(SystemBrand.of(vm("linux-iso", system: "Ubuntu")) == .ubuntu)
+        #expect(SystemBrand.of(vm("linux-iso", system: "ubuntu-26.04.1-desktop-arm64")) == .ubuntu)
+        #expect(SystemBrand.of(vm("linux-iso", system: "Fedora Workstation")) == .fedora)
+        #expect(SystemBrand.of(vm("linux-iso", system: "omarchy-4.5.0-aarch64")) == .other("terminal"))
+        #expect(SystemBrand.of(vm("linux-iso")) == .other("terminal"))
+    }
+
+    @Test func aShortCardSaysSizeAndTime() {
+        let tile = GalleryTile(
+            entry: InstallerCatalog.entry("ubuntu-lts")!, disabledReason: nil, untested: true)
+        #expect(tile.shortCost == "3.9 GB · About 20 minutes")
+    }
+}

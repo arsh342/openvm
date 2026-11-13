@@ -39,8 +39,8 @@ public nonisolated enum InstallerCatalog {
         public let evidence: String?
         /// The vendor's own download page: the way out when a download fails, and all there is for Windows.
         public let page: URL
-        /// A neutral SF Symbol. The Windows tile draws the Windows mark instead (the owner's choice); Linux
-        /// tiles keep neutral glyphs.
+        /// A neutral SF Symbol, for a system with no mark of its own (SystemBrand). Windows, Ubuntu and
+        /// Fedora show their marks instead (the owner's choice).
         public let symbol: String
 
         public init(

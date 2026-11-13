@@ -23,12 +23,20 @@ struct GalleryView: View {
                 fileStatus
             }
             VStack(alignment: .leading, spacing: 8) {
-                Text(
-                    gallery.tiles.contains { $0.entry.kind == .linux }
-                        ? "Download and install" : "Or choose a system"
-                )
-                .font(.headline)
-                ForEach(gallery.tiles) { tile in TileView(tile: tile) { chooseTile(tile) } }
+                Text("Or choose a system").font(.headline)
+                // Windows first, in full: it is the one with the most to say. The systems openVM downloads
+                // itself follow, as short cards side by side.
+                ForEach(gallery.tiles.filter { $0.entry.kind == .windows }) { tile in
+                    TileView(tile: tile) { chooseTile(tile) }
+                }
+                let downloads = gallery.tiles.filter { $0.entry.kind == .linux }
+                if !downloads.isEmpty {
+                    LazyVGrid(
+                        columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible())], spacing: 10
+                    ) {
+                        ForEach(downloads) { tile in CompactTileView(tile: tile) { chooseTile(tile) } }
+                    }
+                }
             }
         }
     }
@@ -104,16 +112,8 @@ private struct TileView: View {
     var body: some View {
         Button(action: choose) {
             HStack(alignment: .top, spacing: 12) {
-                Group {
-                    if tile.entry.kind == .windows {
-                        WindowsLogo().frame(width: 26, height: 26)
-                    } else {
-                        Image(systemName: tile.entry.symbol).font(.system(size: 24)).foregroundStyle(
-                            .secondary)
-                    }
-                }
-                .frame(width: 36)
-                .accessibilityHidden(true)
+                SystemLogo(brand: .of(tile.entry)).frame(width: 28, height: 28).frame(width: 36)
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
                         Text(tile.entry.name).font(.headline)
@@ -151,27 +151,43 @@ private struct TileView: View {
     }
 }
 
-/// The Windows mark: four squares in Windows blue. It is Microsoft's trademark, shown only beside the
-/// Windows 11 tile to say what the tile installs (the owner's choice, 2026-11-13). Linux tiles keep
-/// neutral glyphs.
-struct WindowsLogo: View {
+/// A system openVM downloads itself, as a short card: its mark, its name, what it is for and what it costs.
+/// Its limits are in its tooltip, and are said again on the wizard's summary before anything is created.
+private struct CompactTileView: View {
+    let tile: GalleryTile
+    let choose: () -> Void
+
     var body: some View {
-        GeometryReader { proxy in
-            let side = min(proxy.size.width, proxy.size.height)
-            let gap = side * 0.06
-            let square = (side - gap) / 2
-            VStack(spacing: gap) {
-                ForEach(0..<2, id: \.self) { _ in
-                    HStack(spacing: gap) {
-                        ForEach(0..<2, id: \.self) { _ in
-                            Rectangle().fill(Color(red: 0, green: 0.47, blue: 0.83)).frame(
-                                width: square, height: square)
-                        }
+        Button(action: choose) {
+            HStack(alignment: .top, spacing: 10) {
+                SystemLogo(brand: .of(tile.entry)).frame(width: 28, height: 28).accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(tile.entry.name).font(.headline).lineLimit(1)
+                    Text(tile.entry.purpose).font(.callout).lineLimit(2).fixedSize(
+                        horizontal: false, vertical: true)
+                    Text(tile.shortCost).font(.callout).foregroundStyle(.secondary).lineLimit(1)
+                    if tile.untested {
+                        Text("Not tested yet").font(.caption).padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(Capsule().fill(Color.orange.opacity(0.2)))
+                    }
+                    if let reason = tile.disabledReason {
+                        Text(reason).font(.caption).foregroundStyle(.orange).fixedSize(
+                            horizontal: false, vertical: true)
                     }
                 }
+                Spacer(minLength: 0)
             }
-            .frame(width: proxy.size.width, height: proxy.size.height)
+            .padding(12)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color.secondary.opacity(0.08)))
+            .contentShape(RoundedRectangle(cornerRadius: 10))
         }
+        .buttonStyle(.plain)
+        .disabled(tile.disabledReason != nil)
+        .help(([tile.cost] + tile.entry.limits).joined(separator: "\n"))
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isButton)
+        .accessibilityHint(tile.entry.limits.joined(separator: " "))
     }
 }
 

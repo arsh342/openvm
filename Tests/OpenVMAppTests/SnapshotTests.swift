@@ -116,7 +116,18 @@ struct SnapshotTests {
 
     private var mixed: [CBOR] {
         [
-            FakeTransport.row("ubuntu-lab", state: "running", bootMode: "linux-iso"),
+            .map([
+                ("name", .text("ubuntu-lab")), ("state", .text("running")),
+                ("uuid", .text("uuid-ubuntu-lab")),
+                ("cpus", .uint(4)), ("memoryMB", .uint(4096)), ("bootMode", .text("linux-iso")),
+                ("systemName", .text("Ubuntu")),
+            ]),
+            .map([
+                ("name", .text("fedora-box")), ("state", .text("stopped")),
+                ("uuid", .text("uuid-fedora-box")),
+                ("cpus", .uint(4)), ("memoryMB", .uint(4096)), ("bootMode", .text("linux-iso")),
+                ("systemName", .text("Fedora Workstation")),
+            ]),
             FakeTransport.row("windows-11", state: "suspended", bootMode: "windows"),
             FakeTransport.row("scratch", state: "stopped", bootMode: "linux-iso"),
         ]

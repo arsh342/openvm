@@ -582,9 +582,15 @@ in Downloads) and a tile for each system. The library shows the same view while 
   "Not tested yet".
 * **A tile says its cost first**: download size, free space needed, rough time, known limits. It is off, with
   the reason, when the Mac lacks the space.
-* **The Windows mark.** The Windows 11 tile shows the four blue squares (the owner's choice, 2026-11-13), drawn
-  in code. It is Microsoft's trademark, and its usage rules have not been checked: before a public release,
-  check them or go back to a neutral glyph. Linux tiles and the library's rows keep neutral glyphs.
+* **Marks.** Windows, Ubuntu and Fedora show their own marks on their tiles and beside their VMs in the library
+  (the owner's choice, 2026-11-13), drawn in code (`SystemLogos`). A VM is matched by its kind and the system
+  name recorded when it was made; any other system keeps a neutral glyph. The Ubuntu and Fedora marks are
+  drawn from memory of their shapes, not from the makers' artwork. All three are trademarks whose usage rules
+  have not been checked: before a public release, check them (and use the official artwork where a policy
+  asks for it) or go back to neutral glyphs.
+* **Layout.** Windows comes first, in full. The systems openVM downloads itself follow as short cards side by
+  side: mark, name, what it is for, size and time. Their limits are in each card's tooltip and on the
+  wizard's summary.
 * **Words.** The screens say Ubuntu, Windows 11, installer file and Arm. ARM64 and aarch64 appear only where a
   person has to find the right file on a download page.
 
