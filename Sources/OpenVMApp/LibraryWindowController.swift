@@ -66,6 +66,11 @@ final class LibraryWindowController: NSWindowController, NSMenuItemValidation, N
         window.title = "openVM"
         window.isReleasedWhenClosed = false
         window.toolbarStyle = .unified
+        // No title-bar background of AppKit's own. It draws one piece per pane, and the pieces sit a point to
+        // the left of the panes at the detail pane's edge (measured: the table's piece is 160 to 789 where its
+        // pane is 160 to 790, and the detail pane's is 789 to 1039 where the pane is 790 to 1040), which showed as
+        // a top bar slightly out of line. Without them each pane's own view is what shows under the toolbar.
+        window.titlebarAppearsTransparent = true
         let frameName = "library-window-3"
         if !window.setFrameUsingName(frameName) { window.center() }
         window.setFrameAutosaveName(frameName)

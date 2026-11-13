@@ -5,7 +5,7 @@ terminal: these are the owner's results, as given, with what is not recorded sai
 
 | Step | Result |
 | --- | --- |
-| Download from the Ubuntu tile | Finished. The library's Downloaded list showed `ubuntu-26.04.1-desktop-arm64.iso`, 4.15 GB, "Downloaded and checked" (the owner's screenshot), so the file matched the SHA-256 in Canonical's `SHA256SUMS` and passed the installer check |
+| Download from the Ubuntu tile | Finished. The library's Downloads list showed `ubuntu-26.04.1-desktop-arm64.iso`, 4.15 GB, "Downloaded and checked" (the owner's screenshot), so the file matched the SHA-256 in Canonical's `SHA256SUMS` and passed the installer check |
 | Install | Ubuntu installed ("ubuntu is installed") |
 | After the installer's restart | "Remove Installer and Start" appeared on the stopped VM |
 | Sound | Works |

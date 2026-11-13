@@ -13,9 +13,11 @@ struct CreateWizardView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // A page that scrolls carries its top and bottom space inside what scrolls, so its last line clears
+            // the bar below instead of being cut off at it.
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                .padding(24)
+                .padding(.horizontal, 24)
             if let download = model.download {
                 Divider()
                 downloadBar(download).padding(.horizontal, 16).padding(.vertical, 10)
@@ -26,15 +28,18 @@ struct CreateWizardView: View {
         .frame(minWidth: 520, minHeight: 500)
     }
 
+    /// The space above a page's first line and below its last. The window's title bar already adds its own above.
+    static let pageSpace: CGFloat = 14
+
     @ViewBuilder private var content: some View {
         switch model.page {
         case .gallery: galleryPage
         case .source: sourcePage
-        case .resources: resourcesPage
-        case .account: accountPage
-        case .summary: summaryPage
-        case .working: workingPage
-        case .finished: finishedPage
+        case .resources: resourcesPage.padding(.vertical, Self.pageSpace)
+        case .account: accountPage.padding(.vertical, Self.pageSpace)
+        case .summary: summaryPage.padding(.vertical, Self.pageSpace)
+        case .working: workingPage.padding(.vertical, Self.pageSpace)
+        case .finished: finishedPage.padding(.vertical, Self.pageSpace)
         case .failed(let why): failedPage(why)
         }
     }
@@ -53,6 +58,7 @@ struct CreateWizardView: View {
                     act: act)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, Self.pageSpace)
         }
     }
 
@@ -115,6 +121,7 @@ struct CreateWizardView: View {
                 if model.os == .windows && !(model.host?.hostWimlib ?? false) { helperFiles }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, Self.pageSpace)
         }
         .dropDestination(for: URL.self) { urls, _ in
             guard let file = GalleryModel.installerFile(in: urls) else { return false }
@@ -326,7 +333,9 @@ struct CreateWizardView: View {
             FailureView(
                 failure: FailureMessage.of(
                     code: model.createdName != nil ? "install-unfinished" : nil, details: why),
-                detailsShown: $model.detailsShown, act: act)
+                detailsShown: $model.detailsShown, act: act
+            )
+            .padding(.vertical, Self.pageSpace)
         }
     }
 

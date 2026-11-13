@@ -242,22 +242,21 @@ struct VMDetailPane: View {
     /// is no picture yet, or previews are turned off in Settings.
     private func preview(_ vm: VmSummary) -> some View {
         let image = settings.showsPreviews ? thumbnails.image(for: vm.uuid) : nil
-        return Group {
-            if let image {
-                Image(nsImage: image).resizable().scaledToFill()
-                    .accessibilityLabel("Preview of \(vm.name)’s screen")
-            } else {
-                ZStack {
-                    Rectangle().fill(.quaternary)
-                    SystemLogo(brand: .of(vm)).frame(width: 48, height: 48)
+        // The frame is a plain rectangle as wide as the pane, and the picture is laid over it. A picture that
+        // sets the size itself, filling, is as wide as its own shape asks, and ran out of the pane.
+        return Rectangle().fill(.quaternary)
+            .aspectRatio(16.0 / 10.0, contentMode: .fit)
+            .frame(maxWidth: .infinity)
+            .overlay {
+                if let image {
+                    Image(nsImage: image).resizable().scaledToFill()
+                        .accessibilityLabel("Preview of \(vm.name)’s screen")
+                } else {
+                    SystemLogo(brand: .of(vm)).frame(width: 48, height: 48).accessibilityHidden(true)
                 }
-                .accessibilityHidden(true)
             }
-        }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(16.0 / 10.0, contentMode: .fit)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(.separator))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(.separator))
     }
 }
 

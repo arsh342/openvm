@@ -194,6 +194,37 @@ struct SnapshotTests {
             width: 280, height: 560)
     }
 
+    /// A guest's picture is wider than the frame it is shown in. It must stay inside the pane.
+    @Test(.enabled(if: Snapshot.enabled))
+    func libraryDetailWithAWidePreview() async throws {
+        let model = await model([FakeTransport.row("linux-vm", state: "stopped", bootMode: "linux-iso")])
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "openvm-thumbs-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = ThumbnailStore(directory: directory)
+        let wide = try #require(
+            NSBitmapImageRep(
+                bitmapDataPlanes: nil, pixelsWide: 640, pixelsHigh: 240, bitsPerSample: 8, samplesPerPixel: 4,
+                hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: wide)
+        NSColor.systemPurple.setFill()
+        NSRect(x: 0, y: 0, width: 640, height: 240).fill()
+        NSColor.white.setFill()
+        NSRect(x: 0, y: 0, width: 40, height: 240).fill()  // the picture's own left and right edges
+        NSRect(x: 600, y: 0, width: 40, height: 240).fill()
+        NSGraphicsContext.restoreGraphicsState()
+        #expect(store.save(wide, for: "uuid-linux-vm"))
+        let defaults = UserDefaults(suiteName: "openvm-snapshots")!
+        defaults.removePersistentDomain(forName: "openvm-snapshots")
+        Snapshot.check(
+            "library-detail-preview",
+            VMDetailPane(
+                model: model, nav: nav(selecting: "uuid-linux-vm"), thumbnails: store,
+                settings: AppSettingsModel(defaults: defaults), run: { _, _ in }),
+            width: 280, height: 560)
+    }
+
     @Test(.enabled(if: Snapshot.enabled))
     func appSettings() async {
         let defaults = UserDefaults(suiteName: "openvm-snapshots")!

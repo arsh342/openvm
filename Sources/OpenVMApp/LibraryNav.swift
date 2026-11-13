@@ -18,7 +18,7 @@ enum LibraryGroup: String, Hashable, CaseIterable {
         switch self {
         case .all: return "All"
         case .running: return "Running"
-        case .installers: return "Downloaded"
+        case .installers: return "Downloads"
         }
     }
 
