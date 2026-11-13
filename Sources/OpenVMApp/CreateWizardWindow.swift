@@ -47,7 +47,7 @@ final class CreateWizardWindowController: NSWindowController, NSWindowDelegate {
         case .file(let url): Task { await model.useInstaller(url.path) }
         case .system(let kind): model.chooseSystem(kind == .windows ? .windows : .linuxISO)
         case .entry(let id):
-            if let entry = InstallerCatalog.entry(id) { Task { await model.chooseDownload(entry) } }
+            if let entry = InstallerCatalog.entry(id) { Task { await model.choose(entry) } }
         }
     }
 

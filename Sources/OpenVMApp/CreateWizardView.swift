@@ -49,9 +49,7 @@ struct CreateWizardView: View {
                 GalleryView(
                     gallery: gallery, status: fileStatus,
                     chooseFile: { url in Task { await model.useInstaller(url.path) } },
-                    chooseTile: { tile in
-                        model.chooseSystem(tile.entry.kind == .windows ? .windows : .linuxISO)
-                    },
+                    chooseTile: { tile in Task { await model.choose(tile.entry) } },
                     act: act)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

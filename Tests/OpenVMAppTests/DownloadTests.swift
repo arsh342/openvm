@@ -230,3 +230,45 @@ struct InstallerListTests {
         #expect(model.lastError?.contains("still starts from this installer") == true)
     }
 }
+
+/// A tile chosen in the wizard's own gallery: the one place every tile click goes through, so the view
+/// cannot send a download tile to the file page (it did, until 2026-11-13: the tile asked for a file).
+@MainActor
+struct WizardTileTests {
+    private func wizard() async -> (CreateWizardModel, FakeTransport) {
+        let host = FakeTransport()
+        host.respond("host-info", with: FakeTransport.hostInfoFields)
+        host.respond("task-start", with: [("taskId", .text("iso-1"))])
+        host.respond("task-status", with: [("state", .text("done")), ("path", .text("/x/isos/a.iso"))])
+        let model = CreateWizardModel(transport: host, existingNames: [], pollInterval: .milliseconds(1))
+        await model.load()
+        return (model, host)
+    }
+
+    @Test func aLinuxTileDownloadsAndNeverAsksForAFile() async {
+        for id in ["ubuntu-lts", "fedora-workstation"] {
+            let (model, host) = await wizard()
+            await model.choose(InstallerCatalog.entry(id)!)
+            #expect(host.arg("task-start", "entry") == .text(id), "\(id)")
+            #expect(model.page == .resources, "\(id)")  // not the file page
+            #expect(model.download?.entry.id == id, "\(id)")
+        }
+    }
+
+    @Test func theWindowsTileOpensItsPageAndDownloadsNothing() async {
+        let (model, host) = await wizard()
+        await model.choose(InstallerCatalog.entry("windows-11")!)
+        #expect(model.page == .source)
+        #expect(model.os == .windows)
+        #expect(!host.calls.contains("task-start"))
+    }
+
+    /// Every system the catalog can download goes the download way.
+    @Test func everyDownloadableEntryIsDownloaded() async {
+        for entry in InstallerCatalog.entries where entry.kind == .linux {
+            let (model, _) = await wizard()
+            await model.choose(entry)
+            #expect(model.download != nil, "\(entry.id)")
+        }
+    }
+}

@@ -206,6 +206,16 @@ final class CreateWizardModel: ObservableObject {
         }
     }
 
+    /// A tile was chosen, in any gallery. This is the one way in for a tile: Windows opens its page, where
+    /// its file is brought in, and a system openVM downloads itself starts downloading.
+    func choose(_ entry: InstallerCatalog.Entry) async {
+        if entry.kind == .windows {
+            chooseSystem(.windows)
+        } else {
+            await chooseDownload(entry)
+        }
+    }
+
     /// A download tile was chosen. The host starts the download, and the wizard goes on to the sizes
     /// while it runs: only Create waits for the file to be verified.
     func chooseDownload(_ entry: InstallerCatalog.Entry) async {
