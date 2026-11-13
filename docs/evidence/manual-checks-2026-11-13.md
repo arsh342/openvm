@@ -15,5 +15,15 @@ Done by the owner in the app on this Mac (macOS 27.2.1), on the `ui-redesign` br
 | Light, dark, Increase Contrast, Reduce Transparency | Work |
 | The library with the keyboard | Works |
 
-Not reported, so still open in `docs/manual-checks.md`: keys in a guest, Edit shortcuts in openVM's own fields,
-menu commands following the window in front, VoiceOver, and the Settings switches.
+Reported later the same day, also as working:
+
+| Check | Result |
+| --- | --- |
+| Keys in a guest | Work (which guest, and each key, not written down) |
+| Edit shortcuts in openVM's own fields | Work |
+| Menu commands follow the window in front | Work |
+| VoiceOver | Works |
+| Settings: turning the menu-bar icon off | Works |
+| Fedora download | Works |
+
+Still open: a Fedora install (only its download was reported), and the previews switch in Settings.

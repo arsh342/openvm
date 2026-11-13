@@ -536,9 +536,9 @@ the path such a key took before there was an Edit menu to compete for it.
 
 **Measured** (a probe outside the app, 2026-11-13): Apple's `VZVirtualMachineView` does not claim key
 combinations itself (`performKeyEquivalent` returned false for Command-C and Command-N), and does not answer
-`copy:`. **Not measured:** the order itself, in a real window with a guest. The probe could not make its
-window key from the terminal, so its view never saw the event. The order is AppKit's documented one; it still
-has to be pressed by hand (`docs/manual-checks.md`, "The redesign").
+`copy:`. **Checked by hand** (the owner, 2026-11-13): keys in a guest work with the Edit menu present
+(`docs/evidence/manual-checks-2026-11-13.md`). The probe itself could not show the order: it could not make
+its window key from the terminal, so its view never saw the event.
 
 **A test holds the list to the menu bar:** every shortcut the Mac keeps is one the menu bar has, and no two
 menu items share a shortcut.
@@ -647,7 +647,6 @@ Not yet seen in the Dock or the menu bar by a person.
 ### What is not done
 
 * **A Fedora install on record.** Its tile is listed without one.
-* **By hand:** the key rule in a guest, Edit shortcuts in openVM's own fields, menu commands following the
-  window in front, VoiceOver, and the Settings switches. The owner did the rest on 2026-11-13
-  (`docs/evidence/manual-checks-2026-11-13.md`).
+* **By hand:** the previews switch in Settings. The owner did the other checks on 2026-11-13, the key rule in a
+  guest among them (`docs/evidence/manual-checks-2026-11-13.md`).
 * **macOS 14 and 26.** Built and looked at on macOS 27 only. The compiler holds the code to macOS 14's APIs.

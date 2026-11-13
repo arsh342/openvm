@@ -81,23 +81,27 @@ A failure goes back as a bug with the step that showed it.
 
 ## The redesign (2026-11-13)
 
-The owner did the ticked ones by hand on 2026-11-13 and reported that all work
-(`docs/evidence/manual-checks-2026-11-13.md`). The unticked ones have not been reported.
+The owner did the ticked ones by hand on 2026-11-13 and reported that they work
+(`docs/evidence/manual-checks-2026-11-13.md`). What is unticked, or noted as not reported, is still open.
 
-- [ ] **Keys in a guest.** In a windowed Windows guest and a Linux guest, with the guest's screen clicked:
+- [x] **Keys in a guest.** In a windowed Windows guest and a Linux guest, with the guest's screen clicked:
       Command-C and Command-V copy and paste inside the guest; Command-W, Command-N, Command-M and Command-0 go to
       the guest and do nothing in openVM; Command-Q asks to quit; Command-H hides openVM; Control-Command-F
       toggles full screen; Option-Command-comma opens the VM's settings.
-- [ ] **Edit in openVM's fields.** In the wizard's name field and the library's search field: Command-C, V, X,
+      **Passes (2026-11-13, owner).** Which guest, and each key's result, were not written down.
+- [x] **Edit in openVM's fields.** In the wizard's name field and the library's search field: Command-C, V, X,
       A and Z work.
-- [ ] **Menu commands follow the window in front.** With three VMs and one running, select a stopped VM in
+      **Passes (2026-11-13, owner).**
+- [x] **Menu commands follow the window in front.** With three VMs and one running, select a stopped VM in
       the library and choose Virtual Machine ▸ Start: that VM starts. With a VM's window in front the same menu
       acts on that VM. With the wizard or Settings in front the commands are off.
+      **Passes (2026-11-13, owner).**
 - [x] **Library with the keyboard.** Arrows move the selection, Return opens, Space starts or resumes,
       Command-Delete asks with a red Delete button. A header click sorts each column both ways.
       **Passes (2026-11-13, owner).**
-- [ ] **VoiceOver** reads every row's status as a word, names every toolbar button, and can reach the gallery's
+- [x] **VoiceOver** reads every row's status as a word, names every toolbar button, and can reach the gallery's
       drop area, tiles and buttons.
+      **Passes (2026-11-13, owner).**
 - [x] **Light, dark, Increase Contrast, Reduce Transparency**: the library, the gallery, the wizard and Settings.
       **Passes (2026-11-13, owner).**
 - [x] **The VM window toolbar.** Its buttons follow the VM's state; the Devices menu ticks what is on. The guest
@@ -113,14 +117,15 @@ The owner did the ticked ones by hand on 2026-11-13 and reported that all work
       **Passes (2026-11-13, owner):** Ubuntu, to "Downloaded and checked".
 - [x] **Evidence install, Ubuntu.** Installed from its tile, with sound (2026-11-13, owner:
       `docs/evidence/linux-iso-ubuntu-2026-11-13.md`).
-- [ ] **Evidence install, Fedora.** Not installed. Its tile is listed on the strength of Ubuntu's result (the
+- [ ] **Evidence install, Fedora.** Its download works (2026-11-13, owner); an install is not on record. Its tile is listed on the strength of Ubuntu's result (the
       owner's choice). Install it from its tile and write `docs/evidence/linux-iso-fedora-<date>.md`, then name
       the file in its catalog entry's `evidence`.
 - [x] **Remove Installer and Start** appears on a stopped Linux VM that still has its installer, and starts
       the installed system.
       **Passes (2026-11-13, owner).**
-- [ ] **Settings.** Turning the menu-bar icon off removes it, and the Dock icon then stays with a guest running
+- [x] **Settings.** Turning the menu-bar icon off removes it, and the Dock icon then stays with a guest running
       and no window open. Turning previews off hides guest screens in the library.
+      **Passes (2026-11-13, owner):** turning the menu-bar icon off. The previews switch was not reported.
 - [x] **The app icon and the menu-bar mark**: the icon (two screens, chosen 2026-11-13) reads in the Dock, Finder and
       the app switcher in light and dark; the menu-bar mark is the same shape and follows the menu bar's colour.
       **Passes (2026-11-13, owner).**
