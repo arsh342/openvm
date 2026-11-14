@@ -344,7 +344,9 @@ can reverse it: Hyprland's `natural_scroll`, and in Windows `FlipFlopWheel` on t
 sideways too. The Windows agent sets `FlipFlopWheel` = 1 on every mouse when it starts and restarts only a mouse
 whose value changed, which applies it without a restart of Windows (`tools/guest/windows/scrolling.c`). It is
 always natural, the Mac's default, by the owner's choice: a Mac with natural scrolling off gets a reversed guest.
-Linux guests have no openVM tools, so the README says how to set it. A mouse wheel has not been checked.
+Linux guests have no openVM tools, so the README says how to set it. In Ubuntu 26.04 and Fedora 45 (GNOME) that is
+Settings ▸ Mouse & Touchpad ▸ Mouse ▸ Natural Scrolling: with it on, scrolling ran the Mac's way in both (owner,
+2026-11-14), and their gallery tiles say so before anything is downloaded. A mouse wheel has not been checked.
 
 ## Dragging out of a guest: moved to later
 

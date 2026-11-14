@@ -75,6 +75,7 @@ public nonisolated enum InstallerCatalog {
             source: .ubuntu(release: "26.04"), downloadGB: 3.9, neededGB: 24, time: "About 20 minutes",
             limits: [
                 "No sound until you add the PipeWire setting from openVM’s Help.",
+                "Scrolling runs the other way until you turn on Natural Scrolling for the mouse in Ubuntu’s Settings.",
                 "The clipboard and files are not shared with the Mac yet.",
             ],
             evidence: "linux-iso-ubuntu-2026-11-13.md",

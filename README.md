@@ -125,7 +125,7 @@ monitor.alsa.rules = [
 
 then run `systemctl --user restart wireplumber pipewire pipewire-pulse`. This is for WirePlumber 0.5 and later (`wireplumber --version`). Sound from the VM reaches the Mac about a tenth of a second late, so it suits music and video better than games and calls.
 
-**If scrolling runs the wrong way.** The VM's pointer scrolls the way your fingers move, whatever your Mac is set to. To match a Mac with natural scrolling, turn on natural scrolling for the mouse in the guest. In Omarchy, add `natural_scroll = true` directly inside `input` in `~/.config/hypr/input.lua` (not inside `touchpad`: the VM's pointer is not a touchpad). In GNOME it is Settings ▸ Mouse & Touchpad ▸ Mouse ▸ Natural Scrolling.
+**If scrolling runs the wrong way.** The VM's pointer scrolls the way your fingers move, whatever your Mac is set to. To match a Mac with natural scrolling, turn on natural scrolling for the mouse in the guest. In Omarchy, add `natural_scroll = true` directly inside `input` in `~/.config/hypr/input.lua` (not inside `touchpad`: the VM's pointer is not a touchpad). In GNOME, which Ubuntu and Fedora Workstation use, it is Settings ▸ Mouse & Touchpad ▸ Mouse ▸ Natural Scrolling: checked on both (2026-11-14), scrolling then runs the same way as on the Mac.
 
 **If the desktop does not fill the window.** The VM's display takes the window's size, and full screen's, and the guest's kernel sees each new size, but a desktop has to switch to it. Hyprland, and so Omarchy, does not, which leaves black bars. Copy `tools/guest/hyprland/openvm-fit-display.sh` into the guest as `~/.local/bin/openvm-fit-display`, make it executable, and have Omarchy start it at login:
 

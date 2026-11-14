@@ -9,6 +9,7 @@ terminal: these are the owner's results, as given, with what is not recorded sai
 | Install | Ubuntu installed ("ubuntu is installed") |
 | After the installer's restart | "Remove Installer and Start" appeared on the stopped VM |
 | Sound | Works |
+| Scrolling (2026-11-14) | Runs the Mac's way once Settings ▸ Mouse & Touchpad ▸ Mouse ▸ Natural Scrolling is turned on in Ubuntu (the owner) |
 
 **Not recorded:** whether the guest needed the PipeWire setting from the README before sound worked (the tile
 still says it does); resizing; the clipboard; how long the install took; the VM's CPUs, memory and disk.
