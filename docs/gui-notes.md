@@ -395,6 +395,15 @@ the window. Two upstream pull requests, 1687 and 1717, already make this kind of
 test here. Guests still get the scramble until a signed virtio-win release carries the change, so the
 1024-wide hold stays.
 
+**Upstream status, 2026-11-14.** Both pull requests are open and wait for a code owner's review; neither is merged,
+so no signed virtio-win release has the fix yet. On 1717 a maintainer wrote "ok to test" (2026-11-12), which ran
+Red Hat's HCK tests under QEMU: the build passed, and 1 to 3 tests failed per configuration (WDDM RotateBlt Window
+GDI, its WoW64 variant, WHQL FPO optimization check 1.1 and 1.2, and GRFX Adapter - Unreleased Features Block). The
+FPO checks also failed on 1474, a display-driver change that was merged, so at least those are not caused by 1717;
+whether the others fail without it was not checked. 1687's HCK run had 15 to 18 failures per configuration. Our
+test of 1717 (0 refused commands, every size right) is a comment on that pull request, and issue 1720 has a second,
+independent report from another Virtualization-framework host.
+
 **Tried, and did not help:**
 
 * Turning off the 5120x2880 registration.
