@@ -100,9 +100,10 @@ public nonisolated enum InstallerCatalog {
             limits: [
                 "No sound until you add the PipeWire setting from openVM’s Help.",
                 "The clipboard and files are not shared with the Mac yet.",
+                "If the installer waits long at “Running simple-cdd”, Kali’s download server is slow: see openVM’s Help.",
             ],
-            // No install on record: listed at the owner's request (2026-11-14).
-            evidence: nil, page: URL(string: "https://www.kali.org/get-kali/")!, symbol: "shield"),
+            evidence: "linux-iso-kali-2026-11-14.md", page: URL(string: "https://www.kali.org/get-kali/")!,
+            symbol: "shield"),
         Entry(
             id: "windows-11", name: "Windows 11",
             purpose: "For Windows apps. You download it from Microsoft.",

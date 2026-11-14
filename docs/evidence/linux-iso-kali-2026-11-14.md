@@ -47,3 +47,12 @@ picks depends on where the request comes from, so another Mac may never see this
 * Wait: apt gives up on each file in the end (22 minutes for the first), so the install finishes, slowly.
 * Or, in the installer, end the slow download so the step moves on, then point the installed system at a fast
   mirror (`kali.download`) after it boots.
+
+## Through: the install finished, and Kali boots (21:20)
+
+The owner opened a shell in the installer (its second screen), found two `/usr/lib/apt/methods/http` processes,
+and killed them. The installer went on and finished. Kali then booted to its login screen in the VM window
+(the owner's screenshot: the Kali login over its desktop wallpaper, the panel showing "14 Nov, 21:20").
+
+**Not recorded yet:** logging in, the desktop, sound, scrolling, resizing; whether the installed system's
+package sources still point at the slow mirror (the README says how to switch to `kali.download`).

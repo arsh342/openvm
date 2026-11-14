@@ -117,9 +117,10 @@ The owner did the ticked ones by hand on 2026-11-13 and reported that they work
       **Passes (2026-11-13, owner):** Ubuntu, to "Downloaded and checked".
 - [x] **Evidence install, Ubuntu.** Installed from its tile, with sound (2026-11-13, owner:
       `docs/evidence/linux-iso-ubuntu-2026-11-13.md`).
-- [ ] **Evidence install, Kali.** Not finished (2026-11-14, `docs/evidence/linux-iso-kali-2026-11-14.md`). The first
-      attempt panicked (cause not known); the second stalled at "Running simple-cdd" because the Kali mirror it
-      was sent to is about 10 KB/s over IPv4 from here (measured), which is how the VM reaches the internet.
+- [x] **Evidence install, Kali.** Installed and boots to its login screen (2026-11-14, owner:
+      `docs/evidence/linux-iso-kali-2026-11-14.md`). The install stalled at "Running simple-cdd" on a mirror that is
+      about 10 KB/s over IPv4 from here (measured); ending that download let it finish. A first attempt panicked,
+      cause not known.
 - [x] **Evidence install, Fedora.** Installed and boots (2026-11-14, owner:
       `docs/evidence/linux-iso-fedora-2026-11-14.md`). Scrolling runs the other way until natural scrolling is
       turned on in Fedora; then it matches the Mac.

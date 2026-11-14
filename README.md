@@ -127,6 +127,14 @@ then run `systemctl --user restart wireplumber pipewire pipewire-pulse`. This is
 
 **If scrolling runs the wrong way.** The VM's pointer scrolls the way your fingers move, whatever your Mac is set to. To match a Mac with natural scrolling, turn on natural scrolling for the mouse in the guest. In Omarchy, add `natural_scroll = true` directly inside `input` in `~/.config/hypr/input.lua` (not inside `touchpad`: the VM's pointer is not a touchpad). In GNOME, which Ubuntu and Fedora Workstation use, it is Settings ▸ Mouse & Touchpad ▸ Mouse ▸ Natural Scrolling: checked on both (2026-11-14), scrolling then runs the same way as on the Mac.
 
+**If Kali's installer waits at "Running simple-cdd".** That last step downloads Kali's package lists from a mirror Kali chooses for you, and the VM reaches it over IPv4. On 2026-11-14 the mirror chosen here was about 10 KB/s over IPv4 (fast over IPv6), so the step sat for half an hour and more. To move on: press Fn-Option-F2 in the VM window, then Enter, run `ps | grep http`, `kill` each `/usr/lib/apt/methods/http` number, and go back with Fn-Option-F1; the install then finishes. Once Kali is running, use a fast mirror:
+
+```sh
+echo 'deb http://kali.download/kali kali-rolling main contrib non-free non-free-firmware' | sudo tee /etc/apt/sources.list
+sudo rm -f /etc/apt/sources.list.d/kali.sources
+sudo apt update
+```
+
 **If the desktop does not fill the window.** The VM's display takes the window's size, and full screen's, and the guest's kernel sees each new size, but a desktop has to switch to it. Hyprland, and so Omarchy, does not, which leaves black bars. Copy `tools/guest/hyprland/openvm-fit-display.sh` into the guest as `~/.local/bin/openvm-fit-display`, make it executable, and have Omarchy start it at login:
 
 ```sh
