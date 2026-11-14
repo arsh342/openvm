@@ -112,7 +112,7 @@ The owner did the ticked ones by hand on 2026-11-13 and reported that they work
       an ISO: each is recognised or refused in plain words. The Windows tile opens Microsoft's page.
       **Passes (2026-11-13, owner).**
 - [x] **A download**: Ubuntu downloads with size, speed and time left;
-      Pause and Resume work; closing the wizard leaves it running and the library's Installers shows it; quitting
+      Pause and Resume work; Cancel or closing the wizard stops it (since 2026-11-14); quitting
       names it; starting it again picks up where it stopped; the finished file is "Downloaded and checked".
       **Passes (2026-11-13, owner):** Ubuntu, to "Downloaded and checked".
 - [x] **Evidence install, Ubuntu.** Installed from its tile, with sound (2026-11-13, owner:

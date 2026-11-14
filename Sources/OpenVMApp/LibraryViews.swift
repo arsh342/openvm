@@ -89,7 +89,7 @@ struct VMTableView: View {
                         gallery: gallery, status: .none, chooseFile: { newVM(.file($0)) },
                         chooseTile: {
                             newVM($0.entry.kind == .windows ? .system(.windows) : .entry($0.entry.id))
-                        }, act: { _ in })
+                        }, act: { _ in }, downloads: GalleryDownload.from(model.installers))
                 }
                 .frame(maxWidth: 560, alignment: .leading)
                 .padding(24)

@@ -18,10 +18,7 @@ struct CreateWizardView: View {
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(.horizontal, 24)
-            if let download = model.download {
-                Divider()
-                downloadBar(download).padding(.horizontal, 16).padding(.vertical, 10)
-            }
+            // A download under way shows in the bar with the buttons, so every page keeps its full height.
             Divider()
             footer.padding(12)
         }
@@ -355,49 +352,68 @@ struct CreateWizardView: View {
         return problem
     }
 
-    /// The installer this VM waits for: how far it is, with Pause and Resume. It runs in openVM's host,
-    /// so it carries on if this window is closed.
-    private func downloadBar(_ download: CreateWizardModel.Download) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+    /// The installer this VM waits for, in the bar with the buttons: how far it is, with Pause and Resume.
+    /// Cancel, or closing the window, stops it; the host keeps what it has.
+    @ViewBuilder private func downloadStatus(_ download: CreateWizardModel.Download) -> some View {
+        HStack(spacing: 10) {
+            SystemLogo(brand: .of(download.entry)).frame(width: 20, height: 20).accessibilityHidden(true)
             switch download.state {
             case .running:
-                HStack(spacing: 10) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Downloading \(download.entry.name)").font(.callout.weight(.medium))
-                        ProgressView(value: DownloadText.fraction(done: download.done, total: download.total))
-                            .accessibilityLabel("Download of \(download.entry.name)")
-                        Text(
-                            DownloadText.progress(
-                                done: download.done, total: download.total,
-                                bytesPerSecond: download.bytesPerSecond)
-                        )
-                        .font(.caption).foregroundStyle(.secondary).monospacedDigit()
-                    }
-                    Button("Pause") { Task { await model.pauseDownload() } }
+                VStack(alignment: .leading, spacing: 3) {
+                    ProgressView(value: DownloadText.fraction(done: download.done, total: download.total))
+                        .controlSize(.small)
+                        .accessibilityLabel("Download of \(download.entry.name)")
+                    Text(
+                        DownloadText.progress(
+                            done: download.done, total: download.total,
+                            bytesPerSecond: download.bytesPerSecond)
+                    )
+                    .font(.caption).foregroundStyle(.secondary).monospacedDigit().lineLimit(1)
                 }
+                .frame(maxWidth: 320)
+                Button("Pause") { Task { await model.pauseDownload() } }.controlSize(.small)
             case .paused:
-                HStack {
-                    Label("The download of \(download.entry.name) is paused", systemImage: "pause.circle")
-                    Spacer()
-                    Button("Resume") { Task { await model.startDownload() } }
-                }
+                Text("Download paused at \(DownloadText.size(download.done))").font(.callout)
+                    .foregroundStyle(.secondary).lineLimit(1)
+                Button("Resume") { Task { await model.startDownload() } }.controlSize(.small)
             case .verified:
-                Label(
-                    "\(download.entry.name) is downloaded and checked", systemImage: "checkmark.circle.fill"
-                )
-                .foregroundStyle(.green)
+                Label("\(download.entry.name) is downloaded", systemImage: "checkmark.circle.fill")
+                    .font(.callout).foregroundStyle(.green).lineLimit(1)
             case .failed(let failure):
-                FailureView(failure: failure, detailsShown: $model.detailsShown, act: act)
+                Label(failure.title, systemImage: "exclamationmark.triangle.fill").font(.callout)
+                    .symbolRenderingMode(.multicolor).lineLimit(1)
+                if let action = failure.action {
+                    Button(action.label) { act(action) }.controlSize(.small)
+                }
+                if !failure.details.isEmpty {
+                    Button("Details") { model.detailsShown.toggle() }
+                        .controlSize(.small)
+                        .popover(isPresented: $model.detailsShown, arrowEdge: .top) {
+                            FailureDetails(text: failure.details)
+                        }
+                }
             }
+        }
+    }
+
+    /// The pages before the VM is made: after that the download is long done.
+    static func showsDownload(on page: CreateWizardModel.Page) -> Bool {
+        switch page {
+        case .gallery, .source, .resources, .account, .summary: return true
+        case .working, .finished, .failed: return false
         }
     }
 
     private var footer: some View {
         HStack {
-            if model.page == .summary, let waiting = model.createBlocked {
-                Text(waiting).font(.callout).foregroundStyle(.secondary).lineLimit(2)
-            } else if let problem = footerProblem {
+            // What the page lacks comes first: it says why Continue is off. Otherwise the download, while
+            // there is one and the VM is not being made yet.
+            if let problem = footerProblem {
                 Text(problem).font(.callout).foregroundStyle(.secondary).lineLimit(2)
+            } else if let download = model.download, Self.showsDownload(on: model.page) {
+                downloadStatus(download)
+            } else if model.page == .summary, let waiting = model.createBlocked {
+                Text(waiting).font(.callout).foregroundStyle(.secondary).lineLimit(2)
             }
             Spacer()
             switch model.page {

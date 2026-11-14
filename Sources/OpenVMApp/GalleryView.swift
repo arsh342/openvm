@@ -14,6 +14,8 @@ struct GalleryView: View {
     let chooseTile: (GalleryTile) -> Void
     /// Does a failure's one action.
     let act: (FailureMessage.Action) -> Void
+    /// The systems that are downloading now, by catalog id: each one's card says how far it is.
+    var downloads: [String: GalleryDownload] = [:]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -31,7 +33,11 @@ struct GalleryView: View {
                 let downloads = gallery.tiles.filter { $0.entry.kind == .linux }
                 if !downloads.isEmpty {
                     HStack(alignment: .top, spacing: 10) {
-                        ForEach(downloads) { tile in CompactTileView(tile: tile) { chooseTile(tile) } }
+                        ForEach(downloads) { tile in
+                            CompactTileView(tile: tile, download: self.downloads[tile.id]) {
+                                chooseTile(tile)
+                            }
+                        }
                     }
                     .fixedSize(horizontal: false, vertical: true)
                 }
@@ -170,6 +176,8 @@ private struct TileView: View {
 /// Its limits are in its tooltip, and are said again on the wizard's summary before anything is created.
 private struct CompactTileView: View {
     let tile: GalleryTile
+    /// How far this system's download is, when one is under way.
+    var download: GalleryDownload?
     let choose: () -> Void
 
     var body: some View {
@@ -181,10 +189,17 @@ private struct CompactTileView: View {
                     SystemLogo(brand: .of(tile.entry)).frame(width: 24, height: 24).accessibilityHidden(true)
                     Text(tile.entry.name).font(.headline).lineLimit(1).minimumScaleFactor(0.8)
                 }
-                Text(tile.entry.purpose).font(.callout).lineLimit(2).fixedSize(
-                    horizontal: false, vertical: true)
-                Text(tile.shortCost).font(.callout).foregroundStyle(.secondary).lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                if let download {
+                    // A download under way takes the place of the two lines below the name, at about their
+                    // height, so the card and the page keep their size.
+                    Text(download.text).font(.callout).lineLimit(1).minimumScaleFactor(0.8).monospacedDigit()
+                    ProgressView(value: download.fraction).controlSize(.small).frame(height: 16)
+                        .accessibilityLabel("Download of \(tile.entry.name)")
+                } else {
+                    Text(tile.entry.purpose).font(.callout).lineLimit(1).minimumScaleFactor(0.85)
+                    Text(tile.shortCost).font(.callout).foregroundStyle(.secondary).lineLimit(1)
+                        .minimumScaleFactor(0.85)
+                }
                 if let reason = tile.disabledReason {
                     Text(reason).font(.caption).foregroundStyle(.orange).fixedSize(
                         horizontal: false, vertical: true)

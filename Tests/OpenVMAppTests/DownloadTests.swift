@@ -272,3 +272,66 @@ struct WizardTileTests {
         }
     }
 }
+
+/// A download as the gallery's card shows it, from the library's installer list.
+struct GalleryDownloadTests {
+    private func row(_ entry: String, bytes: UInt64, complete: Bool, taskId: String? = nil) -> InstallerRow {
+        var fields: [(key: String, value: CBOR)] = [
+            ("entry", .text(entry)), ("name", .text(entry)), ("file", .text("a.iso")),
+            ("path", .text("/x/\(entry)")),
+            ("bytes", .uint(bytes)), ("complete", .bool(complete)),
+        ]
+        if let taskId {
+            fields.append(("taskId", .text(taskId)))
+            fields.append(("bytesTotal", .uint(4_000_000_000)))
+        }
+        return InstallerRow(row: .map(fields))!
+    }
+
+    @Test func aRunningDownloadSaysHowFarAndAStoppedOneSaysPaused() {
+        let found = GalleryDownload.from([
+            row("ubuntu-lts", bytes: 4_000_000_000, complete: true),
+            row("fedora-workstation", bytes: 1_000_000_000, complete: false, taskId: "iso-1"),
+            row("kali", bytes: 120_000_000, complete: false),
+        ])
+        #expect(found["ubuntu-lts"] == nil)  // finished: its card is as usual
+        #expect(found["fedora-workstation"]?.fraction == 0.25)
+        #expect(found["fedora-workstation"]?.text == "1 GB of 4 GB")
+        #expect(found["kali"]?.text == "Paused at 120 MB")
+    }
+}
+
+/// Cancelling the wizard stops its download. The host keeps the part, so it can be picked up again.
+@MainActor
+struct WizardCancelStopsDownloadTests {
+    @Test func cancelStopsTheDownload() async {
+        let host = FakeTransport()
+        host.respond("host-info", with: FakeTransport.hostInfoFields)
+        host.respond("task-start", with: [("taskId", .text("iso-7"))])
+        host.respond(
+            "task-status",
+            with: [("state", .text("running")), ("bytesDone", .uint(10)), ("bytesTotal", .uint(100))])
+        let model = CreateWizardModel(transport: host, existingNames: [], pollInterval: .milliseconds(1))
+        await model.load()
+        let following = Task { await model.chooseDownload(InstallerCatalog.entry("kali")!) }
+        for _ in 0..<200 where model.download?.done != 10 { try? await Task.sleep(for: .milliseconds(2)) }
+        await model.cancel()
+        await following.value
+        #expect(host.arg("task-cancel", "taskId") == .text("iso-7"))
+        #expect(model.download == nil)
+        #expect(model.page == .gallery)
+    }
+
+    /// A download that has already finished is left alone: there is nothing to stop.
+    @Test func aFinishedDownloadIsNotTouched() async {
+        let host = FakeTransport()
+        host.respond("host-info", with: FakeTransport.hostInfoFields)
+        host.respond("task-start", with: [("taskId", .text("iso-8"))])
+        host.respond("task-status", with: [("state", .text("done")), ("path", .text("/x/a.iso"))])
+        let model = CreateWizardModel(transport: host, existingNames: [], pollInterval: .milliseconds(1))
+        await model.load()
+        await model.chooseDownload(InstallerCatalog.entry("kali")!)
+        await model.cancel()
+        #expect(!host.calls.contains("task-cancel"))
+    }
+}

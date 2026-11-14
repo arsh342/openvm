@@ -614,7 +614,15 @@ final class CreateWizardModel: ObservableObject {
             }
             if let name = createdName { await removeVM(name) }
         }
+        await stopDownload()
         reset()
+    }
+
+    /// Stops the installer download this wizard started, when the wizard is cancelled or closed. The host
+    /// keeps what it has, so choosing the same system again picks up where it stopped.
+    func stopDownload() async {
+        if download?.state == .running { await pauseDownload() }
+        download = nil
     }
 
     /// Returns once the task is no longer running, so its cleanup is finished: the script unmounts

@@ -574,8 +574,10 @@ in Downloads) and a tile for each system. The library shows the same view while 
 * **Windows 11** leads to a page with a button to Microsoft's download page, the three choices to make there,
   and what to expect, said before anything is downloaded. The file is dropped on that page or chosen.
 * **Linux download tiles** start the host's download and move on to the sizes while it runs; only Create
-  waits for the verified file. The download belongs to the host, so closing the wizard leaves it running, and
-  it shows in the library (Installers), under the menu-bar icon, and in the quit dialog.
+  waits for the verified file. Its progress is in the bar with the wizard's buttons, with Pause and Resume.
+  Cancel, or closing the wizard, stops it (the owner's choice, 2026-11-14); the host keeps what it has, so
+  choosing the same system again picks up where it stopped. A download started from the library's Downloads list
+  runs on its own, and shows there, under the menu-bar icon and in the quit dialog.
 * **Every system in the catalog has a tile** (the owner's choice, 2026-11-13). Until then a Linux entry was
   listed only once its `evidence` named a file in `docs/evidence` recording a full install, and others could be
   shown with a preference, marked "Not tested yet"; that rule, the preference and the label are gone. The

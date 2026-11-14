@@ -25,6 +25,29 @@ struct GalleryTile: Equatable, Identifiable {
     }
 }
 
+/// A download under way, as a card in the gallery shows it.
+struct GalleryDownload: Equatable {
+    /// 0 to 1, or nil while the size is not known.
+    let fraction: Double?
+    /// "7.1 MB of 2.99 GB", "Paused at 120 MB", "Downloaded and checked".
+    let text: String
+
+    /// From the installer cache, as the library knows it: what is downloading, and what stopped part-way.
+    static func from(_ installers: [InstallerRow]) -> [String: GalleryDownload] {
+        var found: [String: GalleryDownload] = [:]
+        for row in installers where !row.complete {
+            let fraction = DownloadText.fraction(done: row.bytes, total: row.bytesTotal)
+            found[row.entry] =
+                row.downloading
+                ? GalleryDownload(
+                    fraction: fraction,
+                    text: DownloadText.progress(done: row.bytes, total: row.bytesTotal, bytesPerSecond: 0))
+                : GalleryDownload(fraction: fraction ?? 0, text: "Paused at \(DownloadText.size(row.bytes))")
+        }
+        return found
+    }
+}
+
 /// What the gallery says about a file that was dropped or chosen.
 enum GalleryFileStatus: Equatable {
     case none

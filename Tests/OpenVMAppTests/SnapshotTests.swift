@@ -342,7 +342,7 @@ extension SnapshotTests {
         for _ in 0..<200 where model.download?.done != 1_200_000_000 {
             try? await Task.sleep(for: .milliseconds(2))
         }
-        Snapshot.check("wizard-downloading", wizardView(model), width: 600, height: 540)
+        Snapshot.check("wizard-downloading", wizardView(model), width: 640, height: 532)
         await model.pauseDownload()
         await following.value
     }
@@ -377,6 +377,30 @@ extension SnapshotTests {
         await model.refresh()
         Snapshot.check(
             "library-installers", InstallersView(model: model, newVM: { _ in }), width: 700, height: 300)
+    }
+
+    /// Back on the gallery while a download runs: the download shows on its card, and the page still fits
+    /// its window with the buttons at the bottom.
+    @Test(.enabled(if: Snapshot.enabled))
+    func galleryWhileADownloadRuns() async {
+        let host = FakeTransport()
+        host.respond("task-start", with: [("taskId", .text("iso-1"))])
+        host.respond(
+            "task-status",
+            with: [
+                ("state", .text("running")), ("bytesDone", .uint(7_100_000)),
+                ("bytesTotal", .uint(2_987_100_160)),
+                ("bytesPerSecond", .uint(200_000)),
+            ])
+        let model = await wizardModel(host)
+        let following = Task { await model.chooseDownload(InstallerCatalog.entry("fedora-workstation")!) }
+        for _ in 0..<200 where model.download?.done != 7_100_000 {
+            try? await Task.sleep(for: .milliseconds(2))
+        }
+        model.back()
+        Snapshot.check("wizard-gallery-downloading", wizardView(model), width: 640, height: 532)
+        await model.pauseDownload()
+        await following.value
     }
 
     @Test(.enabled(if: Snapshot.enabled))

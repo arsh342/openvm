@@ -57,6 +57,11 @@ final class CreateWizardWindowController: NSWindowController, NSWindowDelegate {
         closing = false
     }
 
+    /// Closing the window is cancelling: a download it started stops too (what it has is kept).
+    func windowWillClose(_ notification: Notification) {
+        Task { await model.stopDownload() }
+    }
+
     func windowShouldClose(_ sender: NSWindow) -> Bool {
         // While a cancel is finishing, the window stays: closing it now would hide the cleanup.
         if model.cancelling { return false }
