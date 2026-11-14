@@ -72,9 +72,10 @@ A failure goes back as a bug with the step that showed it.
       `.iso`; closing the window mid-run asks first.
 - [x] **Menus, library and Settings.** Every menu item does what it says, for the current VM, in the menu bar and under the icon; CPU and memory are locked while a VM
       runs; sound warning appears before Windows sound turns on.
-- [x] **Menu bar icon** is the computer symbol; its menu ticks the current VM, shows its state, and its View, Actions and Devices submenus work with the app in the background.
+- [x] **Menu bar icon** (as in M4; since 2026-11-13 the mark is the app icon's two screens, and the submenus are Virtual Machine's) is the computer symbol; its menu ticks the current VM, shows its state, and its View, Actions and Devices submenus work with the app in the background.
 - [x] **Library cards** show a picture of each running VM after a while (30 seconds, or when you leave its window). If a card stays a plain tile for a running VM, the screen could not be read: tell me.
-- [x] **VM window title bar**: dark, with four round buttons that fade when the pointer leaves.
+- [x] **VM window title bar**: dark, with four round buttons that fade when the pointer leaves. (As in M4; replaced
+      on 2026-11-13 by a standard toolbar, checked under "The redesign".)
 - [ ] **Clean account.** On a new macOS user with no developer tools, do the whole of the above that
       the app offers. Any step that needs the terminal fails this. Moved to the final acceptance before a
       release (owner, 2026-11-12); it does not hold M4 open.

@@ -8,21 +8,21 @@ Built in Swift and C, on Apple's own `Virtualization.framework`.
 
 ![Windows 11 running in openVM](docs/images/hidpi-windows-2x.png)
 
-> **Early release.** openVM now has a window for each VM, a library, a setup wizard and a menu-bar icon, and everything still works from `openvmctl` too. Several parts have been tested by script but not yet by hand in the app; the list is in [docs/manual-checks.md](docs/manual-checks.md).
+> **Early release.** openVM has a window for each VM, a library, a gallery that downloads and installs Ubuntu, Fedora and Kali for you, and a menu-bar icon, and everything still works from `openvmctl` too. What has been checked by hand, and what has not, is in [docs/manual-checks.md](docs/manual-checks.md).
 
 ## Why openVM
 
 * **Built on Apple's hypervisor.** ARM guests run directly on your Mac's CPU, with no translation layer.
 * **Deep integration.** The connection between macOS and the guest is the product, not an add-on.
-* **Your own installers.** Windows installs unattended from your own ISO, and any ARM64 Linux installs from its own ISO with its own installer.
+* **Installers made easy.** openVM downloads Ubuntu, Fedora Workstation and Kali Linux for you and checks each file against its maker's published checksum. Windows installs unattended from the file Microsoft gives you, and any other Linux for Arm installs from its own ISO with its own installer.
 * **Free and open.** Apache 2.0 licensed, with no account and no subscription.
 
 ## Features
 
 | Feature | Windows | Linux, from an ISO |
 | --- | --- | --- |
-| A window for each VM, with keyboard and mouse | Yes, at 1024 pixels wide for now | Yes |
-| Resizing with the window | Not yet (held at 1024 wide) | Yes, if the distribution's display driver supports it |
+| A window for each VM, with keyboard and mouse | Yes | Yes |
+| Resizing with the window | Yes, with a fixed display driver (see "Before you rely on it") | Yes, if the distribution's desktop follows it |
 | Clipboard | Yes, following focus (text; passwords are never shared) | Opt-in, through `spice-vdagent` on X11 desktops (passwords are shared too) |
 | File transfer and shared folders | Yes | Not yet |
 | Drag files into a guest | Yes | Not yet |
@@ -39,8 +39,8 @@ Windows guests run openVM's guest tools, which carry clipboard, files, printing 
 
 * An Apple Silicon Mac, on macOS 14 or later
 * Swift 6, from Xcode or the Command Line Tools
-* For Windows guests: your own Windows 11 ARM64 ISO. Nothing else to install: openVM builds the install media itself, using `wimlib` from Homebrew if the Mac has it, and otherwise a short-lived helper VM that fetches its own copy (it needs a small download first, below). `zig` and `lld` are only needed to build openVM's payload from source
-* For Linux guests: the ARM64 (aarch64) ISO of the distribution you want
+* For Windows guests: Windows 11 for Arm, which you download from Microsoft (the app's Windows 11 tile opens the page). Nothing else to install: openVM builds the install media itself, using `wimlib` from Homebrew if the Mac has it, and otherwise a short-lived helper VM that fetches its own copy (it needs a small download first, below). `zig` and `lld` are only needed to build openVM's payload from source
+* For Linux guests: nothing for Ubuntu, Fedora Workstation or Kali Linux, which the app downloads; for any other distribution, its ARM64 (aarch64) ISO
 
 ## Get started
 

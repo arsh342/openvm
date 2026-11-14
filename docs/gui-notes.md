@@ -196,6 +196,10 @@ memory of a stopped VM takes effect at its next start.
 
 ## The creation wizard
 
+**Its first page changed on 2026-11-13:** the System page is now the gallery ("The redesign" at the end of this
+file), and its steps are System, Installer, Resources, (Account,) Summary, Install. What follows on the checks and
+the cleanup still holds.
+
 File > New Virtual Machine (Cmd+N), or "New VM…" in the library. It does nothing a person could not
 do with `openvmctl`; what it adds is the order, the checks before each step, and the cleanup.
 
@@ -657,7 +661,10 @@ Not yet seen in the Dock or the menu bar by a person.
 
 ### What is not done
 
-* **A Fedora install on record.** Its tile is listed without one.
-* **By hand:** the previews switch in Settings. The owner did the other checks on 2026-11-13, the key rule in a
-  guest among them (`docs/evidence/manual-checks-2026-11-13.md`).
+* **Kali's first install attempt panicked** (a penguin and a QR code); the second went through. The panic's text
+  was not captured, so its cause is not known (`docs/evidence/linux-iso-kali-2026-11-14.md`).
+* **By hand:** the previews switch in Settings. The owner did the other checks on 2026-11-13 and 14
+  (`docs/evidence/manual-checks-2026-11-13.md`).
 * **macOS 14 and 26.** Built and looked at on macOS 27 only. The compiler holds the code to macOS 14's APIs.
+* **The system marks' trademark rules** (Windows, Ubuntu, Fedora, Kali) have not been checked.
+* **Signing.** The app is signed ad hoc, not with a Developer ID, and not notarized.
