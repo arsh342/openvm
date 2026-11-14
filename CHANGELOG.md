@@ -12,7 +12,7 @@ First public version, a beta.
 * Each virtual machine's window has a standard toolbar, in place of the round buttons that faded in the title bar
 * openVM can download Linux installers itself (`openvmctl installer`, and tiles in the gallery), checked against the maker's published SHA-256, resumable, and kept in `~/.openvm/isos`
 * A new app icon, two screens one inside the other, and a menu-bar mark of the same shape. The compiled icon is committed, so a build without Xcode carries it
-* Kali Linux joins Ubuntu and Fedora among the systems openVM downloads and installs. All three have been installed through openVM, and their tiles say what each needs (natural scrolling for Ubuntu and Fedora, and what to do if Kali's installer waits on a slow mirror)
+* Kali Linux joins Ubuntu and Fedora among the systems openVM downloads and installs. All three have been installed through openVM, and their tiles say what each needs (natural scrolling for Ubuntu and Fedora, reverse scroll direction for Kali, and what to do if Kali's installer waits on a slow mirror)
 * The systems show their makers' marks: Windows, Ubuntu, Fedora and Kali
 * A download's progress is in the wizard's button bar, with Pause and Resume; Cancel, or closing the wizard, stops it, keeping what it has
 * Failures are a plain title, one sentence and one action, with the technical text behind Details

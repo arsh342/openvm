@@ -125,8 +125,9 @@ The owner did the ticked ones by hand on 2026-11-13 and reported that they work
 - [x] **Evidence install, Fedora.** Installed and boots (2026-11-14, owner:
       `docs/evidence/linux-iso-fedora-2026-11-14.md`). Scrolling runs the other way until natural scrolling is
       turned on in Fedora; then it matches the Mac.
-- [x] **Scrolling in Ubuntu and Fedora.** With Settings ▸ Mouse & Touchpad ▸ Mouse ▸ Natural Scrolling turned on
-      in each guest, scrolling runs the Mac's way (2026-11-14, owner). Both tiles say so.
+- [x] **Scrolling in Ubuntu, Fedora and Kali.** With Settings ▸ Mouse & Touchpad ▸ Mouse ▸ Natural Scrolling turned
+      on in Ubuntu and Fedora, and Settings ▸ Mouse and Touchpad ▸ Reverse scroll direction ticked in Kali (Xfce),
+      scrolling runs the Mac's way (2026-11-14, owner). All three tiles say so.
 - [x] **Remove Installer and Start** appears on a stopped Linux VM that still has its installer, and starts
       the installed system.
       **Passes (2026-11-13, owner).**

@@ -99,6 +99,7 @@ public nonisolated enum InstallerCatalog {
             downloadGB: 4.1, neededGB: 28, time: "About 30 minutes",
             limits: [
                 "No sound until you add the PipeWire setting from openVM’s Help.",
+                "Scrolling runs the other way until you tick Reverse scroll direction for the mouse in Kali’s Settings.",
                 "The clipboard and files are not shared with the Mac yet.",
                 "If the installer waits long at “Running simple-cdd”, Kali’s download server is slow: see openVM’s Help.",
             ],
