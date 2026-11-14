@@ -87,10 +87,11 @@ public nonisolated enum InstallerCatalog {
             time: "About 20 minutes",
             limits: [
                 "No sound until you add the PipeWire setting from openVM’s Help.",
+                "Scrolling runs the other way until you turn on Natural Scrolling for the mouse in Fedora’s Settings.",
                 "The clipboard and files are not shared with the Mac yet.",
             ],
-            // No install on record: listed because Ubuntu, which installs the same way, works (the owner).
-            evidence: nil, page: URL(string: "https://fedoraproject.org/workstation/download")!,
+            evidence: "linux-iso-fedora-2026-11-14.md",
+            page: URL(string: "https://fedoraproject.org/workstation/download")!,
             symbol: "hexagon"),
         Entry(
             id: "kali", name: "Kali Linux", purpose: "For security testing.", kind: .linux, source: .kali,

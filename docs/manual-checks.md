@@ -117,12 +117,12 @@ The owner did the ticked ones by hand on 2026-11-13 and reported that they work
       **Passes (2026-11-13, owner):** Ubuntu, to "Downloaded and checked".
 - [x] **Evidence install, Ubuntu.** Installed from its tile, with sound (2026-11-13, owner:
       `docs/evidence/linux-iso-ubuntu-2026-11-13.md`).
-- [ ] **Evidence install, Kali.** Not installed; its download was run for a few seconds only
-      (`docs/evidence/installer-sources-2026-11-13.md`). Install it from its tile and write
-      `docs/evidence/linux-iso-kali-<date>.md`, then name the file in its catalog entry's `evidence`.
-- [ ] **Evidence install, Fedora.** Its download works (2026-11-13, owner); an install is not on record. Its tile is listed on the strength of Ubuntu's result (the
-      owner's choice). Install it from its tile and write `docs/evidence/linux-iso-fedora-<date>.md`, then name
-      the file in its catalog entry's `evidence`.
+- [ ] **Evidence install, Kali.** Fails (2026-11-14, owner): the kernel panics during the install (a penguin
+      and a QR code on screen) and the VM restarts. The installer had partitioned the disk and written about
+      900 MB to it. The panic's text is not recorded yet.
+- [x] **Evidence install, Fedora.** Installed and boots (2026-11-14, owner:
+      `docs/evidence/linux-iso-fedora-2026-11-14.md`). Scrolling runs the other way until natural scrolling is
+      turned on in Fedora; the tile says so.
 - [x] **Remove Installer and Start** appears on a stopped Linux VM that still has its installer, and starts
       the installed system.
       **Passes (2026-11-13, owner).**
