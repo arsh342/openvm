@@ -68,8 +68,12 @@ import Testing
             try? await Task.sleep(nanoseconds: 100_000_000)
             flag.set()
         }
+        // The exchange blocks until the main actor has run, not for a fixed time: on CI the whole test process
+        // was seen to stall for about 12 seconds, and a fixed 0.4 s wait failed there (2026-11-14). If the
+        // exchange held the main actor, the flag could never be set, and this gives up after 60 s.
         let value = try await GuestChannel.offMainActor {
-            Thread.sleep(forTimeInterval: 0.4)
+            let deadline = Date().addingTimeInterval(60)
+            while !flag.get(), Date() < deadline { Thread.sleep(forTimeInterval: 0.01) }
             return 42
         }
         #expect(value == 42)
@@ -78,7 +82,7 @@ import Testing
     }
 
     /// Minimal thread-safe flag for the main-actor liveness probe.
-    final class Flag: @unchecked Sendable {
+    nonisolated final class Flag: @unchecked Sendable {
         private let lock = NSLock()
         private var value = false
         func set() {
