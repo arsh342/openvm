@@ -1,0 +1,4 @@
+module OpenVMCore {
+header "OpenVMCore-Swift.h"
+export *
+}

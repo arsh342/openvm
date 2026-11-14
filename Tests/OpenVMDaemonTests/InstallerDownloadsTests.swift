@@ -177,7 +177,13 @@ nonisolated struct InstallerDownloadsTests {
 
     /// Starts a download and waits for it to leave `running`. The waits give their thread back: URLSession
     /// needs the same threads the tests run on, and tests that sleep on them stall every download.
-    private func run(_ downloads: InstallerDownloads, seconds: Double = 10) async throws
+    /// How long a test waits for a download. A healthy one takes well under a second, and the wait ends as soon
+    /// as it is done. CI runs every test target in one process on a few cores, where the whole process was seen
+    /// to stall for about 12 seconds (every test there reported 11.5 to 14 seconds, 2026-11-14); a 10-second wait
+    /// failed there with the downloads still at their first byte.
+    static let patience: Double = 90
+
+    private func run(_ downloads: InstallerDownloads, seconds: Double = Self.patience) async throws
         -> InstallerDownloads.Snapshot
     {
         let id = try downloads.start(entry: "test-linux").get()
@@ -185,7 +191,7 @@ nonisolated struct InstallerDownloadsTests {
         return try #require(found)
     }
 
-    private func finish(_ downloads: InstallerDownloads, _ id: String, seconds: Double = 10) async
+    private func finish(_ downloads: InstallerDownloads, _ id: String, seconds: Double = Self.patience) async
         -> InstallerDownloads.Snapshot?
     {
         let deadline = Date().addingTimeInterval(seconds)
@@ -198,7 +204,7 @@ nonisolated struct InstallerDownloadsTests {
 
     /// Waits until a download has received something.
     private func started(_ downloads: InstallerDownloads, _ id: String) async {
-        let deadline = Date().addingTimeInterval(5)
+        let deadline = Date().addingTimeInterval(Self.patience)
         while Date() < deadline, (downloads.status(id)?.bytesDone ?? 0) == 0 {
             try? await Task.sleep(for: .milliseconds(10))
         }

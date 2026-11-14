@@ -1,0 +1,335 @@
+[
+  {
+    "isFramework" : true,
+    "moduleName" : "Combine",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/Combine.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "CoreFoundation",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/CoreFoundation.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Darwin",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/Darwin.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Dispatch",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/Dispatch.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : true,
+    "moduleName" : "Foundation",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/Foundation.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "IOKit",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/IOKit.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "ObjectiveC",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/ObjectiveC.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Observation",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/Observation.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "OpenVMCore",
+    "modulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/Products\/Debug\/OpenVMCore.swiftmodule\/arm64-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "Swift",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/Swift.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "SwiftOnoneSupport",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/SwiftOnoneSupport.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "System",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/System.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "XPC",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/XPC.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_Builtin_float",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/_Builtin_float.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_Concurrency",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/_Concurrency.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation1",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/_DarwinFoundation1.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation2",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/_DarwinFoundation2.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation3",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/_DarwinFoundation3.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "isFramework" : false,
+    "moduleName" : "_StringProcessing",
+    "modulePath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/swift\/macosx\/prebuilt-modules\/27.2\/_StringProcessing.swiftmodule\/arm64e-apple-macos.swiftmodule"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/System\/Library\/Frameworks\/CFNetwork.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/CFNetwork-364CWJ2XQBIHF745VI1ZUSQHW.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CFNetwork"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/System\/Library\/Frameworks\/CoreFoundation.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/CoreFoundation-8YJ3JH34AXLSAMCWDEB7ZUYHZ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreFoundation"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/System\/Library\/Frameworks\/CoreServices.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/CoreServices-6DBZWDWYJPKKYY1RUDNCEE8A8.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "CoreServices"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/Darwin.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/Darwin-45JN6QQTX2M7JXIMP5YZEHM9R.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Darwin"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/System\/Library\/Frameworks\/DiskArbitration.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/DiskArbitration-LVSMT0BH8QN2PI13WA4IQ118.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "DiskArbitration"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/dispatch.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/Dispatch-DTQXLMGF3332U842AU3F49Y6U.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Dispatch"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/System\/Library\/Frameworks\/Foundation.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/Foundation-10Y2V9VWQJ74IBJSKMC1YUZJS.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Foundation"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/System\/Library\/Frameworks\/IOKit.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/IOKit-AZJA512ZU7UZ7IXLLSDMK89JN.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "IOKit"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/DarwinBasic.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/MachO-2JRS66Y7HC1IZVRP7RKQ31LOP.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "MachO"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/ObjectiveC.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/ObjectiveC-B7ZPV3JFT5IX09LR6A0PPJHIX.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ObjectiveC"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/System\/Library\/Frameworks\/Security.framework\/Modules\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/Security-4EF4M4NG1PE4QJR7T6F5P3ZDU.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "Security"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/lib\/swift\/shims\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/SwiftShims-7N68SJWWL5NDJGMFA9R5JUBRX.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "SwiftShims"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/xpc.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/XPC-C2GS6GZRSS3R9SQDS0A3GA6GU.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "XPC"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/DarwinFoundation1.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_AvailabilityInternal-B19FM7RAX4XLELY1YQS1V8RLY.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_AvailabilityInternal"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_Builtin_float-AVVIE1O1X9WAA6ODN1EVXJRDP.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_float"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_Builtin_inttypes-7XBLJFKDIUCG2HO114W09QT2L.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_inttypes"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_Builtin_limits-6DL6W2F0Q3S51P8SVSFIFLZXE.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_limits"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdarg-B7T4SN2NY16BBM224VJLUK99F.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdarg"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdbool-EBPTID6HMXVA57LS5H7X4POD3.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdbool"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_Builtin_stddef-CAV4AQDKVIHCCV6QD10QCWSZ3.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stddef"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_Builtin_stdint-431ADS84RDW2ZNTWIF7EALY9F.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_Builtin_stdint"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/DarwinFoundation1.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation1-7RLGGV7VUTWZGUPT6FU4OSD6M.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation1"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/DarwinFoundation2.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation2-ELPLRVERQN6SQ5GT7KGD2CKDN.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation2"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/DarwinFoundation3.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_DarwinFoundation3-48SNIDF7CY7LKCWLIH4E9ZP4G.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_DarwinFoundation3"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/lib\/swift\/shims\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/_SwiftConcurrencyShims-7RA75CRGHA4H691IDBOEYY88X.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "_SwiftConcurrencyShims"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/launch.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/launch-BCTEGFRAYNUE09FDSIKVU5CWF.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "launch"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/libDER\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/libDER-91JS0FBIMYSHGDZUO3ZH38BVZ.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "libDER"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/libkern.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/libkern-1U77B059K2LGW432D9OQFOKZ5.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "libkern"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/os_object-D0D27CUSYF6HGKNOW3CQEBS89.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os_object"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/os.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/os_workgroup-ACJFHUDB5LN822XFFETQ79QII.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "os_workgroup"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/ptrauth-9OTGBY6BTHFZL037THKXYIO1Q.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ptrauth"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Toolchains\/XcodeDefault.xctoolchain\/usr\/lib\/clang\/21\/include\/module.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/ptrcheck-6YZ2N78ES23REQSLLYKEV1XS.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "ptrcheck"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/c_standard_library.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/string_h-8NDMR5X511551LFOKJS3I5YQ7.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "string_h"
+  },
+  {
+    "clangModuleMapPath" : "\/Applications\/Xcode.app\/Contents\/Developer\/Platforms\/MacOSX.platform\/Developer\/SDKs\/MacOSX.sdk\/usr\/include\/DarwinFoundation2.modulemap",
+    "clangModulePath" : "\/Users\/arsh\/Developer\/openvm\/openvm\/.build-xcode\/out\/SDKExplicitPrecompiledModules\/sys_types-4D8DY8C5GCSUL81HYPSPRATND.pcm",
+    "isBridgingHeaderDependency" : false,
+    "isFramework" : false,
+    "moduleName" : "sys_types"
+  }
+]

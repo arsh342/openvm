@@ -1,0 +1,23 @@
+{
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostLock.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostLock.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostLock.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostLock.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostLock.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostLock.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostPower.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostPower.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostPower.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostPower.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostPower.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostPower.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMHost/HostTasks.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostTasks.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostTasks.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostTasks.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostTasks.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMHost-t.build/Objects-normal/arm64/HostTasks.swiftdeps"
+  }
+}

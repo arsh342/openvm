@@ -1,0 +1,19 @@
+{
+  "" : {
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/openvm-mockguest-primary.dia",
+    "emit-module-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/openvm-mockguest-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/openvm-mockguest-primary-emit-module.dia",
+    "pch" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/openvm-mockguest-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/openvm-mockguest-primary.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/openvm-mockguest/MockGuest.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/MockGuest.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/MockGuest.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/MockGuest.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/MockGuest.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/MockGuest.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/MockGuest.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/MockGuest.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/openvm-mockguest-p.build/Objects-normal/arm64/MockGuest~partial.swiftmodule"
+  }
+}

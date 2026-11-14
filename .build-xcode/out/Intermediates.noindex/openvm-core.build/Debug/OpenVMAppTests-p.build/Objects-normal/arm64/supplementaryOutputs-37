@@ -1,0 +1,23 @@
+{
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMAppTests/FailureMessageTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/FailureMessageTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/FailureMessageTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/FailureMessageTests.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/FailureMessageTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/FailureMessageTests.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMAppTests/FakeTransport.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/FakeTransport.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/FakeTransport.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/FakeTransport.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/FakeTransport.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/FakeTransport.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMAppTests/GalleryModelTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/GalleryModelTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/GalleryModelTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/GalleryModelTests.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/GalleryModelTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMAppTests-p.build/Objects-normal/arm64/GalleryModelTests.swiftdeps"
+  }
+}

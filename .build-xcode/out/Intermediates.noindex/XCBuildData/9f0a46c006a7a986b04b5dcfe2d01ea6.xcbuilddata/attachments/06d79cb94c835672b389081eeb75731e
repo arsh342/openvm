@@ -1,0 +1,239 @@
+{
+  "" : {
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OpenVMDaemonTests-primary.dia",
+    "emit-module-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OpenVMDaemonTests-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OpenVMDaemonTests-primary-emit-module.dia",
+    "pch" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OpenVMDaemonTests-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OpenVMDaemonTests-primary.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/DerivedSources/test_entry_point.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/ArtifactReceiverTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/ConcurrencyTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/GuestCmdlineTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestCmdlineTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestCmdlineTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestCmdlineTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestCmdlineTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestCmdlineTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestCmdlineTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestCmdlineTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestCmdlineTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/GuestLifecycleTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestLifecycleTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestLifecycleTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestLifecycleTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestLifecycleTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestLifecycleTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestLifecycleTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestLifecycleTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestLifecycleTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/GuestPayloadTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestPayloadTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestPayloadTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestPayloadTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestPayloadTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestPayloadTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestPayloadTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestPayloadTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestPayloadTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/GuestReadinessTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestReadinessTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestReadinessTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestReadinessTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestReadinessTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestReadinessTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestReadinessTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestReadinessTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestReadinessTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/GuestShutdownTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestShutdownTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestShutdownTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestShutdownTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestShutdownTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestShutdownTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestShutdownTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestShutdownTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestShutdownTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/GuestSuspendTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestSuspendTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestSuspendTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestSuspendTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestSuspendTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestSuspendTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestSuspendTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestSuspendTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestSuspendTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/GuestTimesyncTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestTimesyncTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestTimesyncTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestTimesyncTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestTimesyncTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestTimesyncTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestTimesyncTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestTimesyncTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestTimesyncTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/GuestWindowsTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestWindowsTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestWindowsTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestWindowsTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestWindowsTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestWindowsTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestWindowsTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestWindowsTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/GuestWindowsTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/HostInfoTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostInfoTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostInfoTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostInfoTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostInfoTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostInfoTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostInfoTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostInfoTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostInfoTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/HostLockTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostLockTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostLockTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostLockTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostLockTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostLockTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostLockTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostLockTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostLockTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/HostSleepTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostSleepTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostSleepTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostSleepTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostSleepTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostSleepTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostSleepTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostSleepTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostSleepTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/HostTasksTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostTasksTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostTasksTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostTasksTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostTasksTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostTasksTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostTasksTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostTasksTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/HostTasksTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/InstallerDownloadsTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/InstallerDownloadsTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/InstallerDownloadsTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/InstallerDownloadsTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/InstallerDownloadsTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/InstallerDownloadsTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/InstallerDownloadsTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/InstallerDownloadsTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/InstallerDownloadsTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/IsoClipboardTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/IsoClipboardTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/IsoClipboardTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/IsoClipboardTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/IsoClipboardTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/IsoClipboardTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/IsoClipboardTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/IsoClipboardTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/IsoClipboardTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/OldToolsTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OldToolsTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OldToolsTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OldToolsTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OldToolsTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OldToolsTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OldToolsTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OldToolsTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OldToolsTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/OutboxIntakeTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OutboxIntakeTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OutboxIntakeTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OutboxIntakeTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OutboxIntakeTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OutboxIntakeTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OutboxIntakeTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OutboxIntakeTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OutboxIntakeTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/OwnedMediaTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OwnedMediaTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OwnedMediaTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OwnedMediaTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OwnedMediaTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OwnedMediaTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OwnedMediaTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OwnedMediaTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/OwnedMediaTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/SharedFoldersTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/SharedFoldersTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/SharedFoldersTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/SharedFoldersTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/SharedFoldersTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/SharedFoldersTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/SharedFoldersTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/SharedFoldersTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/SharedFoldersTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/WimHelperVMTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WimHelperVMTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WimHelperVMTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WimHelperVMTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WimHelperVMTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WimHelperVMTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WimHelperVMTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WimHelperVMTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WimHelperVMTests~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/WindowsISOTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WindowsISOTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WindowsISOTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WindowsISOTests.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WindowsISOTests.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WindowsISOTests.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WindowsISOTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WindowsISOTests.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/WindowsISOTests~partial.swiftmodule"
+  }
+}

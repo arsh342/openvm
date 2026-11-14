@@ -1,0 +1,23 @@
+{
+  "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/DerivedSources/test_entry_point.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/test_entry_point.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/ArtifactReceiverTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ArtifactReceiverTests.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Tests/OpenVMDaemonTests/ConcurrencyTests.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMDaemonTests-p.build/Objects-normal/arm64/ConcurrencyTests.swiftdeps"
+  }
+}

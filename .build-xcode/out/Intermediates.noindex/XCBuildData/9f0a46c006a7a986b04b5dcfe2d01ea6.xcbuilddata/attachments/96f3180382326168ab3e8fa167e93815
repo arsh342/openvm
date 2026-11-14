@@ -1,0 +1,219 @@
+{
+  "" : {
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OpenVMCore-primary.dia",
+    "emit-module-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OpenVMCore-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OpenVMCore-primary-emit-module.dia",
+    "pch" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OpenVMCore-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OpenVMCore-primary.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/CBOR.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/CBOR.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/CBOR.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/CBOR.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/CBOR.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/CBOR.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/CBOR.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/CBOR.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/CBOR~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/ClipboardPolicy.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/ClipboardPolicy.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/ClipboardPolicy.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/ClipboardPolicy.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/ClipboardPolicy.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/ClipboardPolicy.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/ClipboardPolicy.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/ClipboardPolicy.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/ClipboardPolicy~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/DaemonClient.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DaemonClient.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DaemonClient.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DaemonClient.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DaemonClient.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DaemonClient.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DaemonClient.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DaemonClient.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DaemonClient~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/Display.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Display.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Display.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Display.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Display.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Display.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Display.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Display.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Display~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/DisplayFit.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DisplayFit.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DisplayFit.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DisplayFit.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DisplayFit.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DisplayFit.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DisplayFit.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DisplayFit.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DisplayFit~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/DragDrop.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DragDrop.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DragDrop.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DragDrop.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DragDrop.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DragDrop.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DragDrop.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DragDrop.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/DragDrop~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/Frame.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Frame.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Frame.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Frame.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Frame.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Frame.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Frame.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Frame.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Frame~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/GuestAudio.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/GuestAudio.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/GuestAudio.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/GuestAudio.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/GuestAudio.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/GuestAudio.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/GuestAudio.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/GuestAudio.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/GuestAudio~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/HostInfo.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/HostInfo.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/HostInfo.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/HostInfo.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/HostInfo.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/HostInfo.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/HostInfo.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/HostInfo.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/HostInfo~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/InstallerCatalog.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerCatalog.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerCatalog.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerCatalog.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerCatalog.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerCatalog.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerCatalog.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerCatalog.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerCatalog~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/InstallerSources.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerSources.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerSources.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerSources.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerSources.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerSources.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerSources.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerSources.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/InstallerSources~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/LinuxISOCheck.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/LinuxISOCheck.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/LinuxISOCheck.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/LinuxISOCheck.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/LinuxISOCheck.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/LinuxISOCheck.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/LinuxISOCheck.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/LinuxISOCheck.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/LinuxISOCheck~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/Messages.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Messages.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Messages.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Messages.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Messages.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Messages.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Messages.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Messages.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Messages~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/OutboxRules.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OutboxRules.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OutboxRules.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OutboxRules.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OutboxRules.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OutboxRules.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OutboxRules.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OutboxRules.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/OutboxRules~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/Paths.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Paths.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Paths.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Paths.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Paths.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Paths.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Paths.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Paths.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Paths~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/Printing.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Printing.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Printing.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Printing.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Printing.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Printing.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Printing.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Printing.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Printing~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/Registry.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Registry.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Registry.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Registry.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Registry.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Registry.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Registry.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Registry.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/Registry~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/UnixSocket.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/UnixSocket.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/UnixSocket.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/UnixSocket.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/UnixSocket.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/UnixSocket.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/UnixSocket.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/UnixSocket.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/UnixSocket~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/VmSummary.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/VmSummary.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/VmSummary.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/VmSummary.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/VmSummary.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/VmSummary.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/VmSummary.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/VmSummary.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/VmSummary~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/WindowsAccount.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsAccount.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsAccount.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsAccount.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsAccount.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsAccount.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsAccount.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsAccount.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsAccount~partial.swiftmodule"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMCore/WindowsMediaCheck.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsMediaCheck.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsMediaCheck.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsMediaCheck.dia",
+    "index-unit-output-path" : "/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsMediaCheck.o",
+    "llvm-bc" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsMediaCheck.bc",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsMediaCheck.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsMediaCheck.swiftdeps",
+    "swiftmodule" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMCore-t.build/Objects-normal/arm64/WindowsMediaCheck~partial.swiftmodule"
+  }
+}

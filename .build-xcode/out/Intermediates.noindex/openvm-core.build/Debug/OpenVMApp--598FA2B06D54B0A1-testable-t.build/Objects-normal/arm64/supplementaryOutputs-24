@@ -1,0 +1,30 @@
+{
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMApp/DropSession.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/DropSession.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/DropSession.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/DropSession.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/DropSession.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/DropSession.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMApp/FailureMessage.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/FailureMessage.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/FailureMessage.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/FailureMessage.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/FailureMessage.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/FailureMessage.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMApp/GalleryModel.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/GalleryModel.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/GalleryModel.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/GalleryModel.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/GalleryModel.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/GalleryModel.swiftdeps"
+  },
+  "/Users/arsh/Developer/openvm/openvm/Sources/OpenVMApp/GalleryView.swift" : {
+    "const-values" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/GalleryView.swiftconstvalues",
+    "dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/GalleryView.d",
+    "diagnostics" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/GalleryView.dia",
+    "object" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/GalleryView.o",
+    "swift-dependencies" : "/Users/arsh/Developer/openvm/openvm/.build-xcode/out/Intermediates.noindex/openvm-core.build/Debug/OpenVMApp--598FA2B06D54B0A1-testable-t.build/Objects-normal/arm64/GalleryView.swiftdeps"
+  }
+}
