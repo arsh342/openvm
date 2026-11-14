@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.1.0-beta.1 (2026-11-14)
 
-First public version.
+First public version, a beta.
 
 * The app is redesigned around standard Mac controls. A gallery starts a new virtual machine: drop or choose an installer file (openVM tells Windows from Linux by the file), or pick a system. The Windows 11 tile opens Microsoft's download page and says what to expect
 * The library is a sidebar, a sortable table (name, system, status, last used, size on disk) and a detail pane. Status is a symbol and a word. Return opens a virtual machine, Space starts or resumes it, Command-Delete deletes after asking
