@@ -146,3 +146,29 @@ struct VMRestartTests {
         #expect(model.lastError != nil)
     }
 }
+
+/// The wizard opens a VM's window by name as soon as it has made the VM, before the next poll has listed it.
+/// It used to look only in the list it had, so with other VMs already listed no window opened (2026-11-14:
+/// linux-vm-2 and linux-vm-3, made and started from the wizard, opened none).
+@MainActor
+struct VMFindTests {
+    @Test func aVmTheListDoesNotHaveYetIsFoundInAFreshList() async {
+        let host = FakeTransport()
+        host.rows = [FakeTransport.row("linux-vm")]
+        let model = VMListModel(transport: host)
+        await model.refresh()
+        host.rows = [FakeTransport.row("linux-vm"), FakeTransport.row("linux-vm-2")]  // just made by the wizard
+        #expect(await model.find("linux-vm-2")?.name == "linux-vm-2")
+    }
+
+    @Test func aVmTheListHasIsFoundWithoutAskingAgain() async {
+        let host = FakeTransport()
+        host.rows = [FakeTransport.row("linux-vm")]
+        let model = VMListModel(transport: host)
+        await model.refresh()
+        let asked = host.calls.count
+        #expect(await model.find("UUID-LINUX-VM")?.name == "linux-vm")
+        #expect(host.calls.count == asked)
+        #expect(await model.find("gone") == nil)
+    }
+}

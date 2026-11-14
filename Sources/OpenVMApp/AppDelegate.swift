@@ -75,14 +75,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// A link may arrive before the first poll has filled the list.
+    /// Opens a VM's window by name or uuid: from a link, and from the wizard as soon as it has made the VM.
     private func openWindow(for reference: String) async {
-        if model.vms.isEmpty { await model.refresh() }
-        guard
-            let vm = model.vms.first(where: {
-                $0.name == reference || $0.uuid.lowercased() == reference.lowercased()
-            })
-        else { return }
+        guard let vm = await model.find(reference) else { return }
         openWindow(vm)
     }
 

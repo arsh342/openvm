@@ -335,3 +335,17 @@ struct WizardCancelStopsDownloadTests {
         #expect(!host.calls.contains("task-cancel"))
     }
 }
+
+/// A VM made from a downloaded installer is said by its system's name, not the cache's file name.
+struct SystemNameTests {
+    @Test func aDownloadedInstallerIsNamedByItsCatalogEntry() {
+        let cached = OVMPaths.isos.appendingPathComponent("kali-kali-linux-2026.3-installer-arm64.iso").path
+        #expect(CreateWizardModel.systemName(forFile: cached) == "Kali Linux")
+        let ubuntu = OVMPaths.isos.appendingPathComponent("ubuntu-lts-ubuntu-26.04.1-desktop-arm64.iso").path
+        #expect(CreateWizardModel.systemName(forFile: ubuntu) == "Ubuntu")
+        // A file of the person's own keeps its name, wherever it is.
+        #expect(
+            CreateWizardModel.systemName(forFile: "/Users/me/Downloads/kali-linux-2026.3-installer-arm64.iso")
+                == "kali-linux-2026.3-installer-arm64")
+    }
+}

@@ -55,6 +55,17 @@ final class VMListModel: ObservableObject {
 
     func vm(uuid: String) -> VmSummary? { vms.first { $0.uuid == uuid } }
 
+    /// A VM by name or uuid. One the list does not have yet (the wizard has just made it, and the next poll is
+    /// up to a second away; a link arrived before the first poll) is looked for again in a fresh list.
+    func find(_ reference: String) async -> VmSummary? {
+        func lookup() -> VmSummary? {
+            vms.first { $0.name == reference || $0.uuid.lowercased() == reference.lowercased() }
+        }
+        if let found = lookup() { return found }
+        await refresh()
+        return lookup()
+    }
+
     // MARK: installers
 
     /// A host from before downloads does not know the op: then there are none.

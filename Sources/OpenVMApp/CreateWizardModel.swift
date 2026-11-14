@@ -206,6 +206,21 @@ final class CreateWizardModel: ObservableObject {
         }
     }
 
+    /// What a VM made from this file runs. An installer openVM downloaded is named `<catalog id>-<file>` in its
+    /// cache, so it is said by its catalog name ("Kali Linux"); any other file by its own name, without ".iso".
+    nonisolated static func systemName(forFile path: String) -> String {
+        let file = URL(fileURLWithPath: path)
+        if file.deletingLastPathComponent().standardizedFileURL.path
+            == OVMPaths.isos.standardizedFileURL.path,
+            let entry = InstallerCatalog.entries.first(where: {
+                file.lastPathComponent.hasPrefix($0.id + "-")
+            })
+        {
+            return entry.name
+        }
+        return file.deletingPathExtension().lastPathComponent
+    }
+
     /// A tile was chosen, in any gallery. This is the one way in for a tile: Windows opens its page, where
     /// its file is brought in, and a system openVM downloads itself starts downloading.
     func choose(_ entry: InstallerCatalog.Entry) async {
@@ -331,7 +346,7 @@ final class CreateWizardModel: ObservableObject {
         if os == .windows { return "Windows 11" }
         if let download { return download.entry.name }
         guard let isoPath else { return "Linux" }
-        return URL(fileURLWithPath: isoPath).deletingPathExtension().lastPathComponent
+        return Self.systemName(forFile: isoPath)
     }
 
     /// Fetches the helper VM's files, with progress. Windows needs them when the Mac has no wimlib,
