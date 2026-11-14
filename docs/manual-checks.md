@@ -117,6 +117,9 @@ The owner did the ticked ones by hand on 2026-11-13 and reported that they work
       **Passes (2026-11-13, owner):** Ubuntu, to "Downloaded and checked".
 - [x] **Evidence install, Ubuntu.** Installed from its tile, with sound (2026-11-13, owner:
       `docs/evidence/linux-iso-ubuntu-2026-11-13.md`).
+- [ ] **Evidence install, Kali.** Not installed; its download was run for a few seconds only
+      (`docs/evidence/installer-sources-2026-11-13.md`). Install it from its tile and write
+      `docs/evidence/linux-iso-kali-<date>.md`, then name the file in its catalog entry's `evidence`.
 - [ ] **Evidence install, Fedora.** Its download works (2026-11-13, owner); an install is not on record. Its tile is listed on the strength of Ubuntu's result (the
       owner's choice). Install it from its tile and write `docs/evidence/linux-iso-fedora-<date>.md`, then name
       the file in its catalog entry's `evidence`.

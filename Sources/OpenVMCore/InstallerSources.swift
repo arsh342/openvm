@@ -34,7 +34,20 @@ public nonisolated enum InstallerSources {
             guard release.allSatisfy({ $0.isNumber || $0 == "." }), !release.isEmpty else { return nil }
             return URL(string: "https://cdimage.ubuntu.com/ubuntu/releases/\(release)/release/SHA256SUMS")
         case .fedora: return URL(string: "https://fedoraproject.org/releases.json")
+        case .kali: return URL(string: "https://cdimage.kali.org/current/SHA256SUMS")
         case .page: return nil
+        }
+    }
+
+    /// The hosts a source's index may come from: the vendor's own, and nowhere else. An index that
+    /// redirects is followed only to another of these. Kali has two: `cdimage.kali.org` hands every request
+    /// to its own download host, `kali.download`.
+    public static func indexHosts(for source: InstallerCatalog.Source) -> [String] {
+        switch source {
+        case .ubuntu: return ["cdimage.ubuntu.com"]
+        case .fedora: return ["fedoraproject.org"]
+        case .kali: return ["cdimage.kali.org", "kali.download"]
+        case .page: return []
         }
     }
 
@@ -65,6 +78,9 @@ public nonisolated enum InstallerSources {
             guard let text = String(data: index, encoding: .utf8) else { return nil }
             return ubuntu(sums: text, release: release, folder: indexURL.deletingLastPathComponent())
         case .fedora(let variant): return fedora(json: index, variant: variant)
+        case .kali:
+            guard let text = String(data: index, encoding: .utf8) else { return nil }
+            return kali(sums: text, folder: indexURL.deletingLastPathComponent())
         case .page: return nil
         }
     }
@@ -87,6 +103,35 @@ public nonisolated enum InstallerSources {
             guard !numbers.contains(-1) else { continue }
             if best == nil
                 || numbers.lexicographicallyPrecedes(best!.version) == false && numbers != best!.version
+            {
+                best = (numbers, name, hash)
+            }
+        }
+        guard let best else { return nil }
+        return ResolvedInstaller(
+            url: folder.appendingPathComponent(best.name), fileName: best.name, sha256: best.hash, size: nil)
+    }
+
+    /// Kali's `SHA256SUMS` lists "<hash>  <file>" for every image of the current release. The one for a
+    /// Mac is `kali-linux-<version>-installer-arm64.iso`: the full installer, which needs no network to
+    /// install, and not the netinst, everything, purple or live images.
+    static func kali(sums: String, folder: URL) -> ResolvedInstaller? {
+        var best: (version: [Int], name: String, hash: String)?
+        for line in sums.split(whereSeparator: \.isNewline) {
+            let parts = line.split(separator: " ", maxSplits: 1, omittingEmptySubsequences: true)
+            guard parts.count == 2 else { continue }
+            let hash = parts[0].lowercased()
+            let name = parts[1].trimmingCharacters(in: CharacterSet(charactersIn: " *"))
+            guard validSHA256(hash), validFileName(name), name.hasPrefix("kali-linux-"),
+                name.hasSuffix("-installer-arm64.iso")
+            else { continue }
+            let version = String(name.dropFirst("kali-linux-".count).dropLast("-installer-arm64.iso".count))
+            // "2026.3", or "2026.3a" for a respin: digits and dots, with at most a letter at the end.
+            let numbers = version.split(separator: ".").map { Int($0.filter(\.isNumber)) ?? -1 }
+            guard !numbers.isEmpty, !numbers.contains(-1),
+                version.allSatisfy({ $0.isNumber || $0 == "." || $0.isLetter })
+            else { continue }
+            if best == nil || (numbers != best!.version && !numbers.lexicographicallyPrecedes(best!.version))
             {
                 best = (numbers, name, hash)
             }

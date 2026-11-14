@@ -49,6 +49,10 @@ nonisolated final class InstallerDownloads: @unchecked Sendable {
         var indexURL: @Sendable (InstallerCatalog.Entry) -> URL? = {
             InstallerSources.indexURL(for: $0.source)
         }
+        /// The hosts an entry's index may be served from, besides the one its address names.
+        var indexHosts: @Sendable (InstallerCatalog.Entry) -> [String] = {
+            InstallerSources.indexHosts(for: $0.source)
+        }
         /// Off only in tests, which serve from this Mac over plain HTTP.
         var requireHTTPS = true
         var freeBytes: @Sendable () -> UInt64
@@ -352,10 +356,11 @@ nonisolated final class InstallerDownloads: @unchecked Sendable {
 
     // MARK: HTTP
 
-    /// Fetches a small file (an index). A redirect to another host is refused.
+    /// Fetches a small file (an index). A redirect is followed only to one of the vendor's own hosts.
     private func fetch(_ url: URL, job: Job) throws -> Data {
+        let hosts = Set(environment.indexHosts(job.entry) + [url.host].compactMap { $0 })
         let receiver = Receiver(
-            file: nil, offset: 0, requireHTTPS: environment.requireHTTPS, sameHost: url.host, limit: 8 << 20)
+            file: nil, offset: 0, requireHTTPS: environment.requireHTTPS, allowedHosts: hosts, limit: 8 << 20)
         try perform(URLRequest(url: url), receiver: receiver, job: job)
         guard receiver.status == 200 else {
             throw receiver.status == 404
@@ -381,7 +386,7 @@ nonisolated final class InstallerDownloads: @unchecked Sendable {
         var request = URLRequest(url: url)
         if have > 0 { request.setValue("bytes=\(have)-", forHTTPHeaderField: "Range") }
         let receiver = Receiver(
-            file: handle, offset: have, requireHTTPS: environment.requireHTTPS, sameHost: nil, limit: nil)
+            file: handle, offset: have, requireHTTPS: environment.requireHTTPS, allowedHosts: nil, limit: nil)
         receiver.progress = { [weak self, weak job] done, total in
             guard let self, let job else { return }
             self.lock.lock()
@@ -437,7 +442,8 @@ private nonisolated final class Receiver: NSObject, URLSessionDataDelegate, @unc
     private let file: FileHandle?
     private var offset: UInt64
     private let requireHTTPS: Bool
-    private let sameHost: String?
+    /// Where a redirect may lead. Nil: anywhere (an installer may come from a mirror; its hash is checked).
+    private let allowedHosts: Set<String>?
     private let limit: Int?
     var progress: ((UInt64, UInt64?) -> Void)?
     private(set) var status = 0
@@ -449,11 +455,11 @@ private nonisolated final class Receiver: NSObject, URLSessionDataDelegate, @unc
     private(set) var finalHost: String?
     private var total: UInt64?
 
-    init(file: FileHandle?, offset: UInt64, requireHTTPS: Bool, sameHost: String?, limit: Int?) {
+    init(file: FileHandle?, offset: UInt64, requireHTTPS: Bool, allowedHosts: Set<String>?, limit: Int?) {
         self.file = file
         self.offset = offset
         self.requireHTTPS = requireHTTPS
-        self.sameHost = sameHost
+        self.allowedHosts = allowedHosts
         self.limit = limit
     }
 
@@ -466,7 +472,7 @@ private nonisolated final class Receiver: NSObject, URLSessionDataDelegate, @unc
             refused = "refused a redirect off HTTPS, to \(url.absoluteString)"
             return completionHandler(nil)
         }
-        if let sameHost, url.host != sameHost {
+        if let allowedHosts, !allowedHosts.contains(url.host ?? "") {
             refused = "refused a redirect to another host, \(url.host ?? "?")"
             return completionHandler(nil)
         }

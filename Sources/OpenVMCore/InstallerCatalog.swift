@@ -16,6 +16,9 @@ public nonisolated enum InstallerCatalog {
         case ubuntu(release: String)
         /// fedoraproject.org/releases.json, which lists each release's link, size and SHA-256.
         case fedora(variant: String)
+        /// cdimage.kali.org/current, with `SHA256SUMS` beside the images. Kali serves both from its own
+        /// download host, kali.download, which cdimage.kali.org redirects to.
+        case kali
         /// Only a page: the person downloads the file in their browser.
         case page
     }
@@ -79,7 +82,7 @@ public nonisolated enum InstallerCatalog {
             symbol: "circle.hexagongrid"),
         Entry(
             id: "fedora-workstation", name: "Fedora Workstation",
-            purpose: "The newest Linux desktop, updated often.",
+            purpose: "The newest Linux desktop.",
             kind: .linux, source: .fedora(variant: "Workstation"), downloadGB: 3.0, neededGB: 24,
             time: "About 20 minutes",
             limits: [
@@ -89,6 +92,15 @@ public nonisolated enum InstallerCatalog {
             // No install on record: listed because Ubuntu, which installs the same way, works (the owner).
             evidence: nil, page: URL(string: "https://fedoraproject.org/workstation/download")!,
             symbol: "hexagon"),
+        Entry(
+            id: "kali", name: "Kali Linux", purpose: "For security testing.", kind: .linux, source: .kali,
+            downloadGB: 4.1, neededGB: 28, time: "About 30 minutes",
+            limits: [
+                "No sound until you add the PipeWire setting from openVM’s Help.",
+                "The clipboard and files are not shared with the Mac yet.",
+            ],
+            // No install on record: listed at the owner's request (2026-11-14).
+            evidence: nil, page: URL(string: "https://www.kali.org/get-kali/")!, symbol: "shield"),
         Entry(
             id: "windows-11", name: "Windows 11",
             purpose: "For Windows apps. You download it from Microsoft.",

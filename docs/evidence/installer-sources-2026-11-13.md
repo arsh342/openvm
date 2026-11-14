@@ -50,3 +50,24 @@ What this shows: both indexes resolve to the current file over HTTPS, the size t
 index, a stopped download keeps its part, and the next start asks for the rest. What it does not show: a
 download run to the end and verified against the real hash (the fixture tests cover the check itself), or
 that either system installs and runs in openVM.
+
+## Kali (`kali`), added 2026-11-14
+
+* Index: `https://cdimage.kali.org/current/SHA256SUMS`. That address answers with a redirect to Kali's own
+  download host, `https://kali.download/base-images/kali-2026.3/SHA256SUMS`, so the entry names both hosts as
+  Kali's; an index redirected anywhere else is still refused.
+* The index listed, for Arm, `kali-linux-2026.3-installer-arm64.iso` (4051513344 bytes), a netinst image and a
+  live image. The entry takes the full installer, which installs without a network.
+* A real run, a few seconds long:
+
+```text
+$ openvmctl installer fetch kali
+state=running  entry=kali  bytesDone=25968271  bytesPerSecond=9621498  bytesTotal=4051513344  progress=24 MB of 3863 MB
+$ openvmctl task cancel <id>
+$ openvmctl installer list
+entry=kali  file=kali-linux-2026.3-installer-arm64.iso  path=…/isos/kali-kali-linux-2026.3-installer-arm64.iso.part  bytes=25968271  complete=false
+$ openvmctl installer remove kali
+freedBytes=25968271
+```
+
+Not shown: a download to the end, or that Kali installs and runs in openVM. No Kali install is on record.

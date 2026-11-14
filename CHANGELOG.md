@@ -12,6 +12,7 @@ First public version.
 * Each virtual machine's window has a standard toolbar, in place of the round buttons that faded in the title bar
 * openVM can download Linux installers itself (`openvmctl installer`, and tiles in the gallery once each system has an install on record), checked against the maker's published SHA-256, resumable, and kept in `~/.openvm/isos`
 * A new app icon, two screens one inside the other, and a menu-bar mark of the same shape. The compiled icon is committed, so a build without Xcode carries it
+* Kali Linux joins Ubuntu and Fedora among the systems openVM downloads and installs
 * Failures are a plain title, one sentence and one action, with the technical text behind Details
 * A stopped Linux virtual machine that still has its installer offers Remove Installer and Start
 * `create --system-name`, and `list` rows with `lastStartedAt`, `systemName`, `createdAt` and `diskUsedBytes`

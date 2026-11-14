@@ -308,7 +308,8 @@ extension SnapshotTests {
     @Test(.enabled(if: Snapshot.enabled))
     func wizardOpensOnTheGallery() async {
         let model = await wizardModel()
-        Snapshot.check("wizard-gallery", wizardView(model), width: 600, height: 540)
+        // The size of the wizard's page in its window, which cannot be resized: everything must fit.
+        Snapshot.check("wizard-gallery", wizardView(model), width: 640, height: 532)
     }
 
     @Test(.enabled(if: Snapshot.enabled))
@@ -322,7 +323,7 @@ extension SnapshotTests {
             ])
         let model = await wizardModel(host)
         await model.useInstaller("/Users/me/Downloads/kali-linux-amd64.iso")
-        Snapshot.check("wizard-gallery-intel", wizardView(model), width: 600, height: 620)
+        Snapshot.check("wizard-gallery-intel", wizardView(model), width: 640, height: 532)
     }
 
     @Test(.enabled(if: Snapshot.enabled))

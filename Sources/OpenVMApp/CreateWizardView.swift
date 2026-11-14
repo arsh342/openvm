@@ -48,18 +48,18 @@ struct CreateWizardView: View {
 
     /// Where a new VM starts: drop or choose an installer file, or pick a system.
     private var galleryPage: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("What do you want to install?").font(.title2.weight(.semibold))
-                GalleryView(
-                    gallery: gallery, status: fileStatus,
-                    chooseFile: { url in Task { await model.useInstaller(url.path) } },
-                    chooseTile: { tile in Task { await model.choose(tile.entry) } },
-                    act: act)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, Self.pageSpace)
+        // No scrolling: the window cannot be resized, and the gallery keeps one height whatever the state
+        // of the file in its drop area.
+        VStack(alignment: .leading, spacing: 14) {
+            Text("What do you want to install?").font(.title2.weight(.semibold))
+            GalleryView(
+                gallery: gallery, status: fileStatus,
+                chooseFile: { url in Task { await model.useInstaller(url.path) } },
+                chooseTile: { tile in Task { await model.choose(tile.entry) } },
+                act: act)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .padding(.vertical, Self.pageSpace)
     }
 
     /// What the wizard knows about the chosen file, as the gallery shows it.

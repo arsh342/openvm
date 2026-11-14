@@ -190,6 +190,7 @@ struct SystemBrandTests {
         #expect(SystemBrand.of(InstallerCatalog.entry("windows-11")!) == .windows)
         #expect(SystemBrand.of(InstallerCatalog.entry("ubuntu-lts")!) == .ubuntu)
         #expect(SystemBrand.of(InstallerCatalog.entry("fedora-workstation")!) == .fedora)
+        #expect(SystemBrand.of(InstallerCatalog.entry("kali")!) == .kali)
     }
 
     private func vm(_ bootMode: String, system: String? = nil) -> VmSummary {
@@ -209,6 +210,8 @@ struct SystemBrandTests {
         #expect(SystemBrand.of(vm("linux-iso", system: "Ubuntu")) == .ubuntu)
         #expect(SystemBrand.of(vm("linux-iso", system: "ubuntu-26.04.1-desktop-arm64")) == .ubuntu)
         #expect(SystemBrand.of(vm("linux-iso", system: "Fedora Workstation")) == .fedora)
+        #expect(SystemBrand.of(vm("linux-iso", system: "Kali Linux")) == .kali)
+        #expect(SystemBrand.of(vm("linux-iso", system: "kali-linux-2026.3-installer-arm64")) == .kali)
         #expect(SystemBrand.of(vm("linux-iso", system: "omarchy-4.5.0-aarch64")) == .other("terminal"))
         #expect(SystemBrand.of(vm("linux-iso")) == .other("terminal"))
     }
@@ -225,7 +228,7 @@ struct SystemBrandTests {
 @MainActor
 struct OfficialArtworkTests {
     @Test func bothMarksReadAsSquareImages() throws {
-        for image in [OfficialArtwork.ubuntuImage, OfficialArtwork.fedoraImage] {
+        for image in [OfficialArtwork.ubuntuImage, OfficialArtwork.fedoraImage, OfficialArtwork.kaliImage] {
             let image = try #require(image)
             #expect(image.size.width > 0)
             #expect(abs(image.size.width - image.size.height) < 0.01 * image.size.width)

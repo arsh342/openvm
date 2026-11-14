@@ -581,7 +581,12 @@ in Downloads) and a tile for each system. The library shows the same view while 
   shown with a preference, marked "Not tested yet"; that rule, the preference and the label are gone. The
   catalog still records which entries have an install on record: Ubuntu does
   (`docs/evidence/linux-iso-ubuntu-2026-11-13.md`, the owner's report), Fedora does not, and is listed because
-  Ubuntu, which installs the same way, works.
+  Ubuntu, which installs the same way, works. Kali Linux was added on 2026-11-14 at the owner's request, also
+  without an install on record.
+* **The gallery does not scroll in the creation window**, which cannot be resized. The drop area says what
+  became of a dropped or chosen file (being checked, usable, or why not) in place of its own text, at one
+  height, and a failure's technical text opens in a popover. In the library, which can be made small, the
+  same gallery still scrolls.
 * **A tile says its cost first**: download size, free space needed, rough time, known limits. It is off, with
   the reason, when the Mac lacks the space.
 * **Marks.** Windows, Ubuntu and Fedora show their own marks on their tiles and beside their VMs in the library
@@ -590,13 +595,15 @@ in Downloads) and a tile for each system. The library shows the same view while 
   in the source as SVG text: Canonical's Circle of Friends (`assets.ubuntu.com/v1/5924f0b8-CoF-2022.svg`, only
   its `viewBox` changed to show the square that holds the mark) and the mark from the Fedora design team's
   `fedora_default-vertical.svg` (`gitlab.com/fedora/design/team/logos/fedora-project-logos`, the logo's own
-  path without the wordmark, on a white disc). The Windows mark is drawn in code. All three are trademarks
+  path without the wordmark, on a white disc). Kali's is the dragon from its own `kali-dragon-icon.svg`
+  (`www.kali.org/images`): the file's blue disc and white dragon without its blurred glow layers, on a dark
+  ground. The Windows mark is drawn in code. All four are trademarks
   whose usage rules have not been checked: before a public release, check them or go back to neutral glyphs.
   Each mark sits on a rounded-square background, as an app icon does: Ubuntu's own orange, and white for
   Windows and Fedora. The same marks show in the library's Downloads list, while an installer downloads and
   once it is there.
-* **Layout.** Windows comes first, in full. The systems openVM downloads itself follow as short cards side by
-  side: mark, name, what it is for, size and time. Their limits are in each card's tooltip and on the
+* **Layout.** Windows comes first, in full. The systems openVM downloads itself follow as short cards in one
+  row: mark, name, what it is for, size and time. Their limits are in each card's tooltip and on the
   wizard's summary.
 * **Words.** The screens say Ubuntu, Windows 11, installer file and Arm. ARM64 and aarch64 appear only where a
   person has to find the right file on a download page.

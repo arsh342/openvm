@@ -160,13 +160,14 @@ nonisolated struct InstallerDownloadsTests {
         }
 
         func downloads(
-            free: UInt64 = 100 << 30, requireHTTPS: Bool = false,
+            free: UInt64 = 100 << 30, requireHTTPS: Bool = false, alsoFrom hosts: [String] = [],
             check: @escaping @Sendable (URL) -> String? = { _ in nil }
         ) -> InstallerDownloads {
             let index = server.url("/SHA256SUMS")
             return InstallerDownloads(
                 environment: .init(
                     directory: directory, entries: [entry], indexURL: { _ in index },
+                    indexHosts: { _ in hosts },
                     requireHTTPS: requireHTTPS,
                     freeBytes: { free }, check: check))
         }
@@ -330,6 +331,19 @@ nonisolated struct InstallerDownloadsTests {
         #expect(refused.state == .failed)
         #expect(refused.error?.contains("another host") == true)
         #expect(fixture.server.count(fixture.isoPath) == 0)
+    }
+
+    /// A vendor may serve its index from a second host of its own, as Kali does: a redirect there is followed.
+    @Test func anIndexMayRedirectToAnotherOfTheVendorsOwnHosts() async throws {
+        let fixture = Fixture()
+        defer { fixture.cleanUp() }
+        fixture.publish()
+        fixture.server.set("/elsewhere", .init(body: Data("\(fixture.hash) *\(Self.fileName)\n".utf8)))
+        fixture.server.set(
+            "/SHA256SUMS", .init(location: "http://localhost:\(fixture.server.port)/elsewhere"))
+        let done = try await run(fixture.downloads(alsoFrom: ["localhost"]))
+        #expect(done.state == .done)
+        #expect(try Data(contentsOf: fixture.final) == fixture.body)
     }
 
     /// The real host insists on HTTPS: a plain address is refused without a request being made.

@@ -116,3 +116,48 @@ import Testing
         }
     }
 }
+
+@Suite struct KaliSourceTests {
+    private let a = String(repeating: "a", count: 64)
+    private let b = String(repeating: "b", count: 64)
+    private let folder = URL(string: "https://cdimage.kali.org/current/")!
+
+    /// The names are the ones Kali's index held on 2026-11-14.
+    @Test func kaliTakesTheFullInstallerForArmAndNoOtherImage() {
+        let sums = """
+            \(b)  kali-linux-2026.3-installer-amd64.iso
+            \(a)  kali-linux-2026.3-installer-arm64.iso
+            \(b)  kali-linux-2026.3-installer-arm64.iso.torrent
+            \(b)  kali-linux-2026.3-installer-netinst-arm64.iso
+            \(b)  kali-linux-2026.3-installer-everything-amd64.iso
+            \(b)  kali-linux-2026.3-live-arm64.iso
+            \(b)  kali-linux-2026.3-qemu-amd64.7z
+            """
+        let found = InstallerSources.kali(sums: sums, folder: folder)
+        #expect(found?.fileName == "kali-linux-2026.3-installer-arm64.iso")
+        #expect(found?.sha256 == a)
+        #expect(
+            found?.url.absoluteString
+                == "https://cdimage.kali.org/current/kali-linux-2026.3-installer-arm64.iso")
+        #expect(
+            InstallerSources.kali(sums: "\(b)  kali-linux-2026.3-live-arm64.iso\n", folder: folder) == nil)
+    }
+
+    @Test func kaliTakesTheNewestReleaseIfTheIndexHoldsTwo() {
+        let sums =
+            "\(a)  kali-linux-2026.3-installer-arm64.iso\n\(b)  kali-linux-2026.10-installer-arm64.iso\n"
+        #expect(InstallerSources.kali(sums: sums, folder: folder)?.sha256 == b)
+    }
+
+    /// Kali's index is on cdimage.kali.org, which hands the request to kali.download: both are Kali's own,
+    /// and no other host is.
+    @Test func kalisIndexMayComeFromItsTwoHostsOnly() {
+        #expect(
+            InstallerSources.indexURL(for: .kali)?.absoluteString
+                == "https://cdimage.kali.org/current/SHA256SUMS")
+        #expect(InstallerSources.indexHosts(for: .kali) == ["cdimage.kali.org", "kali.download"])
+        #expect(InstallerSources.indexHosts(for: .ubuntu(release: "26.04")) == ["cdimage.ubuntu.com"])
+        #expect(InstallerSources.indexHosts(for: .fedora(variant: "Workstation")) == ["fedoraproject.org"])
+        #expect(InstallerCatalog.entry("kali")?.source == .kali)
+    }
+}
